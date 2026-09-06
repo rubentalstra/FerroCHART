@@ -30,3 +30,7 @@ target
 # documentation lane lands.
 /website/book/book/
 /_site/
+
+# The CKM exports that state no licence are fetched, never committed
+# (corpus/templates/ckm/PROVENANCE.md).
+corpus/templates/ckm/unstated/

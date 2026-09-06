@@ -7,5 +7,5 @@
 # Vendored trees and generated files are exempt from language statistics and
 # collapse in diffs; extend the list when one lands
 # (.claude/rules/vendored-inputs.md, .claude/rules/codegen.md).
-# vendor/** linguist-vendored -text
+corpus/** linguist-vendored -text
 # **/generated/** linguist-generated
