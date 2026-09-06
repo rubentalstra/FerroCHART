@@ -311,6 +311,8 @@ jobs:
     # places.
     permissions:
       contents: write # attach the per-target archives to the draft release
+      id-token: write # Sigstore, for the provenance and SBOM attestations
+      attestations: write # store them against this repository
     uses: ./.github/workflows/release-build.yml
     with:
       tag: ${{ needs.plan.outputs.tag }}
@@ -359,7 +361,13 @@ jobs:
           # grep -Fxq: fixed string, whole line, so ".tar.gz" is not satisfied
           # by ".tar.gz.sha256sum".
           while IFS= read -r target; do
-            for suffix in ".tar.gz" ".tar.gz.sha256sum" ".cdx.json"; do
+            for suffix in \
+              ".tar.gz" \
+              ".tar.gz.sha256sum" \
+              ".tar.gz.sigstore.json" \
+              ".tar.gz.sbom.sigstore.json" \
+              ".tar.gz.intoto.jsonl" \
+              ".cdx.json"; do
               printf '%s\n' "$assets" | grep -Fxq "ferrochart-${TAG}-${target}${suffix}" \
                 || missing="$missing ferrochart-${TAG}-${target}${suffix}"
             done

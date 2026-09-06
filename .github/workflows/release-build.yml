@@ -13,9 +13,17 @@
 # reusable workflow, which runs on its own VM and whose steps a caller cannot
 # add to: a caller passes the declared inputs and nothing else
 # (https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-and-reusable-workflows-to-achieve-slsa-v1-build-level-3).
-# The build definition therefore stops being caller-defined. A `uses:` job
-# cannot carry `steps:`, which makes the regression unrepresentable rather
-# than discouraged.
+# The build definition therefore stops being caller-defined, and the Fulcio
+# certificate names THIS workflow as the signer, which a consumer can demand:
+#
+#   gh attestation verify ferrochart-<tag>-<target>.tar.gz \
+#     -R rubentalstra/FerroCHART \
+#     --signer-workflow rubentalstra/FerroCHART/.github/workflows/release-build.yml
+#
+# That flag is the consumer-visible prize: it lets a verifier insist an
+# artifact came from this lane rather than from any workflow that happens to
+# live in the repository. A `uses:` job cannot carry `steps:`, which makes the
+# regression unrepresentable rather than discouraged.
 name: Release build (reusable)
 
 on:
@@ -47,6 +55,8 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: write # attach the per-target archive to the draft release
+      id-token: write # Sigstore, for the provenance and SBOM attestations
+      attestations: write # store them against this repository
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -168,6 +178,56 @@ jobs:
           mv "$src" "$sbom"
           echo "SBOM=$sbom" >> "$GITHUB_ENV"
 
+      # `actions/attest` is the one attestation action, in both modes: no
+      # `sbom-path` is provenance mode, `sbom-path` is SBOM mode. Signing is
+      # keyless Sigstore OIDC, so there is no long-lived key anywhere. The
+      # subject of both is the ARCHIVE, which is what a downloader holds.
+      - name: Attest build provenance
+        id: provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ env.ASSET }}
+      - name: Attest the SBOM
+        id: sbom-attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ env.ASSET }}
+          sbom-path: ${{ env.SBOM }}
+
+      # The attestations live in GitHub's attestations API, which is what
+      # `gh attestation verify` reads with no --bundle flag. Publishing them as
+      # assets adds offline verification, and visibility to scanners that read
+      # a release's file list: the OpenSSF Scorecard signed-releases probes
+      # match filename suffixes, `.sigstore.json` for a signature and
+      # `.intoto.jsonl` for provenance. The `.intoto.jsonl` re-containers the
+      # bundle's already DSSE-wrapped in-toto statement, one envelope per line.
+      - name: Publish the attestations as release assets
+        env:
+          PROVENANCE_BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+          SBOM_BUNDLE: ${{ steps.sbom-attestation.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          cp "$PROVENANCE_BUNDLE" "${ASSET}.sigstore.json"
+          cp "$SBOM_BUNDLE" "${ASSET}.sbom.sigstore.json"
+          jq -c '.dsseEnvelope' "$PROVENANCE_BUNDLE" > "${ASSET}.intoto.jsonl"
+          # Refuse to publish a malformed provenance line rather than attach a
+          # file that looks like provenance and is not.
+          payload_type="$(jq -r '.payloadType' "${ASSET}.intoto.jsonl")"
+          if [ "$payload_type" != "application/vnd.in-toto+json" ]; then
+            echo "::error::the provenance envelope is not in-toto (payloadType=${payload_type})" >&2
+            exit 1
+          fi
+          predicate="$(jq -r '.payload' "${ASSET}.intoto.jsonl" | base64 -d | jq -r '.predicateType')"
+          if [ "$predicate" != "https://slsa.dev/provenance/v1" ]; then
+            echo "::error::the provenance predicate is not SLSA v1 (${predicate})" >&2
+            exit 1
+          fi
+          {
+            echo "PROVENANCE_BUNDLE_ASSET=${ASSET}.sigstore.json"
+            echo "SBOM_BUNDLE_ASSET=${ASSET}.sbom.sigstore.json"
+            echo "PROVENANCE_JSONL_ASSET=${ASSET}.intoto.jsonl"
+          } >> "$GITHUB_ENV"
+
       - name: Attach the archive to the draft release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -179,4 +239,5 @@ jobs:
           # assets. Publishing freezes the release, so flipping it here would
           # lock the other targets out.
           gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber \
-            "$ASSET" "$CHECKSUM" "$SBOM"
+            "$ASSET" "$CHECKSUM" "$SBOM" \
+            "$PROVENANCE_BUNDLE_ASSET" "$SBOM_BUNDLE_ASSET" "$PROVENANCE_JSONL_ASSET"
