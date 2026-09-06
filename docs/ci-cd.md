@@ -121,11 +121,12 @@ No suppression was recorded and the audit path was not narrowed
   the binaries the release lane staged enters the build context of
   `docker/Dockerfile`.
 
-Each tier-2 job installs the toolchain with a digest-pinned
-`actions-rust-lang/setup-rust-toolchain` step of its own, which reads the
-channel from `rust-toolchain.toml`. Issue #33 lifts those six steps into a
-`./.github/actions/setup-rust` composite action, and each carries a
-`TODO(#33)` marking the line.
+Each tier-2 job installs the toolchain through the
+`./.github/actions/setup-rust` composite action, which reads the
+channel from `rust-toolchain.toml`, which `scripts/checks/versions.sh` checks
+against `docs/VERSIONS.md`. The release lane installs the toolchain itself
+with caching off, because a publishing lane restores no cache, and it says so
+at the step.
 
 ## The release lane, and what it publishes
 
