@@ -331,7 +331,7 @@ jobs:
     needs: [plan, build-binaries]
     if: needs.plan.outputs.cargo == 'true'
     permissions:
-      contents: read # the attestations API, to verify the inputs
+      contents: write # attach the quickstart compose file to the draft release
       packages: write # push the image and its attestations to GHCR
       id-token: write # Sigstore
       attestations: write # store the attestations against this repository
@@ -393,6 +393,11 @@ jobs:
                 || missing="$missing ferrochart-${TAG}-${target}${suffix}"
             done
           done < <(printf '%s' "$TARGETS" | jq -r '.include[].target')
+          # The release-wide assets the image lane attaches: the quickstart
+          # compose file, its checksum, and its provenance bundle.
+          for asset in compose.yaml compose.yaml.sha256sum compose.yaml.sigstore.json; do
+            printf '%s\n' "$assets" | grep -Fxq "$asset" || missing="$missing $asset"
+          done
           if [ -n "$missing" ]; then
             echo "::error::the draft is missing assets, so it will not be published:$missing" >&2
             exit 1

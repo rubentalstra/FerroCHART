@@ -22,6 +22,10 @@
 #   - GitHub attestations pushed as OCI referrers: provenance for the index and
 #     for each platform manifest, and an SPDX SBOM per platform.
 #
+# The lane also attaches the quickstart compose file to the draft release, with
+# its checksum and its own provenance attestation, because that file is what a
+# downloader runs and it names the image this lane pushed.
+#
 # Verify a published image, where the tag resolves to the index:
 #   gh attestation verify oci://ghcr.io/rubentalstra/ferrochart:<version> \
 #     -R rubentalstra/FerroCHART \
@@ -62,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: read # the attestations API, to verify the inputs
+      contents: write # attach the quickstart compose file to the draft release
       packages: write # push the image and its attestations to GHCR
       id-token: write # Sigstore
       attestations: write # store the attestations against this repository
@@ -272,3 +276,37 @@ jobs:
           echo "index ${DIGEST}"
           echo "amd64 ${AMD64}"
           echo "arm64 ${ARM64}"
+
+      # The quickstart compose file rides along as a release asset, so a
+      # downloader runs the product without cloning anything. It is attached
+      # from THIS lane rather than from the job that creates the draft, for two
+      # reasons: the file names the image this lane just pushed and verified,
+      # and this lane holds the signer identity a consumer can demand with
+      # --signer-workflow. The file is uploaded verbatim from the checkout;
+      # scripts/checks/versions.sh is what keeps its image tag honest.
+      - name: Checksum the quickstart compose file
+        run: |
+          set -euo pipefail
+          sha256sum compose.yaml > compose.yaml.sha256sum
+          cat compose.yaml.sha256sum
+      # A compose file is the artifact an attacker most wants to swap: change
+      # one image reference and the operator runs someone else's container. The
+      # checksum catches a corrupt download, and the attestation is what says
+      # this file came from this repository's release lane.
+      - name: Attest the quickstart compose file
+        id: compose-provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: compose.yaml
+      - name: Attach the quickstart compose file to the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          COMPOSE_BUNDLE: ${{ steps.compose-provenance.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          cp "$COMPOSE_BUNDLE" compose.yaml.sigstore.json
+          # The release is still a DRAFT here; the caller's finalize job
+          # publishes it once the asset set is complete.
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber \
+            compose.yaml compose.yaml.sha256sum compose.yaml.sigstore.json
