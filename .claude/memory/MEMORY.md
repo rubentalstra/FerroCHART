@@ -31,5 +31,8 @@
   the openEHR community member who asked for this product on 2026-09-06
   (EHRbase, OMOCL, FHIRconnect); offered specification and forms review;
   suggested serving openEHR value sets as FHIR ValueSets
+- [Parallel agents need worktrees](parallel-agents-need-worktrees.md): every
+  concurrent implementation agent gets its own `git worktree`; two agents plus
+  the orchestrator in one checkout corrupted a commit on 2026-09-06
 - [Memory lives in the repo](memory-lives-in-repo.md): every learning is a
   tracked file in `.claude/memory/`, never a per-user note
