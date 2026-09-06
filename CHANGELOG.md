@@ -21,6 +21,16 @@ the build order.
 
 ## [Unreleased]
 
+### Added
+
+- A fetch script for the ADL 2 archetype library (#49), pinned to a commit of
+  `openEHR/adl-archetypes`. It brings 322 ADL 2 archetypes and 330 ADL 1.4
+  twins, 321 of them the same archetype in both dialects, which is the first
+  real input for the property that both readers fill one internal constraint
+  model. Nothing from it is committed: one of the 652 files states a licence
+  and the rest state none, so the tree is fetched into a directory
+  `.gitignore` refuses and `PROVENANCE.md` records the omission.
+
 ## [0.0.2] - 2026-09-07
 
 ### Added

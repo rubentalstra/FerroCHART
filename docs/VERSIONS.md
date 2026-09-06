@@ -46,6 +46,21 @@ The fixture templates FerroCHART compiles in its tests are a corpus like any
 other: they are pinned by commit, they carry provenance, and they are never
 hand-edited to make a test pass.
 
+## Corpora
+
+Each corpus is pinned by commit or by a per-artefact immutable identity, never
+by a moving reference, and fetched by a committed `scripts/vendor/*.sh` with a
+`PROVENANCE.md` beside it (`.claude/rules/vendored-inputs.md`).
+
+| Item | Pin | Repeated in |
+|---|---|---|
+| openEHR CKM templates | per template `cid` | `corpus/templates/ckm/PROVENANCE.md` |
+| openEHR ADL 2 archetypes | `093c77ea003742b9540e3dd377d615e2b26f2996` | `scripts/vendor/adl2-archetypes.sh`, `corpus/archetypes/adl2/PROVENANCE.md` |
+
+The CKM template pack is committed for the exports that state a licence. The
+ADL 2 pack is fetched and never committed, because one of its 652 archetypes
+states a licence and the rest state none.
+
 ## Model crates
 
 The openEHR model comes from the published `openehr-*` crates
