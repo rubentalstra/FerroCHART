@@ -23,6 +23,12 @@ no binary to download yet.
 
 ### Added
 
+- The Cargo workspace (#11): the eight crates of `docs/architecture.md` §11,
+  the workspace lint table from `.claude/rules/reliability.md` with
+  `unsafe_code` forbidden, a release profile that keeps `panic = "unwind"` and
+  `overflow-checks`, and a separate `wasm-release` profile for the renderer.
+  `deny.toml`'s licence exceptions now name the real crates, including the
+  three pinned openEHR crates that are BUSL-1.1.
 - How a coded field gets its codes, decided against measured evidence (#6):
   97.6% of the 843 coded fields in 102 operational templates take their
   membership from the template, an enumerated external code carries no rubric

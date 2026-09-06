@@ -16,13 +16,30 @@ FerroCHART in prose, `ferrochart` in identifiers. The product is not called
 FerroFORM because ferroform.eu was already registered
 (`.claude/memory/domain-ferrochart-eu.md`).
 
-## Status: the design is open, and nothing is built
+## Status: the design is settled, and the build has started
 
-There is no Cargo workspace, no crate, and no `docs/architecture.md` yet. The
-architecture is the output of the research program on issue #1, and until that
-closes the deliverable of most issues is cited evidence and a recommendation
-rather than code. **Do not scaffold a workspace, a crate layout, or a form
-definition format on your own initiative** (`.claude/memory/owner-work-style.md`).
+`docs/architecture.md` is the design of record, produced by the research
+program on issue #1 (closed 2026-09-06). It carries a decision per question
+with a citation to a primary source or the explicit label that no
+specification governs it, a pin table, a build order, and a decision
+register. **Read it before changing anything it decides, and change it in the
+same pull request that changes the behaviour.**
+
+The Cargo workspace exists and reserves the crate names of
+`docs/architecture.md` §11. The build order is §14, one milestone per stage,
+and each release is green before the next starts.
+
+Two decisions from the research are worth carrying in your head, because they
+shape everything: **both ADL generations normalize into one internal
+constraint model**, so the field derivation is written once and never twice;
+and **the layout overlay key is a step chain carrying the RM attribute, the
+node id, the archetype id, the RM type and the pinned name**, because walking
+102 real templates showed an id-only path is not unique inside an operational
+template.
+
+Design questions the document does not answer are still research first
+(`.claude/memory/owner-work-style.md`): file the issue, gather cited evidence,
+decide, then build.
 
 ## What the product is, and where the hard part is
 
