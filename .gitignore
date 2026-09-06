@@ -37,3 +37,10 @@ corpus/templates/ckm/unstated/
 
 # The rendered book
 website/book/book/
+
+# The ADL 2 archetype pack states no licence, so it is fetched and never
+# committed (corpus/archetypes/adl2/PROVENANCE.md).
+corpus/archetypes/adl2/**/*.adls
+corpus/archetypes/adl2/**/*.adl
+corpus/archetypes/adl2/_repo_lib.idx
+corpus/archetypes/adl2/readme.txt
