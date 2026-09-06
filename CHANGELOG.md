@@ -23,6 +23,13 @@ no binary to download yet.
 
 ### Added
 
+- How a coded field gets its codes, decided against measured evidence (#6):
+  97.6% of the 843 coded fields in 102 operational templates take their
+  membership from the template, an enumerated external code carries no rubric
+  there, and one code path serves every binding kind by resolving locally and
+  asking a terminology server only for what is missing. Archetype value sets
+  are emitted as FHIR `CodeSystem`, `ValueSet` and `ConceptMap` under a minted
+  URL, because no openEHR specification defines one.
 - The overlay key, decided against measured evidence (#8): a step chain
   carrying the RM attribute, the `node_id`, the archetype id, the RM type and
   the pinned name, with a sibling ordinal only where those tie. Walking 102
