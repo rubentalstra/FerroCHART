@@ -60,9 +60,9 @@ v1", "deferred", or "out of scope for now". The tracker is the scope, and
 release contents are decided during development. Describe what is built and
 what is planned as build order.
 
-While the project is in its design phase, say so plainly and say what decides
-the open question. "The architecture is the output of the research on issue #1"
-is honest; a confident description of an undecided design is not.
+Say plainly what is built and what is not. "The compiler does not read a
+template yet" is honest; describing a planned capability in the present tense
+is not. Where a decision is genuinely open, say what will settle it.
 
 ## Code comments and doc comments
 

@@ -16,7 +16,8 @@ an entry under **[Unreleased]** in the same PR. Cutting a release renames
 The 0.0.x line carries the design of record, the repository and its gates, and
 the engine as it is built. `docs/architecture.md` is the design, and
 `docs/architecture.md` section 14 is the build order each milestone follows.
-There is no binary to download yet.
+A release publishes binaries for four Linux targets; what they do grows with
+the build order.
 
 ## [Unreleased]
 
@@ -46,6 +47,14 @@ There is no binary to download yet.
   GitHub Pages from `main`. `docs/VERSIONS.md` carries the three tool pins and
   `scripts/checks/versions.sh` stops skipping that check.
 - The vendored openEHR CKM template corpus, licence by licence (#12).
+
+### Fixed
+
+- Status text that had gone stale as the repository gained code: the README no
+  longer says there is no code and no binary, `docs/ci-cd.md` no longer calls
+  the Rust tier gated off, `scripts/checks/versions.sh` and four `.claude`
+  rules no longer describe a design phase that closed, and a reference to
+  issue #20 that meant a different repository's issue now names #33.
 
 ### Changed
 

@@ -123,9 +123,10 @@ the CDR accepting it. Test the round trip, never one leg of it.
 
 ## Make no claim beyond the specification
 
-While the project is in its design phase, the strongest temptation is to state
-a technical fact about openEHR from memory. Do not. Every claim about the
-Reference Model, the Archetype Object Model, ITS-REST, AQL, or a de facto
-format that appears in this repository is one the product statement in
-`CLAUDE.md` already makes, or one the research has established with a citation.
-Anything else is a question for the research program, not a sentence in a file.
+The strongest temptation is to state a technical fact about openEHR from
+memory. Do not. Every claim about the Reference Model, the Archetype Object
+Model, ITS-REST, AQL, or a de facto format that appears in this repository is
+one the product statement in `CLAUDE.md` already makes, or one
+`docs/architecture.md` has established with a citation. Anything else is a
+question to answer with the specification in front of you, not a sentence in a
+file.

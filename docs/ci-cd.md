@@ -40,8 +40,11 @@ Each of these was in place before the file it guards, which is the point.
 `.rs` files, and `versions` still skips loudly for the subject files that do
 not exist yet.
 
-**Tier 2 is written now and gated off.** A `detect` job checks out and looks
-for a root `Cargo.toml`, publishing a boolean output. Every Rust job carries
+**Tier 2 runs, behind the same detection that once gated it off.** A
+`detect` job checks out and looks for a root `Cargo.toml`, publishing a
+boolean output. The workspace landed on #11, so the boolean is true and every
+Rust job runs; the gate stays because it keeps the lane honest on a tree that
+has no manifest. Every Rust job carries
 `needs: detect` and `if: needs.detect.outputs.cargo == 'true'`: rustfmt,
 clippy at `-D warnings`, nextest plus doctests, rustdoc at `-D warnings`,
 `cargo deny check`, MSRV through `cargo hack check --rust-version`, and
@@ -120,9 +123,9 @@ No suppression was recorded and the audit path was not narrowed
 
 Each tier-2 job installs the toolchain with a digest-pinned
 `actions-rust-lang/setup-rust-toolchain` step of its own, which reads the
-channel from `rust-toolchain.toml` when that file exists. Issue #20 lands the
-workspace, the toolchain file, and a `./.github/actions/setup-rust` composite
-action; each of those six steps carries a `TODO(#33)` marking the line to lift.
+channel from `rust-toolchain.toml`. Issue #33 lifts those six steps into a
+`./.github/actions/setup-rust` composite action, and each carries a
+`TODO(#33)` marking the line.
 
 ## The release lane, and what it publishes
 
