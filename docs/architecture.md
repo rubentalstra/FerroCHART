@@ -322,31 +322,75 @@ layout. **That report is the product.**
 
 ### 6.2 The key
 
-The overlay is keyed by the computable path of the node it decorates.
+The overlay is keyed by the identity of the node it decorates, and that
+identity was measured rather than assumed. The measurement walked 102
+operational templates, 87 single-purpose conformance templates and 16 CKM
+clinical templates, node by node, 10,802 nodes in total (issue #8).
 
-- **The key uses `at`-codes, never meaning-based names.** ADL 1.4 section 7.2
-  warns that meaning-based paths such as `items[systolic]` "are only for
-  display purposes, and paths used for computing always use the 'at' codes".
-- **The key carries the archetype id at every chaining point.** BASE
-  Release-1.2.0 section 11.2.3 distinguishes archetype boundaries inside a
-  COMPOSITION with an archetype id predicate. Including them makes a swapped
-  archetype visible as a changed key rather than an invisible rebinding of
-  layout onto a different clinical concept.
-- **A name predicate is not part of the key.** It is stored beside the key as
-  advisory metadata. The reason is a documented failure mode: a
-  template-derived `[atNNNN,'name']` predicate carries the template's term
-  text while an instance may legitimately redefine `LOCATABLE.name`, so a
-  strict match can find nothing, and an id-only fallback is sound only when
-  the id is unique among its matched siblings. A key that keeps the name
-  breaks when a name changes. A key that drops it collides where two siblings
-  share an id and differ by name, so the compiler reports that collision
-  instead of resolving it silently.
+**An id-only path is not unique inside an operational template.** 427 sibling
+groups share one `node_id` under one attribute, across 14 of the 102
+templates. BASE Release-1.2.0 section 11.2.2.2 records that an archetype path
+is unique **in an archetype**, and an operational template composes many
+archetypes and may repeat a node, so that guarantee does not reach this far.
+Section 11.2.4 separately records that a path does not uniquely identify items
+in runtime data. The overlay keys the definition rather than the data, which
+removes the second problem and leaves the first.
 
-A path is a sound key within one operational template. BASE section 11.2.2.2
-records that an archetype path is unique in an archetype, and 11.2.4 that it
-does not uniquely identify items in runtime data. The overlay keys the
-definition and not the data, which is the side of that line where a path
-works.
+What separates a colliding sibling group in the corpus:
+
+| Discriminator | Groups | Share |
+|---|---|---|
+| The pinned name | 175 | 41.0% |
+| The RM type | 126 | 29.5% |
+| The archetype id | 76 | 17.8% |
+| Partly separated, some siblings still tie | 20 | 4.7% |
+| Nothing | 30 | 7.0% |
+
+**The key is therefore a chain of steps, and each step carries five things**:
+the RM attribute name, the `node_id` where the node has one, the archetype id
+where the child is an archetype root, the RM type, and the pinned name where
+the template states one. No specification governs this: our own design.
+
+Each part earns its place in the corpus:
+
+- **`at`-codes, never meaning-based path segments.** ADL 1.4 section 7.2
+  warns that segments such as `items[systolic]` "are only for display
+  purposes, and paths used for computing always use the 'at' codes".
+- **The archetype id at every chaining point.** BASE section 11.2.3
+  distinguishes archetype boundaries with an archetype id predicate. It is the
+  only discriminator for 17.8% of collisions, and it makes a swapped archetype
+  show as a changed key rather than an invisible rebinding of layout onto a
+  different clinical concept. In the CCTA report, `/content[at0000]/items[at0000]`
+  holds three `OBSERVATION` children that differ in nothing else.
+- **The RM type.** It is the only discriminator for 29.5%, most often the
+  `DV_CODED_TEXT` and `DV_TEXT` sibling pair that AOM 2 section 4.2.8.2
+  prescribes for a field taking either a code or free text. That pattern
+  occurs 42 times in the corpus. Carrying the type also lets a replay report a
+  node whose type changed, which is layout that may no longer mean anything.
+- **The pinned name, where the template states one.** It is the only
+  discriminator for 41.0%, the largest share. In the breast cancer synoptic
+  report, `/content[at0000]` holds three `SECTION` children, all `at0000` from
+  `openEHR-EHR-SECTION.adhoc.v1`, told apart only by "Patient Identity",
+  "Diagnostic Summary" and "2. Current biopsy findings".
+
+**A name in the key is a definition fact, and it is not the same thing as a
+name predicate matched against data.** The warning in the flat path machinery,
+that a template-derived `[atNNNN,'name']` conjunct can fail to match because
+an instance may legitimately redefine `LOCATABLE.name` (RM common), is about
+resolving a path against a COMPOSITION. That problem belongs to the
+composition builder and the read-back of section 8, where the id-only fallback
+applies and is sound only when the id is unique among matched siblings. The
+overlay keys the definition, where a pinned name is a fact the template states
+and is exactly as stable as the rest of the template. Running the two together
+would discard the strongest discriminator the corpus has.
+
+**Where the whole tuple still ties, the step carries a sibling ordinal and the
+entry is marked as positionally keyed.** This is 7.0% of collisions, and the
+congenital syphilis form is the shape: two `ITEM_TREE` children under one
+`events[at0026]/data`, both named "Simple", identical in every other respect.
+A positional key is the one a reordering silently breaks, so the replay
+reports every positionally keyed entry whenever its container changed, rather
+than trusting the position.
 
 ### 6.3 Stability across revisions
 
@@ -361,9 +405,9 @@ appear where there was none; and a template revision may re-run the
 flattener, swap an archetype version, fill a slot differently, or delete a
 node, each of which changes paths.
 
-So recompile-and-report is not a fallback. It is the only correct design, and
-issue #8 fixes the normalization rule before any overlay is written to disk,
-because the stored key shape cannot be changed later without a migration.
+So recompile-and-report is not a fallback. It is the only correct design. The
+key shape of 6.2 is fixed before any overlay is written to disk, because a
+stored key cannot be changed later without a migration.
 
 ### 6.4 The replay report
 
@@ -375,8 +419,11 @@ the classification is the feature:
 - **moved**, the key resolves to nothing and exactly one node elsewhere
   carries the same terminal node id and RM type. Reported as a suggestion for
   a person to accept, never applied silently.
-- **ambiguous**, the key resolves to more than one node, which is the
-  same-id-sibling collision from 6.2.
+- **ambiguous**, the key resolves to more than one node, which means the
+  five-part step tuple of 6.2 tied and the entry was positionally keyed.
+- **reordered**, the entry is positionally keyed and its container changed, so
+  the position it relies on is no longer trustworthy. Reported for a person to
+  confirm, never followed silently.
 - **retyped**, the key resolves to one node whose RM type changed, so the
   layout may no longer be meaningful.
 - **new**, a node in the recompiled definition that no overlay entry
@@ -614,7 +661,7 @@ Each release is green before the next starts.
 | Form definition | A FerroCHART type projected from the web template | The web template has no normative document and carries divergences that would become ours | Publishing the web template as the format |
 | Unknown members | Preserved verbatim through a round trip | A third party's metadata must survive this tool | Dropping what is not modelled |
 | Layout storage | A separate overlay keyed by computable path | No specification governs a form artefact; every surveyed alternative loses the work or pollutes the shared model | Template annotations; layout on the definition; layout in the rendered artefact |
-| Overlay key | `at`-codes plus archetype ids at chaining points, name as advisory metadata | Meaning-based paths are display-only (ADL 1.4 section 7.2); a name predicate can stop matching a legitimate instance | Keying by the raw path string including the name predicate |
+| Overlay key | A step chain carrying attribute, `node_id`, archetype id, RM type and pinned name, with a sibling ordinal only where those tie | Measured over 102 operational templates: an id-only path collides in 14 of them, and name, RM type and archetype id are the only discriminators for 41.0%, 29.5% and 17.8% of the 427 colliding groups | An id-only key; a key omitting the name, which loses the largest discriminator; keying by position everywhere |
 | Revision handling | Recompile, replay, and report per entry | No specification promises path stability across revisions, and specialisation provably changes codes | Migrating layout silently; discarding unmatched entries |
 | Coded field resolution | Local for archetype-local sets, network only where the template names a target | ADL 2 section 8.1; a local set has no URL to ask about | Expanding everything over the network |
 | Terminology wire | FHIR R4 4.0.1 | AQL section 3.9.5.1 names `hl7.org/fhir/4.0` and never R5 | R5 |
