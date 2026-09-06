@@ -1,0 +1,37 @@
+<!-- SPDX-FileCopyrightText: Ruben Talstra -->
+<!-- SPDX-License-Identifier: BUSL-1.1 -->
+
+# FerroCHART
+
+> FerroCHART is a pure-Rust openEHR form builder and renderer. It compiles an operational template into a form definition, renders that form for a clinician, and turns the entered values back into a COMPOSITION committed to an openEHR CDR over the ITS-REST API. It reads compositions back into the same form. A form is derived from its template, never hand-written per template, and hand-authored layout lives in a separate overlay keyed by AQL path so a template revision does not destroy it. It works against any openEHR CDR, and uses a FHIR terminology server to expand the value sets behind coded fields. The project is in its design phase: there is no Cargo workspace, no release, and no binary. FerroCHART ships no AI: no model is trained, embedded, or called at request time. AI coding assistance is used to build it, under human review.
+
+## Start here
+
+- [README](README.md): what FerroCHART is, what is decided, what is open, and the licence.
+- [Version matrix](docs/VERSIONS.md): every version pin in one place, with the file that repeats each one.
+- [Working discipline](CLAUDE.md): the engineering rules for changing the code, and the repo map.
+- The architecture document does not exist yet. It is the output of the research program on issue #1.
+
+## Rules (`.claude/rules/`)
+
+- [spec-adherence.md](.claude/rules/spec-adherence.md): the openEHR Reference Model, Archetype Object Model, ITS-REST, and AQL specifications are the oracle; strictness and citation; the web template and flat formats are compatibility targets, not specifications.
+- [codegen.md](.claude/rules/codegen.md): what is generated and what is hand-written; never hand-edit a `// @generated` file.
+- [reliability.md](.claude/rules/reliability.md): the machine-enforced safety rules (no `unsafe`, typed errors, deny-tier lints, no flattened upstream failure).
+- [rust-style.md](.claude/rules/rust-style.md): idiomatic Rust style and import discipline.
+- [testing.md](.claude/rules/testing.md): test discipline; the round trip is the unit of correctness; never weaken a test to make a build pass.
+- [comments.md](.claude/rules/comments.md): comment budgets (RFC 505 and RFC 1574).
+- [writing-style.md](.claude/rules/writing-style.md): the prose rules for all human-facing text.
+- [vendored-inputs.md](.claude/rules/vendored-inputs.md): external material enters through a committed fetch script, verbatim, with provenance.
+- [ci-cd.md](.claude/rules/ci-cd.md): workflow security and the supply-chain discipline.
+- [ai-code-review.md](.claude/rules/ai-code-review.md): SonarQube Cloud and CodeQL are advisory, never authority.
+- [issue-workflow.md](.claude/rules/issue-workflow.md): the GitHub Issues work loop.
+
+## Governance and policies
+
+- [AI statement](AI_STATEMENT.md): how AI tools are used to develop FerroCHART, and the fact that the product ships no AI.
+- [Governance](GOVERNANCE.md): how decisions get made, and by whom.
+- [Maintainers](MAINTAINERS.md): the roster and the access-continuity answer.
+- [Contributing](CONTRIBUTING.md): setup, gates, and the hard rules.
+- [Support](SUPPORT.md): where to get help.
+- [Security policy](SECURITY.md): report a vulnerability privately.
+- [Changelog](CHANGELOG.md): every change with a user-visible effect.

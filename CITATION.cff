@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: Ruben Talstra
+# SPDX-License-Identifier: BUSL-1.1
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "FerroCHART"
+abstract: >-
+  A pure-Rust openEHR form builder and renderer. It compiles an operational
+  template into a form definition, renders that form for a clinician, and
+  turns the entered values back into a COMPOSITION committed to any openEHR
+  CDR over the ITS-REST API.
+type: software
+authors:
+  - given-names: Ruben
+    family-names: Talstra
+license: BUSL-1.1
+repository-code: "https://github.com/rubentalstra/FerroCHART"
+url: "https://ferrochart.eu"
+keywords:
+  - openEHR
+  - clinical forms
+  - archetype
+  - operational template
+  - Rust
+version: 0.0.1
