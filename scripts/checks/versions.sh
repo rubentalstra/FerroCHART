@@ -21,10 +21,13 @@
 #   5. CI tool pins        the zizmor, actionlint, shellcheck and hadolint
 #                          versions .github/workflows/ci.yml installs, against
 #                          docs/VERSIONS.md.
-#   6. docs toolchain      the mdBook, mdbook-toc and mdbook-mermaid defaults of
+#   6. release tool pins   the cargo-auditable and cargo-cyclonedx versions
+#                          .github/workflows/release-build.yml installs, against
+#                          docs/VERSIONS.md.
+#   7. docs toolchain      the mdBook, mdbook-toc and mdbook-mermaid defaults of
 #                          .github/actions/docs-toolchain/action.yml against
 #                          docs/VERSIONS.md.
-#   7. licence             LICENSE is the Business Source License 1.1 and no
+#   8. licence             LICENSE is the Business Source License 1.1 and no
 #                          first-party file claims MIT or Apache-2.0 as its own.
 #
 # Usage:
@@ -264,6 +267,28 @@ if [ -f .github/workflows/ci.yml ]; then
   done
 else
   note "no .github/workflows/ci.yml yet, skipped"
+fi
+
+echo "== release lane tool pins (.github/workflows/release-*.yml <-> docs/VERSIONS.md)"
+# A tool that runs inside the isolated build lane writes a document that lane
+# then signs, so its version is a pin like any other.
+release_build=.github/workflows/release-build.yml
+if [ -f "$release_build" ]; then
+  for tool in cargo-auditable cargo-cyclonedx; do
+    want="$(pin_of "$tool" docs/VERSIONS.md)"
+    found="$(sed -nE "s|^[[:space:]]*tool:[[:space:]]*$tool@([^[:space:]]+).*|\1|p" "$release_build" | head -n1)"
+    if [ -z "$want" ]; then
+      bad "docs/VERSIONS.md has no '$tool' row"
+    elif [ -z "$found" ]; then
+      bad "$release_build installs $tool without pinning a version"
+    elif [ "$found" != "$want" ]; then
+      bad "$tool: $release_build pins $found, docs/VERSIONS.md pins $want"
+    else
+      note "OK: $tool $found"
+    fi
+  done
+else
+  note "no $release_build yet, skipped"
 fi
 
 echo "== docs toolchain (.github/actions/docs-toolchain <-> docs/VERSIONS.md)"

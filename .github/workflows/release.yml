@@ -358,10 +358,8 @@ jobs:
           missing=""
           # grep -Fxq: fixed string, whole line, so ".tar.gz" is not satisfied
           # by ".tar.gz.sha256sum".
-          # TODO(#34): extend this suffix list with the provenance, SBOM and
-          # Sigstore bundle names once the attested build lane emits them.
           while IFS= read -r target; do
-            for suffix in ".tar.gz" ".tar.gz.sha256sum"; do
+            for suffix in ".tar.gz" ".tar.gz.sha256sum" ".cdx.json"; do
               printf '%s\n' "$assets" | grep -Fxq "ferrochart-${TAG}-${target}${suffix}" \
                 || missing="$missing ferrochart-${TAG}-${target}${suffix}"
             done

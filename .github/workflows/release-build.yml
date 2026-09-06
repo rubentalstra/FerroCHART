@@ -68,10 +68,20 @@ jobs:
         if: ${{ contains(inputs.target, 'musl') }}
         run: sudo apt-get update && sudo apt-get install -y musl-tools
 
+      # `cargo auditable` writes the compressed dependency list into the
+      # binary's own `.dep-v0` section, under 4 KiB, so the SHIPPED artifact
+      # self-describes to syft, trivy, grype and osv-scanner even when the
+      # release page's SBOM never travelled with it
+      # (https://github.com/rust-secure-code/cargo-auditable).
+      - name: Install cargo-auditable
+        uses: taiki-e/install-action@0758d235715de2f3551eacc980d9ae8fce9342c3 # v2.87.3
+        with:
+          tool: cargo-auditable@0.7.5
+
       - name: Build the release binaries
         env:
           TARGET: ${{ inputs.target }}
-        run: cargo build --release --locked --workspace --bins --target "$TARGET"
+        run: cargo auditable build --release --locked --workspace --bins --target "$TARGET"
 
       - name: Package the binaries with their checksum
         env:
@@ -111,6 +121,53 @@ jobs:
             echo "CHECKSUM=${asset}.sha256sum"
           } >> "$GITHUB_ENV"
 
+      # A CycloneDX document of the Rust dependency graph, a different document
+      # from the container SBOM: it carries the direct and transitive edges
+      # that make an SBOM actionable, and it is generated from the release
+      # commit's own Cargo.lock.
+      - name: Install cargo-cyclonedx
+        uses: taiki-e/install-action@0758d235715de2f3551eacc980d9ae8fce9342c3 # v2.87.3
+        with:
+          tool: cargo-cyclonedx@0.5.9
+
+      - name: Generate the dependency SBOM
+        env:
+          TAG: ${{ inputs.tag }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          # One document per released binary, and each one is attested below by
+          # a step of its own, which no loop can express. So the lane names the
+          # binaries it describes and refuses a workspace that declares another
+          # one, rather than shipping a binary with no SBOM. A new binary joins
+          # here, with its own generate and attest steps.
+          declared="$(cargo metadata --format-version 1 --no-deps --locked \
+            | jq -r '.packages[].targets[] | select(.kind | index("bin")) | .name' \
+            | sort -u | paste -sd, -)"
+          if [ "$declared" != "ferrochart" ]; then
+            echo "::error::the workspace declares the bin set '${declared}'; this lane describes 'ferrochart' and would ship the rest with no SBOM." >&2
+            exit 1
+          fi
+          # `--spec-version 1.5` is the highest cargo-cyclonedx emits and its
+          # default is 1.3, so dropping the flag downgrades every release.
+          # `--describe binaries` with a manifest path scoped to the
+          # binary-producing crate makes the document describe the shipped
+          # artifact rather than the whole workspace.
+          cargo cyclonedx \
+            --manifest-path app/ferrochart/Cargo.toml \
+            --format json --describe binaries --spec-version 1.5
+          sbom="ferrochart-${TAG}-${TARGET}.cdx.json"
+          # cargo-cyclonedx names the file after the binary; find it rather
+          # than hard-coding the stem, then rename it after the asset it
+          # describes.
+          src="$(find app/ferrochart -maxdepth 1 -name '*.cdx.json' | head -n1)"
+          if [ -z "$src" ]; then
+            echo "::error::cargo-cyclonedx produced no .cdx.json" >&2
+            exit 1
+          fi
+          mv "$src" "$sbom"
+          echo "SBOM=$sbom" >> "$GITHUB_ENV"
+
       - name: Attach the archive to the draft release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -122,4 +179,4 @@ jobs:
           # assets. Publishing freezes the release, so flipping it here would
           # lock the other targets out.
           gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber \
-            "$ASSET" "$CHECKSUM"
+            "$ASSET" "$CHECKSUM" "$SBOM"
