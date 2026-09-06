@@ -20,14 +20,18 @@ It runs as its own server beside any openEHR CDR reached over the openEHR
 ITS-REST API, and uses any FHIR terminology server to expand the value sets
 behind coded fields.
 
-## Status: designed, not yet built
+## Status: the design is settled, the engine is being built
 
-There is no code and no binary. The design of record is
-[`docs/architecture.md`](docs/architecture.md), the output of the research
-program on
+The design of record is [`docs/architecture.md`](docs/architecture.md), the
+output of the research program on
 [issue #1](https://github.com/rubentalstra/FerroCHART/issues/1), where every
 decision carries a citation or an explicit note that no specification governs
-it. Nothing here describes software you can download.
+it.
+
+A release publishes signed binaries and a container image, and the build order
+in `docs/architecture.md` section 14 says what each one adds. **Nothing here
+compiles a template into a form yet**, so a release today is the scaffolding
+rather than the product. Watch the milestones for when that changes.
 
 ## Why this exists
 
@@ -122,7 +126,7 @@ Each runs on its own and against other people's servers.
 ## Contributing
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) has the rules, and the open issues are the
-worklist. While the project is in its design phase the most useful contribution
+worklist. While the engine is being built the most useful contribution
 is evidence: a specification citation, a measurement, or first-hand experience
 building and running clinical forms over openEHR. If you have watched a
 clinician use a form and seen where it failed them, that is worth more here

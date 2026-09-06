@@ -27,12 +27,13 @@ loop, the label taxonomy, and the cadence. Relationships between issues live in
 3. **Do the work.** At pickup, move the issue to `In Progress` on the board
    (`scripts/gh/project.sh status <n> in-progress`). First read the governing
    spec text (`/spec-lookup`; the openEHR Reference Model, the Archetype Object
-   Model, ITS-REST, and AQL are the oracles, see `spec-adherence.md`). While the project is in
-   its design phase, most issues are research: the deliverable is cited
-   evidence and a recommendation rather than code (`CLAUDE.md` §Status). Once
-   the architecture is fixed, a generated layer changes through its generator
-   (never a hand-edit of `// @generated`) and the engine is idiomatic Rust of
-   our own design, built as compiling, tested increments.
+   Model, ITS-REST, and AQL are the oracles, see `spec-adherence.md`). The
+   architecture is settled (`docs/architecture.md`), so most issues now
+   deliver code; a question that document does not answer is research first,
+   and its deliverable is cited evidence and a recommendation. A generated
+   layer changes through its generator (never a hand-edit of `// @generated`)
+   and the engine is idiomatic Rust of our own design, built as compiling,
+   tested increments.
 4. **Record progress on the issue.** Tick verified acceptance-criteria
    checkboxes (`gh issue edit <n>`), and post substantive status or decisions
    as comments (`gh issue comment <n>`); the issue thread is the durable
