@@ -1,0 +1,13 @@
+<!-- SPDX-FileCopyrightText: Ruben Talstra -->
+<!-- SPDX-License-Identifier: BUSL-1.1 -->
+<!-- One colour, taken from the surrounding text. For a stamp, an embroidery
+     file, or anywhere a single ink is all there is. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64" fill="none" stroke="currentColor" role="img" aria-label="FerroCHART icon">
+  <title>FerroCHART</title>
+  <rect x="9" y="7" width="46" height="50" rx="7" stroke-width="4"/>
+  <g stroke-linecap="round">
+    <path d="M19 20 H45" stroke-width="4"/>
+    <path d="M19 29 H39" stroke-width="4"/>
+    <path d="M19.5 40 L24.5 45 L33 36.5" stroke-width="4.6" stroke-linejoin="round"/>
+  </g>
+</svg>

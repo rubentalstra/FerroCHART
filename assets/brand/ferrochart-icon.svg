@@ -1,0 +1,16 @@
+<!-- SPDX-FileCopyrightText: Ruben Talstra -->
+<!-- SPDX-License-Identifier: BUSL-1.1 -->
+<!-- The FerroCHART mark: a form, filled in and checked. The rows are the
+     fields a template compiles to; the tick is the validation that happens
+     before a COMPOSITION is built, which is the part a clinician actually
+     feels. No vertical strokes, because a caret beside a row reads as a
+     letter at favicon sizes. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64" role="img" aria-label="FerroCHART icon">
+  <title>FerroCHART</title>
+  <rect x="9" y="7" width="46" height="50" rx="7" fill="none" stroke="#C2185B" stroke-width="4"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M19 20 H45" stroke="#C2185B" stroke-width="4"/>
+    <path d="M19 29 H39" stroke="#E04F84" stroke-width="4"/>
+    <path d="M19.5 40 L24.5 45 L33 36.5" stroke="#C2185B" stroke-width="4.6" stroke-linejoin="round"/>
+  </g>
+</svg>

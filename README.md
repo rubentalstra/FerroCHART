@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: Ruben Talstra -->
 <!-- SPDX-License-Identifier: BUSL-1.1 -->
 
-# FerroCHART
+# <img src="https://raw.githubusercontent.com/rubentalstra/FerroCHART/main/assets/brand/ferrochart-lockup-auto.svg" alt="FerroCHART" width="244" height="56">
 
 <!-- badges:begin -->
 [![CI](https://github.com/rubentalstra/FerroCHART/actions/workflows/ci.yml/badge.svg)](https://github.com/rubentalstra/FerroCHART/actions/workflows/ci.yml)
