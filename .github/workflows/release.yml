@@ -290,7 +290,7 @@ jobs:
 
   # ---- build-binaries: gated on the workspace, skipped today ----------------
 
-  # TODO(#23): this job becomes a call to a reusable workflow
+  # TODO(#34): this job becomes a call to a reusable workflow
   # (`on: workflow_call`) that also emits SLSA build provenance, a CycloneDX
   # SBOM, and the Sigstore bundles for both. The isolation is the point: SLSA
   # Build Level 3 requires the signing material to sit out of reach of
@@ -401,7 +401,7 @@ jobs:
           missing=""
           # grep -Fxq: fixed string, whole line, so ".tar.gz" is not satisfied
           # by ".tar.gz.sha256sum".
-          # TODO(#23): extend this suffix list with the provenance, SBOM and
+          # TODO(#34): extend this suffix list with the provenance, SBOM and
           # Sigstore bundle names once the attested build lane emits them.
           while IFS= read -r target; do
             for suffix in ".tar.gz" ".tar.gz.sha256sum"; do

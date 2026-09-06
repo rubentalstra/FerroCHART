@@ -119,7 +119,7 @@ Each tier-2 job installs the toolchain with a digest-pinned
 `actions-rust-lang/setup-rust-toolchain` step of its own, which reads the
 channel from `rust-toolchain.toml` when that file exists. Issue #20 lands the
 workspace, the toolchain file, and a `./.github/actions/setup-rust` composite
-action; each of those six steps carries a `TODO(#20)` marking the line to lift.
+action; each of those six steps carries a `TODO(#33)` marking the line to lift.
 
 ## Triggers and concurrency
 
@@ -131,22 +131,23 @@ merge.
 
 ## Owner actions (one-time, not scriptable)
 
-These are repository settings only the owner can change. The repository was
-created on 2026-09-06, so everything below is outstanding; this table is the
-checklist and the record for the next reader.
+These are repository settings only the owner can change. This table is the
+checklist and the record for the next reader, and issue #2 tracks the rest.
+Each state below was read from the API rather than remembered.
 
 | Setting | State |
 |---|---|
-| `main` ruleset: requires a pull request, signed commits, and the `conclusion` status check with the strict up-to-date policy; deletions and non-fast-forward pushes blocked | open |
-| Code scanning in advanced setup, with the CodeQL default setup off so `codeql.yml` is the analysis path | open |
-| Secret scanning with push protection, Dependabot alerts, and Dependabot security updates | open |
+| `main` ruleset: requires a pull request, signed commits, and the `conclusion` status check with the strict up-to-date policy; deletions and non-fast-forward pushes blocked | **open, and the one that matters**: `GET /rulesets` returns `[]`, so `main` takes a direct push and requires no check |
+| Code scanning in advanced setup, with the CodeQL default setup off so `codeql.yml` is the analysis path | done, verified 2026-09-06: `code-scanning/default-setup` reports `not-configured` |
+| Secret scanning with push protection, Dependabot alerts, and Dependabot security updates | done, verified 2026-09-06 |
 | Artifact attestations, for the release lane when it lands | open |
-| The `SONAR_TOKEN` secret and the SonarCloud project `rubentalstra_FerroCHART`, with Automatic Analysis off (`.claude/rules/ai-code-review.md`) | open: `sonar.yml` fails until both exist |
+| The `SONAR_TOKEN` secret and the SonarCloud project `rubentalstra_FerroCHART`, with Automatic Analysis off (`.claude/rules/ai-code-review.md`) | done 2026-09-06: `sonar.yml` is green and now imports Rust coverage |
 | Pages publishes from GitHub Actions and serves `ferrochart.eu` with HTTPS enforced; the apex A records point at the four GitHub Pages addresses, `www` is a CNAME to `rubentalstra.github.io`, and the domain is verified for the account | open: the domain was registered on 2026-09-06 at Vimexx and still points at the registrar's nameservers |
-| The label bootstrap (`scripts/gh/labels.sh`) | open |
+| The label bootstrap (`scripts/gh/labels.sh`) | done: the type, priority, `spec:*`, `compat`, `ux`, `research` and `upstream-report` labels all exist |
+| The "FerroCHART Roadmap" Project (v2), and the `project` token scope on the working clone (`.claude/rules/project-board.md`) | open: every `scripts/gh/project.sh` call fails until it exists |
 | Registration at bestpractices.dev, with the returned badge added to the README | open |
-| Immutable releases, the repository setting that stops a published release's notes and assets from being edited | open. It is not reported by the REST API, so read it in Settings rather than from `gh api` (`docs/release.md`) |
-| Auto-merge and delete-branch-on-merge, which the family's PR workflow assumes (`.claude/memory/pr-auto-merge.md`) | open |
+| Immutable releases, the repository setting that stops a published release's notes and assets from being edited | done 2026-09-06, read in Settings; the REST API does not report it (`docs/release.md`) |
+| Auto-merge and delete-branch-on-merge, which the family's PR workflow assumes (`.claude/memory/pr-auto-merge.md`) | done 2026-09-06 |
 
 `conclusion` is the contract for the required-checks list. Add no other CI check
 to it: a job added to `ci.yml` joins the `conclusion` job's `needs` list

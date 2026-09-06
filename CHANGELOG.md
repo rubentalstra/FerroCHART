@@ -23,6 +23,11 @@ no binary to download yet.
 
 ### Added
 
+- The Rust CI tier, live now that the workspace exists (#15): `rustfmt`,
+  `clippy` with `-D warnings`, `cargo nextest`, doctests, `rustdoc`, an MSRV
+  check through `cargo-hack`, and `cargo deny`, all under the one required
+  `conclusion` check, with SonarQube importing Rust coverage from an
+  instrumented run.
 - The Cargo workspace (#11): the eight crates of `docs/architecture.md` §11,
   the workspace lint table from `.claude/rules/reliability.md` with
   `unsafe_code` forbidden, a release profile that keeps `panic = "unwind"` and
