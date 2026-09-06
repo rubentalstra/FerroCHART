@@ -22,8 +22,9 @@
 #                          versions .github/workflows/ci.yml installs, against
 #                          docs/VERSIONS.md.
 #   6. release tool pins   the cargo-auditable and cargo-cyclonedx versions
-#                          .github/workflows/release-build.yml installs, against
-#                          docs/VERSIONS.md.
+#                          .github/workflows/release-build.yml installs and the
+#                          syft version .github/workflows/release-image.yml
+#                          downloads, against docs/VERSIONS.md.
 #   7. docs toolchain      the mdBook, mdbook-toc and mdbook-mermaid defaults of
 #                          .github/actions/docs-toolchain/action.yml against
 #                          docs/VERSIONS.md.
@@ -289,6 +290,23 @@ if [ -f "$release_build" ]; then
   done
 else
   note "no $release_build yet, skipped"
+fi
+
+release_image=.github/workflows/release-image.yml
+if [ -f "$release_image" ]; then
+  want="$(pin_of "syft" docs/VERSIONS.md)"
+  found="$(sed -nE 's|^[[:space:]]*syft-version:[[:space:]]*([^[:space:]]+).*|\1|p' "$release_image" | head -n1)"
+  if [ -z "$want" ]; then
+    bad "docs/VERSIONS.md has no 'syft' row"
+  elif [ -z "$found" ]; then
+    bad "$release_image downloads syft without pinning a version"
+  elif [ "$found" != "$want" ]; then
+    bad "syft: $release_image pins $found, docs/VERSIONS.md pins $want"
+  else
+    note "OK: syft $found"
+  fi
+else
+  note "no $release_image yet, skipped"
 fi
 
 echo "== docs toolchain (.github/actions/docs-toolchain <-> docs/VERSIONS.md)"

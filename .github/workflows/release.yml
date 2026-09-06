@@ -4,18 +4,18 @@
 # The release lane. One workflow owns the `v*` tag, and every ordering in it is
 # a `needs` edge:
 #
-#   plan ── github-release (draft) ── build-binaries ── finalize-release (publish)
+#   plan ─ github-release (draft) ─ build-binaries ─ build-image ─ finalize
 #
-# The release is created as a DRAFT, the binaries are attached to it, and only
+# The release is created as a DRAFT, every asset is attached to it, and only
 # once the expected asset set is complete is it PUBLISHED. Publishing last
 # means a half-assembled release is never visible.
 #
-# Two tiers, the same split ci.yml uses. `plan`, `github-release` and
-# `finalize-release` run on a repository with no code, because a pre-code
-# release is legitimate here: it carries the changelog section and nothing
-# else. `build-binaries` is gated behind the same root-Cargo.toml detection,
-# so it reports `skipped` today and activates by itself when the workspace
-# lands, with no edit to this file.
+# build-binaries and build-image are calls to reusable workflows and carry no
+# steps of their own, which is what the attestations they emit rest on
+# (.github/workflows/release-build.yml carries the citation). Both are gated
+# behind the same root-Cargo.toml detection `ci.yml` tier 2 uses, so a release
+# cut from a tree with no workspace promises no binaries and passes; `plan`,
+# `github-release` and `finalize-release` run on any tree.
 #
 # The workflow is dormant until a `v*` tag is pushed. It does not run on a push
 # to main, on a pull request, or in a merge group.
@@ -320,19 +320,40 @@ jobs:
       target: ${{ matrix.target }}
       runner: ${{ matrix.runner }}
 
+  # ---- build-image: the multi-arch image, from the attested binaries --------
+
+  # A call and nothing else, for the same reason build-binaries is one. It
+  # needs the archives rather than the release page, so it takes them from the
+  # run's artifacts and verifies each against the build lane's signer identity
+  # before it unpacks anything.
+  build-image:
+    name: image (linux/amd64, linux/arm64)
+    needs: [plan, build-binaries]
+    if: needs.plan.outputs.cargo == 'true'
+    permissions:
+      contents: read # the attestations API, to verify the inputs
+      packages: write # push the image and its attestations to GHCR
+      id-token: write # Sigstore
+      attestations: write # store the attestations against this repository
+    uses: ./.github/workflows/release-image.yml
+    with:
+      tag: ${{ needs.plan.outputs.tag }}
+      sha: ${{ github.sha }}
+
   # ---- finalize-release: verify the asset set, then PUBLISH -----------------
 
   finalize-release:
     name: github release (publish)
-    needs: [plan, github-release, build-binaries]
-    # build-binaries is skipped while there is no workspace, and a skipped
-    # `needs` job skips its dependents by default, so the results are read
-    # explicitly. A skip is a pass here; a failure is not.
+    needs: [plan, github-release, build-binaries, build-image]
+    # The binary and image lanes are skipped while there is no workspace, and a
+    # skipped `needs` job skips its dependents by default, so the results are
+    # read explicitly. A skip is a pass here; a failure is not.
     if: >-
       always()
       && needs.plan.result == 'success'
       && needs.github-release.result == 'success'
       && (needs.build-binaries.result == 'success' || needs.build-binaries.result == 'skipped')
+      && (needs.build-image.result == 'success' || needs.build-image.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

@@ -228,6 +228,16 @@ jobs:
             echo "PROVENANCE_JSONL_ASSET=${ASSET}.intoto.jsonl"
           } >> "$GITHUB_ENV"
 
+      # The image lane takes the archive from this run's artifacts and
+      # re-verifies its attestation before it copies the binary out.
+      - name: Hand the archive to the image lane
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ferrochart-${{ inputs.tag }}-${{ inputs.target }}
+          path: ${{ env.ASSET }}
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Attach the archive to the draft release
         env:
           GH_TOKEN: ${{ github.token }}
