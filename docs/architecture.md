@@ -133,11 +133,23 @@ reader owes it a node identity, an RM type, an occurrences interval, a
 constraint payload, and the terminology bindings in scope. Everything above
 that point is generation-blind.
 
-**An operational template with an open slot is refused, not guessed.**
-`ARCHETYPE_SLOT` (AOM 1.4 section 4.3.12) in an operational template is either
-closed and removed or filled and substituted inline (OPT2 sections 2.2 and
-3.3). A slot still open means the content at that point is undetermined, so
-the compiler reports it rather than rendering a field. `use_node` internal
+**An open slot is never guessed, and whether it is refused depends on its
+occurrences.** This sentence used to say a slot in an operational template is
+always either closed and removed or filled inline, citing OPT2 sections 2.2
+and 3.3. That overstated the specification: OPT2 section 3.3 removes *closed*
+slots and inlines fillers, and says nothing that removes an open one. ITS-XML
+`Archetype.xsd` types `C_ATTRIBUTE.children` as `C_OBJECT`, and
+`ARCHETYPE_SLOT` (AOM 1.4 section 4.3.12) is a declared extension of it, so an
+open slot in a real operational template is legal. Refusing every one of them
+would invent a prohibition, and it would refuse 118 of the 123 vendored CKM
+templates.
+
+The rule the reader implements instead, decided on issue #13: a slot whose
+occurrences make its content **mandatory** is refused with a typed error
+naming it, because no form could satisfy a requirement the template never
+determined. A slot the template **permits but does not require** is recorded
+and never rendered, because there is nothing determinate to render and its
+absence is valid. `use_node` internal
 references (`ARCHETYPE_INTERNAL_REF`, AOM 1.4 section 4.3.13) are expanded
 inline by a conformant flattener, and FerroCHART resolves any it still meets
 against the same template before deriving fields, because the 1.4 flattener is
@@ -452,6 +464,15 @@ by the binding rather than by preference. The split was measured over the same
 section 8.1 says the same thing in prose, that archetype-local sets outnumber
 external ones by orders of magnitude, and the corpus bears it out. So the
 default path is local and a network call is the exception.
+
+Two measurements of the same corpus disagree in their absolute numbers, and
+the disagreement is recorded rather than smoothed. The table above counts
+coded-value *constrainers* found by walking the XML directly, over 102
+templates including the conformance grid. The template reader counts coded
+*nodes* in its internal model, over the 121 CKM templates it reads, and finds
+520 of them with 23 externally bound. The ratio is what the design rests on
+and both agree on it. Reconciling the absolute counts belongs with the
+terminology client, which is the first code that has to act on them.
 
 **Membership and display text are separate questions**, and this is the part
 the prose does not tell you. An `at`-code carries its rubric in the template's
