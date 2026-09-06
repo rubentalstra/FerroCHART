@@ -82,6 +82,18 @@ No Cargo workspace exists yet. The toolchain pin below is live because
 The deliverable is a server binary, so the MSRV tracks the pinned stable
 toolchain.
 
+## Documentation toolchain
+
+The book under `website/book` is rendered by the pinned mdBook toolchain that
+`.github/actions/docs-toolchain` installs, and `docs.yml` publishes it to
+GitHub Pages.
+
+| Item | Pin | Repeated in |
+|---|---|---|
+| mdBook | 0.5.4 | `.github/actions/docs-toolchain/action.yml` `mdbook-version` |
+| mdbook-toc | 0.15.4 | `.github/actions/docs-toolchain/action.yml` `mdbook-toc-version` |
+| mdbook-mermaid | 0.17.1 | `.github/actions/docs-toolchain/action.yml` `mdbook-mermaid-version` |
+
 ## Product and citation version
 
 The product version is the workspace `version` in the root `Cargo.toml`, which

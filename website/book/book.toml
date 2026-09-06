@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: Ruben Talstra
+# SPDX-License-Identifier: BUSL-1.1
+
+[book]
+title = "FerroCHART"
+authors = ["FerroCHART contributors"]
+description = "Documentation for FerroCHART, a pure-Rust openEHR form builder and renderer."
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "rust"
+preferred-dark-theme = "coal"
+git-repository-url = "https://github.com/rubentalstra/FerroCHART"
+edit-url-template = "https://github.com/rubentalstra/FerroCHART/edit/main/website/book/src/{path}"
+
+[output.html.search]
+enable = true
+
+# A table of contents where a chapter carries a `<!-- toc -->` marker.
+[preprocessor.toc]
+command = "mdbook-toc"
+renderer = ["html"]

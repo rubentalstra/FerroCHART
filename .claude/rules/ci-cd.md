@@ -11,14 +11,11 @@ paths:
 # CI/CD and supply-chain discipline
 
 No specification governs this: our own design, grounded in the OWASP GitHub
-Actions Security Cheat Sheet, SLSA v1.0, OpenSSF Scorecard, and Sigstore. The
-repository is in its design phase, so this file carries only what applies now,
-plus the shape the build and release lanes take when there is something to
-build.
+Actions Security Cheat Sheet, SLSA v1.0, OpenSSF Scorecard, and Sigstore.
 
 ## What runs today
 
-Five workflows, all of which work on a repository with no code:
+Six workflows:
 
 - `.github/workflows/ci.yml`: the two-tier gate. Tier 1 runs now (zizmor,
   actionlint, shellcheck, hadolint, the comment-style guard, the versions
@@ -31,28 +28,28 @@ Five workflows, all of which work on a repository with no code:
 - `.github/workflows/codeql.yml`: CodeQL over the `actions` language, because
   the workflows in this directory are code that holds tokens. The Rust
   analysis is behind a detection job that looks for a root `Cargo.toml`, so it
-  is skipped cleanly until the workspace lands and then activates by itself.
+  activated with the workspace and analyses Rust now.
 - `.github/workflows/sonar.yml`: SonarQube Cloud, the multi-language sweep over
   shell, YAML, and JSON. Advisory, gating no merge (`ai-code-review.md`). The
   instrumented coverage run and the `sonar.projectVersion` derivation sit
-  behind a `hashFiles('Cargo.toml')` step gate and start reporting when the
-  workspace lands. **It fails until the SonarCloud project and the
-  `SONAR_TOKEN` secret exist**; that setup is tracked on the tracker.
-- **The documentation lane is the sixth, and it is not here yet.**
-  ferrochart.eu and the book get their own `docs.yml` and a pinned
-  `.github/actions/docs-toolchain` when there is something to publish.
-  `scripts/checks/versions.sh` already carries the pin rows for it and skips
-  loudly until the action exists.
+  sat behind a `hashFiles('Cargo.toml')` step gate and report now that the
+  workspace landed, so the Rust analysis and the coverage import run now.
+- `.github/workflows/docs.yml`: the documentation lane. It renders the book
+  under `website/book` with the pinned toolchain that
+  `.github/actions/docs-toolchain` installs, uploads it as a Pages artifact on
+  every event, and deploys only on a push to `main` or a dispatch. A pull
+  request verifies the book and never publishes it. The custom domain is a
+  Pages setting rather than a committed `CNAME` file.
 - `.github/workflows/release.yml`: the release lane, dormant until a `v*` tag
   is pushed. It validates the tag, checks it against every file that declares
   the product version, takes the release notes from the matching
   `CHANGELOG.md` section, creates the release as a draft, and publishes only
   after the expected asset set is complete. Its binary lane sits behind the
-  same root-`Cargo.toml` detection and is skipped until the workspace lands.
-  The checklist a cut follows is `docs/release.md` (#63).
+  same root-`Cargo.toml` detection, and it activated with the workspace. The
+  checklist a cut follows is `docs/release.md`.
 
-The Rust lanes in `ci.yml`, `codeql.yml` and `sonar.yml` are written and gated
-off, so they need no edit when the workspace lands. `.github/dependabot.yml`
+The Rust lanes in `ci.yml`, `codeql.yml` and `sonar.yml` were written gated
+off and needed no edit when the workspace landed. `.github/dependabot.yml`
 carries the same property: its `cargo` and `docker` entries are inert until
 their manifests exist, and so does the binary lane of `release.yml`.
 `.github/release.yml` is a different file from the workflow: it configures
