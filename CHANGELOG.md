@@ -22,6 +22,19 @@ There is no binary to download yet.
 
 ### Added
 
+- The release supply chain (#39, #34): a `v*` tag now publishes a container
+  image, SBOMs, checksums and Sigstore attestations beside the binaries, and a
+  quickstart `compose.yaml` a downloader can run without a clone. The binaries
+  and the image are built in reusable workflows called by jobs that carry no
+  steps of their own, which is what the SLSA Build Level 3 claim rests on;
+  `cargo auditable` writes the dependency list into every shipped binary,
+  CycloneDX describes it beside the archive, and syft describes each image
+  platform from that embedded list. A consumer verifies with
+  `gh attestation verify --signer-workflow`, and `finalize-release` refuses to
+  publish a draft missing any of the 27 assets a four-target release promises.
+  The compose file's `demo` profile starts FerroEHR and FerroTERM alongside, and
+  its header says plainly that those are separately licensed products and that
+  the profile is for evaluation.
 - The documentation lane (#4): a book under `website/book` rendered by the
   pinned mdBook toolchain that `.github/actions/docs-toolchain` installs, and
   `docs.yml`, which verifies it on every pull request and publishes it to

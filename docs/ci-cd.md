@@ -35,10 +35,10 @@ itself when the workspace landed.
 | `comment-style` | `scripts/checks/comment-style.sh --all` |
 | `versions` | `scripts/checks/versions.sh` |
 
-Three of these report "nothing to check" on the current tree and gate from the
-first matching file: `hadolint` has no Dockerfile, `comment-style` has no `.rs`
-file, and `versions` skips the checks whose subject file is absent. They are in
-place before the files they guard, which is the point.
+Each of these was in place before the file it guards, which is the point.
+`hadolint` lints `docker/Dockerfile`, `comment-style` reads the workspace's
+`.rs` files, and `versions` still skips loudly for the subject files that do
+not exist yet.
 
 **Tier 2 is written now and gated off.** A `detect` job checks out and looks
 for a root `Cargo.toml`, publishing a boolean output. Every Rust job carries
@@ -114,14 +114,37 @@ No suppression was recorded and the audit path was not narrowed
 - `.github/actionlint.yaml`: no self-hosted runner labels, and the
   configuration-variables check disabled.
 - `.hadolint.yaml`: `failure-threshold: warning` plus the trusted registries.
-- `.dockerignore`: denies everything but a staged `dist/` tree, so no source
-  or build output enters a container build context.
+- `.dockerignore`: denies everything but a staged `dist/` tree, so nothing but
+  the binaries the release lane staged enters the build context of
+  `docker/Dockerfile`.
 
 Each tier-2 job installs the toolchain with a digest-pinned
 `actions-rust-lang/setup-rust-toolchain` step of its own, which reads the
 channel from `rust-toolchain.toml` when that file exists. Issue #20 lands the
 workspace, the toolchain file, and a `./.github/actions/setup-rust` composite
 action; each of those six steps carries a `TODO(#33)` marking the line to lift.
+
+## The release lane, and what it publishes
+
+`release.yml` is a separate workflow on a `v*` tag, and it borrows this file's
+two-tier gate: its binary and image lanes sit behind the same root-`Cargo.toml`
+detection. Two properties belong here rather than in `docs/release.md`, because
+they are CI rules rather than release steps.
+
+**The build and the image build in reusable workflows** (`release-build.yml`
+and `release-image.yml`), called by jobs that carry no `steps:` of their own.
+That isolation is what the Sigstore attestations rest on, and a `uses:` job
+cannot carry steps, so the property is structural. The full argument and the
+SLSA claim are in `docs/release.md`.
+
+**Neither lane restores a cache.** The toolchain install runs with
+`cache: false` and the image build with `no-cache: true`. Nothing a prior run
+could have poisoned may influence an artifact a lane signs, and that costs a
+cold build of the workspace four times per release.
+
+The image is `ghcr.io/rubentalstra/ferrochart`, an index over `linux/amd64` and
+`linux/arm64` built from `docker/Dockerfile`. The asset inventory, the
+verification commands, and the checklist a cut follows are `docs/release.md`.
 
 ## Triggers and concurrency
 
