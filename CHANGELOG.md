@@ -20,6 +20,21 @@ There is no binary to download yet.
 
 ## [Unreleased]
 
+### Added
+
+- The documentation lane (#4): a book under `website/book` rendered by the
+  pinned mdBook toolchain that `.github/actions/docs-toolchain` installs, and
+  `docs.yml`, which verifies it on every pull request and publishes it to
+  GitHub Pages from `main`. `docs/VERSIONS.md` carries the three tool pins and
+  `scripts/checks/versions.sh` stops skipping that check.
+- The vendored openEHR CKM template corpus, licence by licence (#12).
+
+### Changed
+
+- `.claude/rules/ci-cd.md` and `docs/ci-cd.md` describe the pipeline that
+  exists rather than the one that was waiting for a workspace, and drop a
+  stale issue reference carried over from another repository.
+
 ## [0.0.1] - 2026-09-06
 
 ### Added

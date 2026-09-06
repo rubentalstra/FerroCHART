@@ -12,17 +12,19 @@ lane borrows the same two-tier gate and is documented in `docs/release.md`.
 
 ## The problem
 
-The repository is in its design phase. There is no Cargo workspace, so a
-conventional CI workflow would have nothing to run, and a workflow added later
-would arrive after the files it is meant to guard. The workflows themselves
-hold tokens, and the shell scripts under `scripts/` are the tracker helpers and
-the committed guards, so both are live code from day one and both need a gate.
+The repository was gated before it had code. A conventional CI workflow would
+have had nothing to run, and a workflow added later would have arrived after
+the files it was meant to guard. The workflows themselves hold tokens, and the
+shell scripts under `scripts/` are the tracker helpers and the committed
+guards, so both were live code from day one and both needed a gate. The Rust
+tier was written at the same time behind a detection job, and it activated by
+itself when the workspace landed.
 
 ## The two tiers
 
 `ci.yml` splits on whether a check needs Rust.
 
-**Tier 1 runs today, on a tree with no code.**
+**Tier 1 runs on every tree, with or without code.**
 
 | Job | Runs |
 |---|---|

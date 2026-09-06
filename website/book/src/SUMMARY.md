@@ -1,0 +1,11 @@
+# Summary
+
+- [FerroCHART](introduction.md)
+- [Evaluate](evaluate/README.md)
+  - [The problem](evaluate/the-problem.md)
+  - [The design](evaluate/design.md)
+  - [Build order](evaluate/build-order.md)
+  - [Pinned versions](evaluate/versions.md)
+  - [Licensing](evaluate/licensing.md)
+- [Contribute](contribute/README.md)
+  - [The working discipline](contribute/discipline.md)

@@ -34,3 +34,6 @@ target
 # The CKM exports that state no licence are fetched, never committed
 # (corpus/templates/ckm/PROVENANCE.md).
 corpus/templates/ckm/unstated/
+
+# The rendered book
+website/book/book/
