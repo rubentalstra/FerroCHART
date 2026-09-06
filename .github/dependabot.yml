@@ -3,18 +3,19 @@
 
 # .github/dependabot.yml: automated dependency updates.
 #
-# Three ecosystems. `github-actions` bumps the digest-pinned actions the
-# workflows in this directory use, and is the only one with anything to resolve
-# today. `cargo` and `docker` are inert until their manifests exist and
-# activate by themselves when they land, so the workspace change needs no edit
-# here.
+# ONE ecosystem today. `github-actions` bumps the digest-pinned actions the
+# workflows in this directory use, and is the only one with anything to
+# resolve. `cargo` and `docker` entries are NOT listed: Dependabot errors on an
+# ecosystem whose manifest is absent rather than skipping it, so listing them
+# early buys a failed run every schedule and no updates. They are added in the
+# change that lands the Cargo workspace and the container recipe.
 #
 # COOLDOWN is the delay between a release being published and this bot
 # proposing it, so a compromised or yanked release has a window to be caught
 # before it reaches a pull request (the OWASP CI/CD Security Cheat Sheet's
 # third-party-code control). Every entry sits at 7 days or more, the floor
 # zizmor's `dependabot-cooldown` audit enforces, and the audit runs over this
-# file in CI (#34).
+# file in CI.
 #
 # SECURITY updates are exempt by design: Dependabot applies no cooldown to
 # advisory-driven bumps, so an advisory still arrives immediately. That is what
@@ -43,43 +44,3 @@ updates:
         update-types: ["minor", "patch"]
     commit-message:
       prefix: "ci"
-
-  - package-ecosystem: "cargo"
-    directory: "/"
-    labels:
-      - "dependencies"
-    schedule:
-      interval: "weekly"
-    # Longer for a major than for an action: a compromised crate executes in
-    # the build and ships in the binary, which is the higher-consequence case.
-    cooldown:
-      default-days: 7
-      semver-major-days: 14
-    open-pull-requests-limit: 10
-    groups:
-      # ONE weekly PR for every minor and patch bump; lockstep families (serde,
-      # axum and tower) bump together inside it by construction. MAJORS stay
-      # individual: a semver major in shipped code is a real review.
-      cargo-minor-patch:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
-    commit-message:
-      prefix: "deps"
-
-  - package-ecosystem: "docker"
-    # No container recipe exists yet and its path is not fixed, so both
-    # candidates are listed. `directories` accepts a list where `directory`
-    # takes one path.
-    directories:
-      - "/"
-      - "/docker"
-    labels:
-      - "dependencies"
-    schedule:
-      interval: "weekly"
-    # The base image is pinned by index digest, so a bump is a change of
-    # digest. `semver-major-days` is not accepted for this ecosystem either.
-    cooldown:
-      default-days: 7
-    commit-message:
-      prefix: "build"
