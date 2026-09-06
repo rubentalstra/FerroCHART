@@ -40,6 +40,11 @@ the build order.
   The compose file's `demo` profile starts FerroEHR and FerroTERM alongside, and
   its header says plainly that those are separately licensed products and that
   the profile is for evaluation.
+- The server's runtime surface (#41): one `FERROCHART_` environment namespace
+  read in one place, a loopback default bind that only the container image
+  widens, a refusal to start when either upstream endpoint is missing that
+  names the variable, an unauthenticated `GET /health`, and orderly shutdown
+  on SIGTERM. The book gains an Operate section describing all of it.
 - The documentation lane (#4): a book under `website/book` rendered by the
   pinned mdBook toolchain that `.github/actions/docs-toolchain` installs, and
   `docs.yml`, which verifies it on every pull request and publishes it to

@@ -7,5 +7,7 @@
   - [Build order](evaluate/build-order.md)
   - [Pinned versions](evaluate/versions.md)
   - [Licensing](evaluate/licensing.md)
+- [Operate](operate/README.md)
+  - [Configuration](operate/configuration.md)
 - [Contribute](contribute/README.md)
   - [The working discipline](contribute/discipline.md)

@@ -77,11 +77,16 @@
 # The inline `configs:` block at the bottom needs Docker Compose 2.23.1 or
 # newer (https://docs.docker.com/reference/compose-file/configs/).
 #
-# TODO(#41): FERROCHART_LISTEN, the two endpoint variables, the credentials
-# each endpoint needs, the overlay store's volume, and the health endpoint to
-# probe all land with the server's runtime surface. Today the binary prints
-# its version and exits, so this file describes the shape the release lane
-# ships rather than a server you can drive.
+# The server reads FERROCHART_LISTEN, FERROCHART_CDR_URL and
+# FERROCHART_TERM_URL, and refuses to start when either endpoint is absent,
+# naming the variable. It answers GET /health without authentication.
+#
+# There is no `healthcheck:` block on the ferrochart service: the image is
+# distroless and carries no shell or curl to run one from inside. Probe
+# GET /health over HTTP from outside, which is what an orchestrator does.
+#
+# TODO(#19): the overlay store's volume lands with the store itself. Until
+# then the root filesystem stays read-only with a tmpfs for /tmp.
 
 services:
   ferrochart:
