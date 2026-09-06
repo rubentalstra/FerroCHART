@@ -23,6 +23,10 @@ the build order.
 
 ### Added
 
+- A `./.github/actions/setup-rust` composite action (#33). The six gating jobs
+  in `ci.yml` and the coverage job in `sonar.yml` call it instead of each
+  carrying its own pinned toolchain step. The release lane keeps its own,
+  because a publishing lane restores no cache, and now says so at the step.
 - The release supply chain (#39, #34): a `v*` tag now publishes a container
   image, SBOMs, checksums and Sigstore attestations beside the binaries, and a
   quickstart `compose.yaml` a downloader can run without a clone. The binaries
