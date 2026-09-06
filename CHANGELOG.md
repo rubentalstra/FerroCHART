@@ -21,6 +21,8 @@ the build order.
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-09-07
+
 ### Added
 
 - A `./.github/actions/setup-rust` composite action (#33). The six gating jobs
@@ -140,5 +142,6 @@ the build order.
   The configuration is FerroBRIDGE's, adapted from the FHIR and OMOP oracles to
   the openEHR Reference Model, the Archetype Object Model, ITS-REST, and AQL.
 
-[Unreleased]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.2...HEAD
+[0.0.2]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/rubentalstra/FerroCHART/releases/tag/v0.0.1
