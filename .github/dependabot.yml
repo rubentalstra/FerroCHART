@@ -3,12 +3,16 @@
 
 # .github/dependabot.yml: automated dependency updates.
 #
-# ONE ecosystem today. `github-actions` bumps the digest-pinned actions the
-# workflows in this directory use, and is the only one with anything to
-# resolve. `cargo` and `docker` entries are NOT listed: Dependabot errors on an
-# ecosystem whose manifest is absent rather than skipping it, so listing them
-# early buys a failed run every schedule and no updates. They are added in the
-# change that lands the Cargo workspace and the container recipe.
+# Two ecosystems. `github-actions` bumps the digest-pinned actions the workflows
+# in this directory use. `docker` bumps the digest-pinned base image of
+# `docker/Dockerfile`, and it is listed from the change that landed that file:
+# Dependabot errors on an ecosystem whose manifest is absent rather than
+# skipping it, so an entry never arrives before its manifest. The `cargo` entry
+# lands the same way, with the change that opts the workspace into it.
+#
+# The sibling image tags in `compose.yaml` are not a Dependabot subject. They
+# name products released from other repositories, and `scripts/checks/versions.sh`
+# is what keeps the FerroCHART tag in that file equal to the workspace version.
 #
 # COOLDOWN is the delay between a release being published and this bot
 # proposing it, so a compromised or yanked release has a window to be caught
@@ -44,3 +48,17 @@ updates:
         update-types: ["minor", "patch"]
     commit-message:
       prefix: "ci"
+
+  # The base image of docker/Dockerfile, pinned by index digest. A bump is a
+  # digest change with the tag comment beside it, which is the same review a
+  # pinned action bump gets.
+  - package-ecosystem: "docker"
+    directory: "/docker"
+    labels:
+      - "dependencies"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "build"

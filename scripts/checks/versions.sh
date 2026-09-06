@@ -18,13 +18,19 @@
 #   4. product version     CITATION.cff version against the docs/VERSIONS.md
 #                          product-version row, and against the root Cargo.toml
 #                          [workspace.package] version once that exists.
-#   5. CI tool pins        the zizmor, actionlint, shellcheck and hadolint
+#   5. quickstart image    the compose.yaml image tag default against the root
+#                          Cargo.toml workspace version, and no floating tag.
+#   6. CI tool pins        the zizmor, actionlint, shellcheck and hadolint
 #                          versions .github/workflows/ci.yml installs, against
 #                          docs/VERSIONS.md.
-#   6. docs toolchain      the mdBook, mdbook-toc and mdbook-mermaid defaults of
+#   7. release tool pins   the cargo-auditable and cargo-cyclonedx versions
+#                          .github/workflows/release-build.yml installs and the
+#                          syft version .github/workflows/release-image.yml
+#                          downloads, against docs/VERSIONS.md.
+#   8. docs toolchain      the mdBook, mdbook-toc and mdbook-mermaid defaults of
 #                          .github/actions/docs-toolchain/action.yml against
 #                          docs/VERSIONS.md.
-#   7. licence             LICENSE is the Business Source License 1.1 and no
+#   9. licence             LICENSE is the Business Source License 1.1 and no
 #                          first-party file claims MIT or Apache-2.0 as its own.
 #
 # Usage:
@@ -229,6 +235,31 @@ else
   note "no CITATION.cff yet, skipped"
 fi
 
+echo "== quickstart image tag (compose.yaml <-> Cargo.toml)"
+# The quickstart pulls a published image, so the tag it defaults to has to name
+# the version this tree releases. The sibling images are other products'
+# releases and have nothing here to agree with, so the check on them is only
+# that none of them floats on a mutable `latest`.
+if [ -f compose.yaml ] && [ -f Cargo.toml ]; then
+  compose_ver="$(sed -nE 's|^[[:space:]]*image:[[:space:]]*ghcr\.io/rubentalstra/ferrochart:\$\{[A-Z_]+:-([^}]*)\}.*|\1|p' compose.yaml | head -n1)"
+  cargo_ver_c="$(toml_val "[workspace.package]" version Cargo.toml)"
+  if [ -z "$compose_ver" ]; then
+    bad "compose.yaml has no ghcr.io/rubentalstra/ferrochart image tag default"
+  elif [ "$compose_ver" != "$cargo_ver_c" ]; then
+    bad "compose.yaml pulls ferrochart:$compose_ver, root Cargo.toml says $cargo_ver_c"
+  else
+    note "OK: the quickstart pulls $compose_ver"
+  fi
+  floating="$(grep -n -E '^[[:space:]]*image:.*:latest([[:space:]]|$)' compose.yaml || true)"
+  if [ -n "$floating" ]; then
+    bad "compose.yaml pulls a mutable latest tag: $floating"
+  else
+    note "OK: no image in compose.yaml floats on latest"
+  fi
+else
+  note "no compose.yaml or root Cargo.toml yet, skipped"
+fi
+
 echo "== CI tool pins (.github/workflows/ci.yml <-> docs/VERSIONS.md)"
 if [ -f .github/workflows/ci.yml ]; then
   # The version each analyzer is pinned to in the workflow: an installer
@@ -264,6 +295,45 @@ if [ -f .github/workflows/ci.yml ]; then
   done
 else
   note "no .github/workflows/ci.yml yet, skipped"
+fi
+
+echo "== release lane tool pins (.github/workflows/release-*.yml <-> docs/VERSIONS.md)"
+# A tool that runs inside the isolated build lane writes a document that lane
+# then signs, so its version is a pin like any other.
+release_build=.github/workflows/release-build.yml
+if [ -f "$release_build" ]; then
+  for tool in cargo-auditable cargo-cyclonedx; do
+    want="$(pin_of "$tool" docs/VERSIONS.md)"
+    found="$(sed -nE "s|^[[:space:]]*tool:[[:space:]]*$tool@([^[:space:]]+).*|\1|p" "$release_build" | head -n1)"
+    if [ -z "$want" ]; then
+      bad "docs/VERSIONS.md has no '$tool' row"
+    elif [ -z "$found" ]; then
+      bad "$release_build installs $tool without pinning a version"
+    elif [ "$found" != "$want" ]; then
+      bad "$tool: $release_build pins $found, docs/VERSIONS.md pins $want"
+    else
+      note "OK: $tool $found"
+    fi
+  done
+else
+  note "no $release_build yet, skipped"
+fi
+
+release_image=.github/workflows/release-image.yml
+if [ -f "$release_image" ]; then
+  want="$(pin_of "syft" docs/VERSIONS.md)"
+  found="$(sed -nE 's|^[[:space:]]*syft-version:[[:space:]]*([^[:space:]]+).*|\1|p' "$release_image" | head -n1)"
+  if [ -z "$want" ]; then
+    bad "docs/VERSIONS.md has no 'syft' row"
+  elif [ -z "$found" ]; then
+    bad "$release_image downloads syft without pinning a version"
+  elif [ "$found" != "$want" ]; then
+    bad "syft: $release_image pins $found, docs/VERSIONS.md pins $want"
+  else
+    note "OK: syft $found"
+  fi
+else
+  note "no $release_image yet, skipped"
 fi
 
 echo "== docs toolchain (.github/actions/docs-toolchain <-> docs/VERSIONS.md)"

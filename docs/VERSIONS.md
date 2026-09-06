@@ -146,6 +146,19 @@ container images, pinned by tag and by digest.
 Keep the locally installed versions on these numbers, so a finding costs a
 local run rather than a CI round trip (`.claude/rules/ci-cd.md`).
 
+## Release lane tool pins
+
+The release lanes install their tools by exact version too, for a stronger
+reason than reproducibility: a tool that runs inside the isolated build lane
+writes a document that lane then signs, so an unpinned tool is an unsigned
+input to a signed artifact.
+
+| Item | Pin | Repeated in |
+|---|---|---|
+| `cargo-auditable` | 0.7.5 | `.github/workflows/release-build.yml` |
+| `cargo-cyclonedx` | 0.5.9 | `.github/workflows/release-build.yml` |
+| `syft` | v1.51.1 | `.github/workflows/release-image.yml` |
+
 ## GitHub Actions pins
 
 Every `uses:` in `.github/workflows/**` is pinned to a full commit SHA with a

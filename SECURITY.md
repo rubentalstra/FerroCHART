@@ -78,10 +78,26 @@ server a deployment points FerroCHART at (report those to that project), and an
 issue that requires an already-compromised host or a misconfiguration outside
 FerroCHART's control.
 
-## How releases will be verified
+## How releases are verified
 
-There is no release yet. When releases begin, binaries are built in an isolated
-reusable workflow (SLSA Build Level 3) and published with a SHA-256 checksum, a
-Sigstore build-provenance bundle, and a CycloneDX dependency SBOM, verifiable
-with `gh attestation verify` (`.claude/rules/ci-cd.md`). This section gains the
-exact command with the first release, and claims nothing before then.
+Every archive a `v*` tag publishes carries a SHA-256 checksum, a Sigstore
+build-provenance bundle, a CycloneDX SBOM and an SBOM attestation. The
+container image carries provenance for its index and for each platform
+manifest, plus an SPDX SBOM per platform, all pushed as OCI referrers. The
+binaries and the image are built in reusable workflows, so a verifier can
+insist on the lane that produced an artifact rather than on the repository
+alone:
+
+```sh
+gh attestation verify ferrochart-<tag>-<target>.tar.gz \
+  -R rubentalstra/FerroCHART \
+  --signer-workflow rubentalstra/FerroCHART/.github/workflows/release-build.yml
+
+gh attestation verify oci://ghcr.io/rubentalstra/ferrochart:<version> \
+  -R rubentalstra/FerroCHART \
+  --signer-workflow rubentalstra/FerroCHART/.github/workflows/release-image.yml
+```
+
+The lane that emits these landed after `v0.0.1`, so the first release carrying
+them is the next one; `v0.0.1` published archives and checksums only. The full
+asset inventory, the SLSA claim and what it does not cover are `docs/release.md`.

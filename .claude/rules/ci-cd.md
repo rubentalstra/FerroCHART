@@ -11,7 +11,7 @@ paths:
 # CI/CD and supply-chain discipline
 
 No specification governs this: our own design, grounded in the OWASP GitHub
-Actions Security Cheat Sheet, SLSA v1.0, OpenSSF Scorecard, and Sigstore.
+Actions Security Cheat Sheet, SLSA v1.2, OpenSSF Scorecard, and Sigstore.
 
 ## What runs today
 
@@ -44,9 +44,11 @@ Six workflows:
   is pushed. It validates the tag, checks it against every file that declares
   the product version, takes the release notes from the matching
   `CHANGELOG.md` section, creates the release as a draft, and publishes only
-  after the expected asset set is complete. Its binary lane sits behind the
-  same root-`Cargo.toml` detection, and it activated with the workspace. The
-  checklist a cut follows is `docs/release.md`.
+  after the expected asset set is complete. It calls two reusable workflows,
+  `release-build.yml` for the per-target binaries and `release-image.yml` for
+  the container image, both gated behind the same root-`Cargo.toml` detection,
+  which activated with the workspace. The checklist a cut follows is
+  `docs/release.md`.
 
 The Rust lanes in `ci.yml`, `codeql.yml` and `sonar.yml` were written gated
 off and needed no edit when the workspace landed. `.github/dependabot.yml`
@@ -100,15 +102,22 @@ sources, which subsumes cargo-audit); MSRV via `cargo hack check
 `comment-style.sh` guard at `--all`. **Always `--locked`**, so CI fails on
 lockfile drift rather than on registry drift. Commit `Cargo.lock`.
 
-## Supply chain (the shape a release lane takes)
+## Supply chain (the rules the release lane holds to)
 
-- **A release builds in a REUSABLE workflow** (`on: workflow_call`) so the
-  builder is isolated and the signing identity is unreachable from build steps.
-  That isolation is what makes the provenance non-falsifiable. Do not inline
-  the build and attest steps back into a normal job.
+- **The build and the image build in REUSABLE workflows** (`on: workflow_call`)
+  so the builder is isolated and the signing identity is unreachable from the
+  build steps. That isolation is the whole SLSA Build Level 3 argument
+  (<https://slsa.dev/spec/v1.2/build-requirements>). The calling job carries
+  the matrix, the gate and the permissions and no `steps:` of its own; never
+  inline the build and attest steps back into a normal job.
 - **Every release artifact carries provenance and a signed SBOM**, signed
-  keyless through Sigstore (`id-token: write`), and consumers verify with
-  `gh attestation verify … --signer-workflow …`.
+  keyless through Sigstore (`id-token: write`, `attestations: write`), and a
+  consumer verifies with
+  `gh attestation verify … --signer-workflow …`. `actions/attest` is the one
+  attestation action, in both modes; cosign is not in the release path.
+- **A tool that runs inside a signing lane is pinned to an exact version**,
+  with a row in `docs/VERSIONS.md` and a `scripts/checks/versions.sh` check,
+  because it writes a document the lane then signs.
 - **A release is assembled as a draft and published last**: create the draft,
   attach every asset, check the set is complete, then publish, so a
   half-assembled release is never visible. The fix for a bad cut is a new patch
@@ -116,13 +125,15 @@ lockfile drift rather than on registry drift. Commit `Cargo.lock`.
   setting freezes a published release's notes and assets, and the
   `release-tags` ruleset stops the tag being moved or deleted
   (`docs/release.md`).
+- **The asset check is the contract.** `finalize-release` refuses to publish a
+  draft that is missing anything the lane promised, matching whole names, and
+  it reads the target set the `plan` job emitted rather than a second copy of
+  the matrix.
 - **A version pin has a single source of truth**, and a committed check fails
   on cross-file drift.
-- **The library crates publish to crates.io through Trusted Publishing** (OIDC,
-  no long-lived token), in dependency order, from a dispatch lane and from the
-  release lane, with a dry run on every pull request and the codegen drift gates
-  ahead of it, so a published generated crate never disagrees with its
-  generator.
+- **Nothing here publishes to crates.io.** The workspace sets
+  `publish = false`, so there is no registry leg and no Trusted Publishing
+  configuration to hold.
 
 ## Never
 
@@ -136,7 +147,7 @@ lockfile drift rather than on registry drift. Commit `Cargo.lock`.
 
 - OWASP GitHub Actions Security Cheat Sheet:
   <https://cheatsheetseries.owasp.org/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.html>
-- SLSA v1.0: <https://slsa.dev/spec/v1.0/>
+- SLSA v1.2: <https://slsa.dev/spec/v1.2/>
 - OpenSSF Scorecard: <https://github.com/ossf/scorecard-action>
 - GitHub Actions security hardening:
   <https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions>

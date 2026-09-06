@@ -1,0 +1,253 @@
+# SPDX-FileCopyrightText: Ruben Talstra
+# SPDX-License-Identifier: BUSL-1.1
+
+# The release build, as a REUSABLE workflow. One call per target triple.
+#
+# Why this is a separate file, which is the whole point of it. SLSA Build
+# Level 3 requires that the secret material authenticating the provenance
+# "MUST NOT be accessible to the environment running the user-defined build
+# steps" (https://slsa.dev/spec/v1.2/build-requirements, Provenance is
+# Unforgeable). Every step of a GitHub Actions job shares one runner VM, so a
+# build step in an ordinary job can reach anything the job's later steps use.
+# GitHub's documented remedy is to move the build and its attestation into a
+# reusable workflow, which runs on its own VM and whose steps a caller cannot
+# add to: a caller passes the declared inputs and nothing else
+# (https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-and-reusable-workflows-to-achieve-slsa-v1-build-level-3).
+# The build definition therefore stops being caller-defined, and the Fulcio
+# certificate names THIS workflow as the signer, which a consumer can demand:
+#
+#   gh attestation verify ferrochart-<tag>-<target>.tar.gz \
+#     -R rubentalstra/FerroCHART \
+#     --signer-workflow rubentalstra/FerroCHART/.github/workflows/release-build.yml
+#
+# That flag is the consumer-visible prize: it lets a verifier insist an
+# artifact came from this lane rather than from any workflow that happens to
+# live in the repository. A `uses:` job cannot carry `steps:`, which makes the
+# regression unrepresentable rather than discouraged.
+name: Release build (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: The release tag being built.
+        required: true
+        type: string
+      sha:
+        description: The commit the release was cut from.
+        required: true
+        type: string
+      target:
+        description: The Rust target triple.
+        required: true
+        type: string
+      runner:
+        description: The runner label matching the target's architecture.
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runner }}
+    # A cold build of the whole workspace, four times over.
+    timeout-minutes: 60
+    permissions:
+      contents: write # attach the per-target archive to the draft release
+      id-token: write # Sigstore, for the provenance and SBOM attestations
+      attestations: write # store them against this repository
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.sha }}
+
+      # Cold by construction rather than by hope: setup-rust-toolchain restores
+      # a rust-cache entry unless told otherwise, so the published archive would
+      # be linked from cached bytes this job did not build. A publishing lane
+      # restores no cache.
+      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+        with:
+          target: ${{ inputs.target }}
+          cache: false
+
+      # musl needs its C toolchain. Every target builds natively on a runner of
+      # its own architecture, so there is no cross toolchain and no QEMU.
+      - name: Install the musl toolchain
+        if: ${{ contains(inputs.target, 'musl') }}
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+
+      # `cargo auditable` writes the compressed dependency list into the
+      # binary's own `.dep-v0` section, under 4 KiB, so the SHIPPED artifact
+      # self-describes to syft, trivy, grype and osv-scanner even when the
+      # release page's SBOM never travelled with it
+      # (https://github.com/rust-secure-code/cargo-auditable).
+      - name: Install cargo-auditable
+        uses: taiki-e/install-action@0758d235715de2f3551eacc980d9ae8fce9342c3 # v2.87.3
+        with:
+          tool: cargo-auditable@0.7.5
+
+      - name: Build the release binaries
+        env:
+          TARGET: ${{ inputs.target }}
+        run: cargo auditable build --release --locked --workspace --bins --target "$TARGET"
+
+      - name: Package the binaries with their checksum
+        env:
+          TAG: ${{ inputs.tag }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          # The binary names come from the workspace itself, so this step needs
+          # no edit when a binary is added or renamed.
+          bins=()
+          while IFS= read -r name; do
+            if [ -n "$name" ]; then
+              bins+=("$name")
+            fi
+          done < <(cargo metadata --format-version 1 --no-deps --locked \
+            | jq -r '.packages[].targets[] | select(.kind | index("bin")) | .name' | sort -u)
+          if [ "${#bins[@]}" -eq 0 ]; then
+            echo "::error::the workspace declares no bin target, so this release can attach no binary." >&2
+            exit 1
+          fi
+          printf 'packaging: %s\n' "${bins[@]}"
+          # The binaries are NOT stripped: [profile.release] keeps
+          # `debug = "line-tables-only"` so a production panic names its file
+          # and line, and stripping would discard exactly that.
+          asset="ferrochart-${TAG}-${TARGET}.tar.gz"
+          tar -C "target/${TARGET}/release" -czf "$asset" "${bins[@]}"
+          # A plain checksum beside the archive, the only verification available
+          # to an operator with neither `gh` nor a network path to Sigstore
+          # (`sha256sum -c <file>.sha256sum`). It detects a corrupt or truncated
+          # download and nothing else; it does not say who built the file.
+          # Records the bare filename, so `-c` works in whatever directory the
+          # two files landed in.
+          sha256sum "$asset" > "${asset}.sha256sum"
+          cat "${asset}.sha256sum"
+          {
+            echo "ASSET=$asset"
+            echo "CHECKSUM=${asset}.sha256sum"
+          } >> "$GITHUB_ENV"
+
+      # A CycloneDX document of the Rust dependency graph, a different document
+      # from the container SBOM: it carries the direct and transitive edges
+      # that make an SBOM actionable, and it is generated from the release
+      # commit's own Cargo.lock.
+      - name: Install cargo-cyclonedx
+        uses: taiki-e/install-action@0758d235715de2f3551eacc980d9ae8fce9342c3 # v2.87.3
+        with:
+          tool: cargo-cyclonedx@0.5.9
+
+      - name: Generate the dependency SBOM
+        env:
+          TAG: ${{ inputs.tag }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          # One document per released binary, and each one is attested below by
+          # a step of its own, which no loop can express. So the lane names the
+          # binaries it describes and refuses a workspace that declares another
+          # one, rather than shipping a binary with no SBOM. A new binary joins
+          # here, with its own generate and attest steps.
+          declared="$(cargo metadata --format-version 1 --no-deps --locked \
+            | jq -r '.packages[].targets[] | select(.kind | index("bin")) | .name' \
+            | sort -u | paste -sd, -)"
+          if [ "$declared" != "ferrochart" ]; then
+            echo "::error::the workspace declares the bin set '${declared}'; this lane describes 'ferrochart' and would ship the rest with no SBOM." >&2
+            exit 1
+          fi
+          # `--spec-version 1.5` is the highest cargo-cyclonedx emits and its
+          # default is 1.3, so dropping the flag downgrades every release.
+          # `--describe binaries` with a manifest path scoped to the
+          # binary-producing crate makes the document describe the shipped
+          # artifact rather than the whole workspace.
+          cargo cyclonedx \
+            --manifest-path app/ferrochart/Cargo.toml \
+            --format json --describe binaries --spec-version 1.5
+          sbom="ferrochart-${TAG}-${TARGET}.cdx.json"
+          # cargo-cyclonedx names the file after the binary; find it rather
+          # than hard-coding the stem, then rename it after the asset it
+          # describes.
+          src="$(find app/ferrochart -maxdepth 1 -name '*.cdx.json' | head -n1)"
+          if [ -z "$src" ]; then
+            echo "::error::cargo-cyclonedx produced no .cdx.json" >&2
+            exit 1
+          fi
+          mv "$src" "$sbom"
+          echo "SBOM=$sbom" >> "$GITHUB_ENV"
+
+      # `actions/attest` is the one attestation action, in both modes: no
+      # `sbom-path` is provenance mode, `sbom-path` is SBOM mode. Signing is
+      # keyless Sigstore OIDC, so there is no long-lived key anywhere. The
+      # subject of both is the ARCHIVE, which is what a downloader holds.
+      - name: Attest build provenance
+        id: provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ env.ASSET }}
+      - name: Attest the SBOM
+        id: sbom-attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ env.ASSET }}
+          sbom-path: ${{ env.SBOM }}
+
+      # The attestations live in GitHub's attestations API, which is what
+      # `gh attestation verify` reads with no --bundle flag. Publishing them as
+      # assets adds offline verification, and visibility to scanners that read
+      # a release's file list: the OpenSSF Scorecard signed-releases probes
+      # match filename suffixes, `.sigstore.json` for a signature and
+      # `.intoto.jsonl` for provenance. The `.intoto.jsonl` re-containers the
+      # bundle's already DSSE-wrapped in-toto statement, one envelope per line.
+      - name: Publish the attestations as release assets
+        env:
+          PROVENANCE_BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+          SBOM_BUNDLE: ${{ steps.sbom-attestation.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          cp "$PROVENANCE_BUNDLE" "${ASSET}.sigstore.json"
+          cp "$SBOM_BUNDLE" "${ASSET}.sbom.sigstore.json"
+          jq -c '.dsseEnvelope' "$PROVENANCE_BUNDLE" > "${ASSET}.intoto.jsonl"
+          # Refuse to publish a malformed provenance line rather than attach a
+          # file that looks like provenance and is not.
+          payload_type="$(jq -r '.payloadType' "${ASSET}.intoto.jsonl")"
+          if [ "$payload_type" != "application/vnd.in-toto+json" ]; then
+            echo "::error::the provenance envelope is not in-toto (payloadType=${payload_type})" >&2
+            exit 1
+          fi
+          predicate="$(jq -r '.payload' "${ASSET}.intoto.jsonl" | base64 -d | jq -r '.predicateType')"
+          if [ "$predicate" != "https://slsa.dev/provenance/v1" ]; then
+            echo "::error::the provenance predicate is not SLSA v1 (${predicate})" >&2
+            exit 1
+          fi
+          {
+            echo "PROVENANCE_BUNDLE_ASSET=${ASSET}.sigstore.json"
+            echo "SBOM_BUNDLE_ASSET=${ASSET}.sbom.sigstore.json"
+            echo "PROVENANCE_JSONL_ASSET=${ASSET}.intoto.jsonl"
+          } >> "$GITHUB_ENV"
+
+      # The image lane takes the archive from this run's artifacts and
+      # re-verifies its attestation before it copies the binary out.
+      - name: Hand the archive to the image lane
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ferrochart-${{ inputs.tag }}-${{ inputs.target }}
+          path: ${{ env.ASSET }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Attach the archive to the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          # The release is still a DRAFT here and stays one: the caller's
+          # finalize job publishes it once every target has attached its
+          # assets. Publishing freezes the release, so flipping it here would
+          # lock the other targets out.
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber \
+            "$ASSET" "$CHECKSUM" "$SBOM" \
+            "$PROVENANCE_BUNDLE_ASSET" "$SBOM_BUNDLE_ASSET" "$PROVENANCE_JSONL_ASSET"

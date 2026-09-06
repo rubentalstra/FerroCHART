@@ -1,0 +1,232 @@
+# SPDX-FileCopyrightText: Ruben Talstra
+# SPDX-License-Identifier: BUSL-1.1
+
+# The FerroCHART quickstart. This file is standalone: download it and run it,
+# with no repository checkout.
+#
+#   FERROCHART_CDR_URL=https://cdr.example.org/openehr \
+#   FERROCHART_TERM_URL=https://tx.example.org/r4 \
+#     docker compose up
+#
+# FerroCHART is a client of two servers you supply. FERROCHART_CDR_URL is the
+# openEHR REST base of your CDR, the part before `/v1` (openEHR ITS-REST
+# Release-1.1.0 section 3); FERROCHART_TERM_URL is the base of a FHIR R4
+# terminology server. Both are required, and compose refuses to start without
+# them rather than bringing up a server that fails at its first request.
+#
+# ── The demo profile, and the three licences it pulls ────────────────────────
+#
+#   docker compose --profile demo up
+#
+# The demo profile additionally starts FerroEHR, its PostgreSQL, and
+# FerroTERM, so the stack runs end to end with nothing else installed. Point
+# FerroCHART at them in the same command:
+#
+#   FERROCHART_CDR_URL=http://ferroehr:8080/ferroehr/rest/openehr \
+#   FERROCHART_TERM_URL=http://ferroterm:8080/r4 \
+#     docker compose --profile demo up
+#
+# FerroCHART, FerroEHR and FerroTERM are three separate products, each
+# published under the Business Source License 1.1 by the same author, and each
+# with its own LICENSE:
+#
+#   https://github.com/rubentalstra/FerroCHART/blob/main/LICENSE
+#   https://github.com/rubentalstra/FerroEHR/blob/main/LICENSE
+#   https://github.com/rubentalstra/FerroTERM/blob/main/LICENSE
+#
+# This file references those images; it does not distribute them. Running the
+# demo profile is a use of all three, and BUSL-1.1 is free for every
+# non-production use and for non-commercial production use. Any other
+# production use needs a commercial licence from the author, for each product
+# you run, and always for a hosted, managed, or embedded service.
+#
+# THE DEMO PROFILE IS FOR EVALUATION. It carries development credentials
+# (FerroEHR serves one Basic user, ferroehr/ferroehr, with RBAC disabled) and
+# a PostgreSQL with a default password. Nothing in it is a deployment.
+#
+# What the demo does and does not show: FerroTERM starts with no index, so it
+# serves the code systems that need no licensed content, UCUM among them. A
+# coded field bound to SNOMED CT does not expand until you build an index,
+# which needs a release your national release centre licenses to you. See
+# FerroTERM's own quickstart for that.
+#
+# ── Where the ports are published ────────────────────────────────────────────
+# Every published port binds the loopback interface by default. A published
+# port is DNAT'd by rules Docker inserts ahead of the host firewall's own
+# chains, so a port on 0.0.0.0 is reachable even when the firewall says
+# otherwise
+# (https://docs.docker.com/engine/network/packet-filtering-firewalls/). To
+# serve another machine, name the interface, or put a reverse proxy in front:
+#
+#   FERROCHART_BIND_HOST=0.0.0.0 docker compose up
+#   FERROCHART_PORT=8081 docker compose up
+#
+# ── The rest of the posture ──────────────────────────────────────────────────
+# Every knob is `${VAR:-default}`, so the file runs with no .env file at all
+# and every setting is overridable inline. Every service drops every
+# capability, refuses privilege escalation, and runs a read-only root
+# filesystem where its image allows one. The images run as uid 65532 and have
+# no shell, so there is no healthcheck on FerroCHART or FerroTERM: probe them
+# over HTTP from outside.
+#
+# The FerroCHART image tag is bumped at every release cut, and
+# scripts/checks/versions.sh keeps it equal to the workspace version. The
+# sibling tags name the versions the demo was last run against; a deployment
+# pins a digest instead, because a registry tag is mutable.
+#
+# The inline `configs:` block at the bottom needs Docker Compose 2.23.1 or
+# newer (https://docs.docker.com/reference/compose-file/configs/).
+#
+# TODO(#41): FERROCHART_LISTEN, the two endpoint variables, the credentials
+# each endpoint needs, the overlay store's volume, and the health endpoint to
+# probe all land with the server's runtime surface. Today the binary prints
+# its version and exits, so this file describes the shape the release lane
+# ships rather than a server you can drive.
+
+services:
+  ferrochart:
+    image: ghcr.io/rubentalstra/ferrochart:${FERROCHART_VERSION:-0.0.2}
+    restart: unless-stopped
+    ports:
+      - "${FERROCHART_BIND_HOST:-127.0.0.1}:${FERROCHART_PORT:-8080}:8080"
+    environment:
+      # The `:?` form fails the command with this message instead of starting
+      # a server pointed at nothing.
+      FERROCHART_CDR_URL: ${FERROCHART_CDR_URL:?set FERROCHART_CDR_URL to your openEHR REST base URL, or to http://ferroehr:8080/ferroehr/rest/openehr with --profile demo}
+      FERROCHART_TERM_URL: ${FERROCHART_TERM_URL:?set FERROCHART_TERM_URL to your FHIR R4 terminology base URL, or to http://ferroterm:8080/r4 with --profile demo}
+      RUST_LOG: ${RUST_LOG:-info}
+    # Inert unless the demo profile is up: `required: false` makes the edge a
+    # warning rather than a failure when the service is not started
+    # (https://docs.docker.com/reference/compose-file/services/#depends_on).
+    depends_on:
+      ferroehr:
+        condition: service_healthy
+        required: false
+      ferroterm:
+        condition: service_started
+        required: false
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  # ── The demo profile ───────────────────────────────────────────────────────
+
+  # The CDR's database. It publishes no host port: the CDR reaches it over the
+  # compose network, and a host publish would serve nothing but a psql client.
+  ferroehr-postgres:
+    profiles: [demo]
+    image: ghcr.io/rubentalstra/ferroehr-postgres:${FERROEHR_VERSION:-4.1.1}
+    restart: unless-stopped
+    environment:
+      # Development credentials, and they are not a secret: this profile is
+      # for evaluation.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PG_INIT_USER: ${PG_INIT_USER:-ferroehr}
+      PG_INIT_PASSWORD: ${PG_INIT_PASSWORD:-ferroehr}
+      PG_INIT_DB: ${PG_INIT_DB:-ferroehr}
+    volumes:
+      - ferrochart-demo-pgdata:/var/lib/postgresql
+    # The entrypoint starts as root to chown the data directory and then drops
+    # to `postgres`, so it needs exactly the capabilities that requires.
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+      - /var/run/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_INIT_USER:-ferroehr} -d ${PG_INIT_DB:-ferroehr}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  # The CDR. FerroCHART commits compositions to it over ITS-REST, and the
+  # published port is there so you can watch what arrived.
+  ferroehr:
+    profiles: [demo]
+    image: ghcr.io/rubentalstra/ferroehr:${FERROEHR_VERSION:-4.1.1}
+    restart: unless-stopped
+    depends_on:
+      ferroehr-postgres:
+        condition: service_healthy
+    environment:
+      FERROEHR__DB__URL: postgres://${PG_INIT_USER:-ferroehr}:${PG_INIT_PASSWORD:-ferroehr}@ferroehr-postgres:5432/${PG_INIT_DB:-ferroehr}
+      FERROEHR__LOG__FORMAT: ${FERROEHR__LOG__FORMAT:-pretty}
+    configs:
+      - source: ferroehr-demo-config
+        target: /etc/ferroehr/ferroehr.toml
+    ports:
+      - "${FERROCHART_BIND_HOST:-127.0.0.1}:${FERROEHR_PORT:-8081}:8080"
+    # Not read-only: Compose refuses an inline config in a read-only service,
+    # and the inline config below is what keeps this file standalone.
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/ferroehr", "healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # The terminology server, for the value sets behind coded fields. It starts
+  # with no index and serves the code systems that need no licensed content.
+  ferroterm:
+    profiles: [demo]
+    image: ghcr.io/rubentalstra/ferroterm:${FERROTERM_VERSION:-0.1.0}
+    restart: unless-stopped
+    environment:
+      FERROTERM_LOG_FORMAT: ${FERROTERM_LOG_FORMAT:-pretty}
+      RUST_LOG: ${RUST_LOG:-info}
+    ports:
+      - "${FERROCHART_BIND_HOST:-127.0.0.1}:${FERROTERM_PORT:-8082}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+configs:
+  # The CDR's evaluation configuration, inline so this file stays standalone.
+  # One Basic user, ferroehr/ferroehr, whose Argon2id hash is written below
+  # with `$` doubled against compose interpolation, and RBAC disabled so that
+  # one user may use every enabled surface. Development credentials: replace
+  # them, or put an identity provider in front, before this reaches anything
+  # real.
+  ferroehr-demo-config:
+    content: |
+      [server]
+      bind = "0.0.0.0:8080"
+
+      [auth]
+      enabled = true
+
+      [[auth.basic.users]]
+      username = "ferroehr"
+      password_hash = "$$argon2id$$v=19$$m=19456,t=2,p=1$$ZmVycm9laHJEZXZTYWx0$$be5nPwWjfUl1qvSrvkvqvdMOuCgM0VFcN/VN4MFLjT8"
+      roles = ["ADMIN", "USER"]
+
+      [authz.rbac]
+      enabled = false
+
+volumes:
+  ferrochart-demo-pgdata:
