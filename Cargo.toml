@@ -36,12 +36,20 @@ openehr-adl = "0.0.61"
 openehr-its = "0.0.61"
 openehr-query = "0.0.61"
 
+# The server surface (docs/architecture.md section 11, issue #41).
+axum = { version = "0.8.9", default-features = false, features = ["http1", "json", "tokio"] }
+tokio = { version = "1.53.1", default-features = false, features = ["rt-multi-thread", "macros", "net", "signal"] }
+thiserror = "2.0.20"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", default-features = false, features = ["fmt", "env-filter"] }
+
 ferrochart-form = { path = "crates/ferrochart-form" }
 ferrochart-compile = { path = "crates/ferrochart-compile" }
 ferrochart-overlay = { path = "crates/ferrochart-overlay" }
 ferrochart-cdr = { path = "crates/ferrochart-cdr" }
 ferrochart-term = { path = "crates/ferrochart-term" }
 ferrochart-server = { path = "crates/ferrochart-server" }
+serde_json = "1.0.145"
 
 # Every lint here is enforced by `.claude/rules/reliability.md`. `forbid`
 # cannot be relaxed by an attribute; `deny` fails every clippy run.

@@ -29,8 +29,6 @@ COPY --chmod=0555 dist/${TARGETOS}/${TARGETARCH}/ferrochart /usr/local/bin/ferro
 
 # A container cannot publish a loopback bind, so the image default is every
 # interface on the documented port.
-# TODO(#41): the HTTP surface reads FERROCHART_LISTEN; today the binary prints
-# its version and exits.
 ENV FERROCHART_LISTEN=0.0.0.0:8080
 EXPOSE 8080/tcp
 
