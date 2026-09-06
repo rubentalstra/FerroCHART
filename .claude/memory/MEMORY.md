@@ -27,5 +27,9 @@
   code while the design is open
 - [PR auto-merge](pr-auto-merge.md): enable auto-merge on every pull request
   the moment it is opened (`gh pr merge <n> --auto --squash --delete-branch`)
+- [Community contact: Severin Kohler](community-contact-severin-kohler.md):
+  the openEHR community member who asked for this product on 2026-09-06
+  (EHRbase, OMOCL, FHIRconnect); offered specification and forms review;
+  suggested serving openEHR value sets as FHIR ValueSets
 - [Memory lives in the repo](memory-lives-in-repo.md): every learning is a
   tracked file in `.claude/memory/`, never a per-user note
