@@ -14,6 +14,13 @@ homepage.workspace = true
 publish.workspace = true
 
 [dependencies]
+openehr-base.workspace = true
+openehr-am.workspace = true
+openehr-adl.workspace = true
+openehr-its.workspace = true
+openehr-rm.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
 
 [lints]
 workspace = true

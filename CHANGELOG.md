@@ -27,6 +27,27 @@ the build order.
   in `ci.yml` and the coverage job in `sonar.yml` call it instead of each
   carrying its own pinned toolchain step. The release lane keeps its own,
   because a publishing lane restores no cache, and now says so at the step.
+- The internal constraint model and the two template readers that fill it
+  (#13, #14), in `ferrochart-compile`. Both ADL generations normalize into one
+  model, so the field derivation is written once and nothing above that point
+  can tell which reader produced a node: each node carries a node identity, a
+  Reference Model type, an occurrences interval, a constraint payload, the
+  terminology in scope, and the five parts an overlay key step needs
+  (`docs/architecture.md` sections 3 and 6.2). The ADL 1.4 reader walks a
+  parsed `.opt`, resolving `use_node` internal references the vendor flattener
+  left in place and reading the constrainers only the ITS-XML family declares
+  (`C_DV_STATE`, `C_CODE_REFERENCE`, `T_COMPLEX_OBJECT`). The ADL 2 reader
+  starts from source archetypes, flattens them and generates the operational
+  form itself, folding the `C_PRIMITIVE_TUPLE` shapes for quantity and ordinal
+  into the same payloads the ADL 1.4 domain types produce, and carrying
+  `constraint_status`, which ADL 1.4 cannot state. A node with
+  `occurrences matches {0}` is absent from the model, and a template that
+  requires content at a slot it never filled is refused with a typed error
+  naming the slot rather than rendered as a guess. 121 of the 123 committed CKM
+  templates read; the two refusals are required unfilled slots.
+- A crate-scoped `deny.toml` licence exception for `openehr-term`, which
+  embeds the openEHR support terminology under CC-BY-SA-3.0 and reaches this
+  tree through `openehr-its` and `openehr-adl`.
 - The release supply chain (#39, #34): a `v*` tag now publishes a container
   image, SBOMs, checksums and Sigstore attestations beside the binaries, and a
   quickstart `compose.yaml` a downloader can run without a clone. The binaries

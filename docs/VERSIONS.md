@@ -65,7 +65,9 @@ set, so the rows below move together.
 
 The set mixes licences: `openehr-base`, `openehr-rm` and `openehr-am` are
 Apache-2.0, `openehr-adl` and `openehr-query` are BUSL-1.1, and `openehr-its`
-is BUSL-1.1 and Apache-2.0. `deny.toml` allows exactly this set and no more.
+is BUSL-1.1 and Apache-2.0. `openehr-term` arrives with them, under Apache-2.0
+and CC-BY-SA-3.0 for the openEHR support terminology it embeds. `deny.toml`
+allows exactly this set and no more.
 
 ## Language and runtime
 
