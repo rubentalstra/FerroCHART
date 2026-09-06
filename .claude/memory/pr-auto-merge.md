@@ -17,6 +17,13 @@ gh pr create ... && gh pr merge <n> --auto --squash --delete-branch
 
 Never leave a pull request waiting for a manual merge.
 
+**No exceptions, including a PR the owner will want to read.** Reasoning that
+a design document, an architecture decision, or a large change deserves a
+manual merge is the wrong call: the owner reads what landed on `main` and
+opens a follow-up issue if something is wrong. Withholding auto-merge to
+create a review gate the owner did not ask for wastes their time
+(FerroCHART, 2026-09-06).
+
 **Why:** the owner asked on 2026-09-04: "for PR's do not forget to trigger
 auto merge okay!! so when the CI is green it will be merged". The `main`
 ruleset requires the `conclusion` status check, so auto-merge is the correct
