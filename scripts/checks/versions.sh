@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: BUSL-1.1
 # Version-drift guard (docs/VERSIONS.md is the single source of truth).
 #
-# Every file that repeats a pin must agree with the matrix. The repository is
-# in its design phase, so a check whose subject file is absent SKIPS LOUDLY
-# with a printed reason, and gains teeth the moment the file appears.
+# Every file that repeats a pin must agree with the matrix. A check whose
+# subject file is absent SKIPS LOUDLY with a printed reason, and gains teeth
+# the moment the file appears.
 #
 #   1. specification pins  the four rows of the docs/architecture.md pin table
 #                          (openEHR RM, AM, ITS-REST, AQL) against
