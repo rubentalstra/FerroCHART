@@ -166,6 +166,7 @@ Each state below was read from the API rather than remembered.
 | Code scanning in advanced setup, with the CodeQL default setup off so `codeql.yml` is the analysis path | done, verified 2026-09-06: `code-scanning/default-setup` reports `not-configured` |
 | Secret scanning with push protection, Dependabot alerts, and Dependabot security updates | done, verified 2026-09-06 |
 | Artifact attestations, for the release lane when it lands | open |
+| The `ferrochart` GHCR package is public and linked to this repository | open: the first image push creates the package, private by default. The image lane verifies its own output the way a consumer would, so a private package fails that step and the release stops before publishing |
 | The `SONAR_TOKEN` secret and the SonarCloud project `rubentalstra_FerroCHART`, with Automatic Analysis off (`.claude/rules/ai-code-review.md`) | done 2026-09-06: `sonar.yml` is green and now imports Rust coverage |
 | Pages publishes from GitHub Actions and serves `ferrochart.eu` with HTTPS enforced; the apex A records point at the four GitHub Pages addresses, `www` is a CNAME to `rubentalstra.github.io`, and the domain is verified for the account | open: the domain was registered on 2026-09-06 at Vimexx and still points at the registrar's nameservers |
 | The label bootstrap (`scripts/gh/labels.sh`) | done: the type, priority, `spec:*`, `compat`, `ux`, `research` and `upstream-report` labels all exist |

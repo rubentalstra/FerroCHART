@@ -206,11 +206,17 @@ jobs:
           syft scan "registry:${IMAGE}@${AMD64}" --platform linux/amd64 -o "spdx-json=ferrochart-${TAG}-image-amd64.spdx.json"
           syft scan "registry:${IMAGE}@${ARM64}" --platform linux/arm64 -o "spdx-json=ferrochart-${TAG}-image-arm64.spdx.json"
           # A syft scan of a binary with no `.dep-v0` section still succeeds and
-          # produces a document naming the file and nothing else, so the crate
-          # count is what catches a build that lost cargo auditable.
+          # produces a document naming the file and nothing else, so the check
+          # is what catches a build that lost cargo auditable. It asks for a
+          # cargo purl rather than for a package count, because a binary with
+          # few or no dependencies is legitimate and a count would refuse it.
           for f in ferrochart-"${TAG}"-image-*.spdx.json; do
-            jq -e '.packages | length > 2' "$f" >/dev/null || {
-              echo "::error::${f} lists no crate dependencies; was the binary built with cargo auditable?" >&2
+            jq -e '[.packages[]?.externalRefs[]?
+                    | select(.referenceType == "purl")
+                    | .referenceLocator
+                    | select(startswith("pkg:cargo/"))] | length > 0' "$f" >/dev/null || {
+              echo "::error::${f} names no cargo package; was the binary built with cargo auditable?" >&2
+              jq -r '.packages[]?.name' "$f" >&2
               exit 1
             }
           done
