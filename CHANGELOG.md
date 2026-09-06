@@ -23,6 +23,17 @@ no binary to download yet.
 
 ### Added
 
+- The design of record, `docs/architecture.md` (#1): the version pins, both
+  template generations normalized into one internal constraint model, the
+  field derivation table from the Reference Model and its constraints, the
+  layout overlay with its key normalization and its replay report, the
+  terminology split between local and network resolution, the ITS-REST client
+  rules, the workspace layout, the build order, and a decision register.
+  Every decision carries a citation or an explicit note that no specification
+  governs it.
+- The specification and model-crate pins in `docs/VERSIONS.md`, which now
+  carry values instead of `pending #1`, and `scripts/checks/versions.sh` also
+  checks `openehr-am` and `openehr-adl` (#9).
 - The brand: the mark, the "Rose & Iron" palette, and the lockup, favicon and
   social-card set (#3). Rose was chosen by measuring worst-case CIEDE2000
   distance from the other three product hues under normal, deuteranope and

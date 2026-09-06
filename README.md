@@ -22,10 +22,12 @@ behind coded fields.
 
 ## Status: designed, not yet built
 
-There is no code and no binary. The architecture is the output of the research
+There is no code and no binary. The design of record is
+[`docs/architecture.md`](docs/architecture.md), the output of the research
 program on
-[issue #1](https://github.com/rubentalstra/FerroCHART/issues/1), which produces
-`docs/architecture.md`. Nothing here describes software you can download.
+[issue #1](https://github.com/rubentalstra/FerroCHART/issues/1), where every
+decision carries a citation or an explicit note that no specification governs
+it. Nothing here describes software you can download.
 
 ## Why this exists
 
@@ -64,12 +66,19 @@ by the openEHR community rather than invented here.
 - **Business Source License 1.1.** Free for non-commercial use, a commercial
   licence for production use in a business. See below.
 
-## What is open
+## What is decided since the research closed
 
-The crate layout, the form definition format and how far it tracks the de facto
-web template, ADL 1.4 against ADL 2 support, how the renderer is built and
-shipped, and the acceptance instrument. Each is a question for issue #1 rather
-than an assumption, and the answer arrives with its citation.
+Both template generations are read, and they normalize into one internal
+constraint model so the field derivation is written once. The openEHR model
+comes from the published `openehr-*` crates rather than a generator here. The
+form definition is FerroCHART's own type projected from the web template,
+which is a compatibility target and not a specification. The compiler runs on
+the server and the renderer reads the definition it serves. The acceptance
+instrument is a per-datatype template grid, a round trip against a CDR, and an
+overlay replay against a real template revision.
+
+The reasoning and the citations are in
+[`docs/architecture.md`](docs/architecture.md) §15, the decision register.
 
 ## Licensing
 

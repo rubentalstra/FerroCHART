@@ -14,22 +14,27 @@ No specification governs this file; it is FerroCHART's own design.
 
 ## Specifications
 
-FerroCHART is in its design phase and has pinned no specification release yet.
 The research on
-[issue #1](https://github.com/rubentalstra/FerroCHART/issues/1) chooses each
-one and records why in `docs/architecture.md` §2, and the rows below then carry
-the value. A pin written here before that research is a guess, and a guess in
-this file is worse than an empty row.
+[issue #1](https://github.com/rubentalstra/FerroCHART/issues/1) chose each
+release and records the ground in `docs/architecture.md` §2. A component
+release carries documents at different maturity levels inside one number, so a
+citation names the component release, the document, and the section.
 
 | Item | Pin | Repeated in |
 |---|---|---|
-| openEHR RM | pending #1 | `docs/architecture.md`, later the model crates |
-| openEHR AM | pending #1 | `docs/architecture.md`, later the template reader |
-| openEHR ITS-REST | pending #1 | `docs/architecture.md`, later the CDR client |
-| openEHR AQL | pending #1 | `docs/architecture.md`, later the read-back path |
+| openEHR RM | Release-1.1.0 | `docs/architecture.md` §2, the model crates |
+| openEHR AM | Release-2.3.0 | `docs/architecture.md` §2, the template readers |
+| openEHR ITS-REST | Release-1.1.0 | `docs/architecture.md` §2, the CDR client |
+| openEHR AQL | Release-1.1.0 | `docs/architecture.md` §2, the read-back path |
+| openEHR BASE | Release-1.2.0 | `docs/architecture.md` §2, the path syntax |
+| openEHR ITS-XML | 2.0.0 | `docs/architecture.md` §2, the OPT 1.4 XSD family |
+| openEHR TERM | Release-3.0.0 | `docs/architecture.md` §2, the terminology groups |
+| HL7 FHIR | R4 4.0.1 | `docs/architecture.md` §2, the terminology client |
 
-ADL 1.4 against ADL 2 is part of that decision, not a separate row, because it
-follows from the AM release chosen.
+Both template generations are read (`docs/architecture.md` §3), so the AM
+release covers ADL 1.4, AOM 1.4, ADL 2 and AOM 2 together. The AM release
+number and the version of a document inside it are separate numbers and are
+never conflated in a citation.
 
 ## Corpora and machine-readable inputs
 
@@ -43,9 +48,24 @@ hand-edited to make a test pass.
 
 ## Model crates
 
-Whether the openEHR model comes from the published `openehr-*` crates, from a
-generator in this repository, or from neither is open (`.claude/rules/codegen.md`).
-No crate is pinned until that is decided.
+The openEHR model comes from the published `openehr-*` crates
+(`docs/architecture.md` §2). They are published on crates.io and model the
+specification; the CDR they are published from is never a dependency here. The
+line releases in lockstep, and each `0.0.x` patch is its own compatibility
+set, so the rows below move together.
+
+| Item | Pin | Repeated in |
+|---|---|---|
+| openehr-base | 0.0.61 | `docs/architecture.md` §2, root `Cargo.toml` |
+| openehr-rm | 0.0.61 | `docs/architecture.md` §2, root `Cargo.toml` |
+| openehr-am | 0.0.61 | `docs/architecture.md` §2, root `Cargo.toml` |
+| openehr-adl | 0.0.61 | `docs/architecture.md` §2, root `Cargo.toml` |
+| openehr-its | 0.0.61 | `docs/architecture.md` §2, root `Cargo.toml` |
+| openehr-query | 0.0.61 | `docs/architecture.md` §2, root `Cargo.toml` |
+
+The set mixes licences: `openehr-base`, `openehr-rm` and `openehr-am` are
+Apache-2.0, `openehr-adl` and `openehr-query` are BUSL-1.1, and `openehr-its`
+is BUSL-1.1 and Apache-2.0. `deny.toml` allows exactly this set and no more.
 
 ## Language and runtime
 
