@@ -23,6 +23,11 @@ no binary to download yet.
 
 ### Added
 
+- The brand: the mark, the "Rose & Iron" palette, and the lockup, favicon and
+  social-card set (#3). Rose was chosen by measuring worst-case CIEDE2000
+  distance from the other three product hues under normal, deuteranope and
+  protanope vision, and `assets/brand/README.md` records the ratio for every
+  token against both grounds.
 - The repository: the working discipline in `.claude/` (rules, hooks, skills,
   agents, memory), the community and governance documents, the pinned version
   matrix in `docs/VERSIONS.md`, the committed guards under `scripts/checks/`,

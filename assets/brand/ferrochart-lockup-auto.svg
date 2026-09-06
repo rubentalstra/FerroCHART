@@ -1,0 +1,29 @@
+<!-- SPDX-FileCopyrightText: Ruben Talstra -->
+<!-- SPDX-License-Identifier: BUSL-1.1 -->
+<!-- One lockup for both themes: the media query inside the SVG switches the
+     mark and the wordmark on prefers-color-scheme, so a README or a page
+     serves one file to a light and a dark reader. The box is sized for the
+     fallback stack, which is wider than Bricolage Grotesque, so the wordmark
+     never clips on a machine without the font. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 56" width="244" height="56" role="img" aria-label="FerroCHART">
+  <title>FerroCHART</title>
+  <style>
+    .sheet { stroke: #C2185B; }
+    .row { stroke: #C2185B; }
+    .row-2 { stroke: #E04F84; }
+    .wm { fill: #0f172a; }
+    @media (prefers-color-scheme: dark) {
+      .sheet { stroke: #E04F84; }
+      .row { stroke: #E04F84; }
+      .row-2 { stroke: #F48FB1; }
+      .wm { fill: #f1f5f9; }
+    }
+  </style>
+  <g transform="translate(4,4) scale(0.75)" fill="none" stroke-linecap="round">
+    <rect class="sheet" x="9" y="7" width="46" height="50" rx="7" stroke-width="4"/>
+    <path class="row" d="M19 20 H45" stroke-width="4"/>
+    <path class="row-2" d="M19 29 H39" stroke-width="4"/>
+    <path class="row" d="M19.5 40 L24.5 45 L33 36.5" stroke-width="4.6" stroke-linejoin="round"/>
+  </g>
+  <text class="wm" x="64" y="37" font-family="'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="30" font-weight="700" letter-spacing="-0.3">FerroCHART</text>
+</svg>
