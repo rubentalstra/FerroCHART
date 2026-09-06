@@ -35,18 +35,23 @@ allow = [
   "CDLA-Permissive-2.0",
 ]
 confidence-threshold = 0.9
-# The project's own crates are BUSL-1.1 (LICENSE). The openEHR model crates
-# join this list when they are added (openehr-its, openehr-query are BUSL-1.1;
-# openehr-term is Apache-2.0 AND CC-BY-SA-3.0).
+# The project's own crates are BUSL-1.1 (LICENSE), and so are three of the
+# pinned openEHR model crates. The names below are the workspace members of
+# the root Cargo.toml and the crates docs/VERSIONS.md pins; nothing else.
 exceptions = [
-  { allow = ["BUSL-1.1"], crate = "openehr-mapping-core" },
-  { allow = ["BUSL-1.1"], crate = "fhirconnect" },
-  { allow = ["BUSL-1.1"], crate = "omocl" },
-  { allow = ["BUSL-1.1"], crate = "omop-cdm" },
-  { allow = ["BUSL-1.1"], crate = "ferrochart-openehr" },
+  { allow = ["BUSL-1.1"], crate = "ferrochart" },
+  { allow = ["BUSL-1.1"], crate = "ferrochart-form" },
+  { allow = ["BUSL-1.1"], crate = "ferrochart-compile" },
+  { allow = ["BUSL-1.1"], crate = "ferrochart-overlay" },
+  { allow = ["BUSL-1.1"], crate = "ferrochart-cdr" },
   { allow = ["BUSL-1.1"], crate = "ferrochart-term" },
   { allow = ["BUSL-1.1"], crate = "ferrochart-server" },
-  { allow = ["BUSL-1.1"], crate = "ferrochart-testkit" },
+  { allow = ["BUSL-1.1"], crate = "ferrochart-renderer" },
+  { allow = ["BUSL-1.1"], crate = "openehr-adl" },
+  { allow = ["BUSL-1.1"], crate = "openehr-query" },
+  # openehr-its is BUSL-1.1 AND Apache-2.0 for the openEHR-derived material
+  # it embeds.
+  { allow = ["BUSL-1.1", "Apache-2.0"], crate = "openehr-its" },
 ]
 
 [bans]
