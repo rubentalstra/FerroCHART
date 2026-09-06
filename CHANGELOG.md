@@ -23,6 +23,13 @@ no binary to download yet.
 
 ### Added
 
+- The overlay key, decided against measured evidence (#8): a step chain
+  carrying the RM attribute, the `node_id`, the archetype id, the RM type and
+  the pinned name, with a sibling ordinal only where those tie. Walking 102
+  operational templates showed an id-only path collides in 14 of them, and
+  that the pinned name is the only discriminator for 41% of the 427 colliding
+  sibling groups, which reversed the earlier decision to keep the name out of
+  the key.
 - The design of record, `docs/architecture.md` (#1): the version pins, both
   template generations normalized into one internal constraint model, the
   field derivation table from the Reference Model and its constraints, the
