@@ -1,0 +1,74 @@
+-- SPDX-FileCopyrightText: Ruben Talstra
+-- SPDX-License-Identifier: BUSL-1.1
+-- Synthetic content invented for this test. No patient data.
+archetype (adl_version=2.0.5; rm_release=1.0.2)
+    openEHR-EHR-OBSERVATION.ferro_test.v1.0.0
+
+language
+    original_language = <[ISO_639-1::en]>
+
+description
+    lifecycle_state = <"published">
+
+definition
+    OBSERVATION[id1] occurrences matches {1..1} matches {
+        data matches {
+            ITEM_TREE[id2] occurrences matches {1..1} matches {
+                items existence matches {0..1} cardinality matches {0..*; ordered} matches {
+                    ELEMENT[id3] occurrences matches {0..1} matches {
+                        value matches {
+                            DV_QUANTITY[id4] occurrences matches {1..1} matches {
+                                [magnitude, units] matches {
+                                    [{|>=0.0|}, {"mm[Hg]"}]
+                                }
+                            }
+                        }
+                    }
+                    ELEMENT[id5] occurrences matches {0..1} matches {
+                        value matches {
+                            DV_CODED_TEXT[id6] occurrences matches {1..1} matches {
+                                defining_code matches {[ac1]}
+                            }
+                        }
+                    }
+                    ELEMENT[id7] occurrences matches {0..*} matches {
+                        value matches {
+                            DV_TEXT[id8] occurrences matches {1..1} matches {
+                                value matches {"one"}
+                            }
+                        }
+                    }
+                    ELEMENT[id9] occurrences matches {0} matches {
+                        value matches {
+                            DV_TEXT[id10] occurrences matches {1..1} matches {*}
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+terminology
+    term_definitions = <
+        ["en"] = <
+            ["id1"] = < text = <"Ferro test observation"> description = <"A synthetic observation invented for this test."> >
+            ["id2"] = < text = <"Tree"> description = <"The item tree."> >
+            ["id3"] = < text = <"Pressure"> description = <"A synthetic pressure."> >
+            ["id4"] = < text = <"Pressure value"> description = <"The pressure magnitude."> >
+            ["id5"] = < text = <"Position"> description = <"A synthetic position."> >
+            ["id6"] = < text = <"Position value"> description = <"The position code."> >
+            ["id7"] = < text = <"Comment"> description = <"A synthetic comment."> >
+            ["id8"] = < text = <"Comment value"> description = <"The comment text."> >
+            ["id9"] = < text = <"Withdrawn"> description = <"A node the template removes."> >
+            ["id10"] = < text = <"Withdrawn value"> description = <"The removed node's value."> >
+            ["at1"] = < text = <"Sitting"> description = <"Seated."> >
+            ["at2"] = < text = <"Standing"> description = <"Upright."> >
+            ["ac1"] = < text = <"Position choice"> description = <"The permitted positions."> >
+        >
+    >
+    value_sets = <
+        ["ac1"] = <
+            id = <"ac1">
+            members = <"at1", "at2">
+        >
+    >

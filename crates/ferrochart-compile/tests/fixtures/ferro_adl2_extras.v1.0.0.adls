@@ -1,0 +1,83 @@
+-- SPDX-FileCopyrightText: Ruben Talstra
+-- SPDX-License-Identifier: BUSL-1.1
+-- Synthetic content invented for this test. No patient data.
+archetype (adl_version=2.0.5; rm_release=1.0.2)
+    openEHR-EHR-OBSERVATION.ferro_adl2_extras.v1.0.0
+
+language
+    original_language = <[ISO_639-1::en]>
+
+description
+    lifecycle_state = <"published">
+
+definition
+    OBSERVATION[id1] occurrences matches {1..1} matches {
+        data matches {
+            ITEM_TREE[id2] occurrences matches {1..1} matches {
+                items existence matches {0..1} cardinality matches {0..*; ordered} matches {
+                    ELEMENT[id3] occurrences matches {0..1} matches {
+                        value matches {
+                            DV_ORDINAL[id4] occurrences matches {1..1} matches {
+                                [value, symbol] matches {
+                                    [{0}, {[at1]}],
+                                    [{1}, {[at2]}]
+                                }
+                            }
+                        }
+                    }
+                    ELEMENT[id5] occurrences matches {0..1} matches {
+                        value matches {
+                            DV_CODED_TEXT[id6] occurrences matches {1..1} matches {
+                                defining_code matches {preferred [ac2]}
+                            }
+                        }
+                    }
+                    ELEMENT[id8] occurrences matches {0..1} matches {
+                        value matches {
+                            DV_TEXT[id9] occurrences matches {1..1} matches {
+                                value matches {/[A-Z]{2}/}
+                            }
+                        }
+                    }
+                    ELEMENT[id10] occurrences matches {0..1} matches {
+                        value matches {
+                            DV_PROPORTION[id11] occurrences matches {1..1} matches {
+                                [numerator, denominator] matches {
+                                    [{|0.0..100.0|}, {100.0}]
+                                }
+                            }
+                        }
+                    }
+                    allow_archetype CLUSTER[id7] occurrences matches {0..*} matches {
+                        include
+                            archetype_id/value matches {/openEHR-EHR-CLUSTER\.ferro_.*\.v1/}
+                    }
+                }
+            }
+        }
+    }
+
+terminology
+    term_definitions = <
+        ["en"] = <
+            ["id1"] = < text = <"Ferro ADL 2 extras"> description = <"A synthetic observation invented for this test."> >
+            ["id2"] = < text = <"Tree"> description = <"The item tree."> >
+            ["id3"] = < text = <"Severity"> description = <"A synthetic severity."> >
+            ["id4"] = < text = <"Severity value"> description = <"The severity score."> >
+            ["id5"] = < text = <"Finding"> description = <"A synthetic finding."> >
+            ["id6"] = < text = <"Finding value"> description = <"The finding code."> >
+            ["id7"] = < text = <"Extension"> description = <"A slot the template leaves open."> >
+            ["id8"] = < text = <"Reference"> description = <"A synthetic reference."> >
+            ["id9"] = < text = <"Reference value"> description = <"The reference text."> >
+            ["id10"] = < text = <"Fraction"> description = <"A synthetic fraction."> >
+            ["id11"] = < text = <"Fraction value"> description = <"The fraction."> >
+            ["at1"] = < text = <"Mild"> description = <"Mild severity."> >
+            ["at2"] = < text = <"Severe"> description = <"Severe severity."> >
+            ["ac2"] = < text = <"Finding choice"> description = <"A set a terminology server expands."> >
+        >
+    >
+    term_bindings = <
+        ["ferro_test"] = <
+            ["ac2"] = <"terminology://ferro.example/valueset/synthetic-findings">
+        >
+    >

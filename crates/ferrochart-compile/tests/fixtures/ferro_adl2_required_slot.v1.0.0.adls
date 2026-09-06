@@ -1,0 +1,29 @@
+-- SPDX-FileCopyrightText: Ruben Talstra
+-- SPDX-License-Identifier: BUSL-1.1
+-- Synthetic content invented for this test. No patient data.
+archetype (adl_version=2.0.5; rm_release=1.0.2)
+    openEHR-EHR-OBSERVATION.ferro_adl2_required_slot.v1.0.0
+
+language
+    original_language = <[ISO_639-1::en]>
+
+description
+    lifecycle_state = <"published">
+
+definition
+    OBSERVATION[id1] occurrences matches {1..1} matches {
+        data matches {
+            allow_archetype CLUSTER[id2] occurrences matches {1..1} matches {
+                include
+                    archetype_id/value matches {/openEHR-EHR-CLUSTER\.ferro_.*\.v1/}
+            }
+        }
+    }
+
+terminology
+    term_definitions = <
+        ["en"] = <
+            ["id1"] = < text = <"Ferro required slot"> description = <"A synthetic observation invented for this test."> >
+            ["id2"] = < text = <"Required extension"> description = <"A slot the template requires and never fills."> >
+        >
+    >
