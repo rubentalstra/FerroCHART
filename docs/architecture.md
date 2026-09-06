@@ -435,40 +435,120 @@ later revision that restores the node restores its layout.
 ## 7. Terminology
 
 A coded field needs its permitted codes, and where they come from is decided
-by the binding rather than by preference.
+by the binding rather than by preference. The split was measured over the same
+102 operational templates as section 6.2: 843 coded-value constrainers (issue
+#6).
 
-**Archetype-local value sets resolve locally, with no network call.** ADL 2
-section 8.1 records that the small archetype-local sets outnumber external
-ones by orders of magnitude. They have no URL a server could be asked about,
-and their rubrics are already in the template terminology, so the compiler
-reads them out of the operational template.
+| Binding kind | Constrainer | Count | Share | Resolves |
+|---|---|---|---|---|
+| A local `at`-code list | `C_CODE_PHRASE`, `terminology_id` of `local` | 595 | 70.6% | Entirely from the template |
+| External codes enumerated | `C_CODE_PHRASE` with a foreign `terminology_id` and a full `code_list` | 228 | 27.0% | Membership from the template, display text from elsewhere |
+| An open external terminology | `C_CODE_PHRASE`, foreign `terminology_id`, empty `code_list` | 4 | 0.5% | A server expansion |
+| A template reference set | `C_CODE_REFERENCE.referenceSetUri` | 3 | 0.4% | A server expansion |
+| An `ac`-code constraint group | `CONSTRAINT_REF` plus `constraint_bindings` | 9 | 1.1% | A server expansion |
+| Unconstrained coded text | `C_CODE_PHRASE` with neither | 4 | 0.5% | Any code, no expansion |
 
-**A network expansion happens only where the template names a target**: a
-`referenceSetUri` on a `C_CODE_REFERENCE`, an `ac`-code constraint binding
-(`CONSTRAINT_REF`, AOM 1.4 section 4.3.14, explained in 4.2.3.6 as a proxy for
-constraints defined outside the archetype, bound to a query into an external
-service), or an external `terminology_id` with an empty code list. In those
-cases FerroCHART calls a FHIR terminology server: `ValueSet/$expand` to
-populate a picker and `$validate-code` to confirm a chosen code. FHIR R4
-4.0.1 is the wire target, per the pin table.
+**97.6% of coded fields get their membership from the template.** ADL 2
+section 8.1 says the same thing in prose, that archetype-local sets outnumber
+external ones by orders of magnitude, and the corpus bears it out. So the
+default path is local and a network call is the exception.
 
-**For openEHR's own terminology groups, `openehr-term` is a dependency rather
-than a call.** The null flavour group, the setting group and the other RM
-support groups ship in the crate.
+**Membership and display text are separate questions**, and this is the part
+the prose does not tell you. An `at`-code carries its rubric in the template's
+`ontology` or `component_ontologies` as an `ARCHETYPE_TERM` with mandatory
+`text` and `description` (AOM 1.4 section 7.3.2), so kind A needs nothing else.
+An enumerated external code carries no rubric there. Checked directly: in the
+COVID-19 infection report, all 16 external codes are absent from the template
+terminology, `433` and `315642008` among them. Of the 228 enumerated external
+codes in the corpus, 207 are openEHR's own terminology, which comes from the
+`openehr-term` crate rather than a call. The remainder need a display lookup.
 
-**Serving openEHR value sets as FHIR ValueSets is real work with a real gap,
-and it is issue #6.** The openEHR Base FHIR implementation guide exists as an
-unpublished ci-build carrying 27 CodeSystem and ValueSet pairs under
-`https://specifications.openehr.org/fhir/`, and it covers the RM support
-terminology only. It carries nothing for any archetype, `at`-code or
-`ac`-code, and no specification defines a canonical URI for an openEHR
-terminology, an archetype-local value set, or a template-local value set. That
-missing identity is the whole of the open question, and FerroCHART is the
-producer side of the answer.
+**One code path serves every kind.** The compiler resolves what the template
+carries, then asks the terminology client for what is missing: a display text
+for an enumerated external code, or a full expansion for a binding that names
+a target. The renderer sees one kind of field either way, and a field whose
+expansion has not arrived is in a known pending state rather than an empty
+picker.
+
+### 7.1 The calls
+
+`ValueSet/$expand` populates a picker for the three server-resolved kinds.
+`CodeSystem/$lookup` supplies a display text for an enumerated external code.
+`ValueSet/$validate-code` confirms a code the clinician chose. FHIR R4 4.0.1
+is the wire target, per the pin table.
 
 **An upstream failure is never flattened into an empty picker.** A refused
 expansion, a timeout or an unresolvable binding is a typed error carrying the
-upstream status and body, surfaced on the field, per `.claude/rules/reliability.md`.
+upstream status and body, surfaced on the field
+(`.claude/rules/reliability.md`).
+
+### 7.2 Serving an archetype's value sets as FHIR resources
+
+No specification governs this: our own design. It is what makes kind A
+addressable by a terminology server at all, and it is the request Severin
+Kohler put to this project on 2026-09-06.
+
+**The gap is identity, and it is real.** No openEHR specification defines a
+canonical URI for an openEHR terminology, for an archetype-local value set, or
+for a template-local value set. `CODE_PHRASE.terminology_id` of `local` (RM
+`data_types.html` section 5.2.3) is a plain string whose scope is one
+archetype. The openEHR Base FHIR implementation guide exists as an unpublished
+ci-build and defines `https://specifications.openehr.org/fhir/codesystem-<name>`
+for 27 CodeSystem and ValueSet pairs, and it covers the RM support terminology
+only, with nothing for any archetype, `at`-code or `ac`-code. A FHIR ValueSet
+requires a `url`, and openEHR supplies none.
+
+**So FerroCHART mints one, under a domain its deployer controls**, encoding the
+archetype identity, which AOM 2 section 3.2 and ADL 1.4 section 8.8.1 make
+globally unique:
+
+```
+https://<deployer-domain>/fhir/CodeSystem/openEHR-EHR-OBSERVATION.blood_pressure.v2
+https://<deployer-domain>/fhir/ValueSet/openEHR-EHR-OBSERVATION.blood_pressure.v2--ac1
+```
+
+`version` is the archetype version, or the `template_id` for a template-scoped
+set, and it changes whenever the code list changes, because a terminology
+server caches on `url` plus `version`. `identifier` carries the openEHR
+identity as a `system` and `value` pair, which CodeSystem section 4.8.3.1
+describes as the element for external references. A `urn:openehr:archetype:`
+form is legal where the deployer has no domain, and FHIR discourages it because
+it does not resolve. **A URL under `specifications.openehr.org` is never
+minted**, because that namespace belongs to openEHR International and is
+already in use.
+
+**The emitted shapes.** An archetype's `at`-codes become one `CodeSystem` whose
+concepts carry `code`, `display` from `ARCHETYPE_TERM.text` and `definition`
+from `.description`, per language. Each `ac`-code or inline code list becomes a
+`ValueSet` composing those concepts. `term_bindings` become a `ConceptMap`, one
+`group` per source and target system pair, which matches openEHR's
+per-terminology grouping exactly. Two qualifications the specifications force:
+ADL 2 section 8.2 warns that only some local codes have external equivalents
+and that a binding implies no coverage, so a `ConceptMap` built from bindings
+is partial by construction and never claims completeness; and a path-keyed
+binding binds a node to a pre-coordinated term rather than mapping code to
+code, so it belongs in the field's metadata rather than in a `ConceptMap`.
+
+**Binding strength maps directly, and the specification says so.** AOM 2
+section 4.2.8.2 states that `required`, `extensible`, `preferred` and `example`
+follow the FHIR binding-strength model. In FHIR the strength sits on the
+binding site rather than on the ValueSet, so it belongs on FerroCHART's field
+definition. ADL 1.4 has no equivalent, so a 1.4 binding is `required`.
+
+**One trap that would corrupt the output.** In ADL 1.4 a single `at`-code space
+serves both node identifiers and coded values (ADL 1.4 sections 8.2.3 and
+8.4.1, which ADL 2 section 7.13.5.1 records as deprecated). Extracting every
+`at`-code from a 1.4 template would emit a CodeSystem mixing field names with
+field values. **Only an `at`-code appearing inside a `C_CODE_PHRASE.code_list`
+or as a `CONSTRAINT_REF` target is a value.**
+
+**No terminology server change is required for the common case.** The FHIR
+terminology ecosystem lets a client supply a CodeSystem or ValueSet inline with
+an expansion request, and FerroTERM implements that mechanism, so FerroCHART
+can hand over an archetype-derived resource per call without anything being
+stored. Serving these resources persistently, so any client can expand an
+openEHR value set without supplying it, is a FerroTERM feature rather than a
+FerroCHART one, and is filed there.
 
 ## 8. The wire: FerroCHART as an ITS-REST client
 
@@ -663,7 +743,8 @@ Each release is green before the next starts.
 | Layout storage | A separate overlay keyed by computable path | No specification governs a form artefact; every surveyed alternative loses the work or pollutes the shared model | Template annotations; layout on the definition; layout in the rendered artefact |
 | Overlay key | A step chain carrying attribute, `node_id`, archetype id, RM type and pinned name, with a sibling ordinal only where those tie | Measured over 102 operational templates: an id-only path collides in 14 of them, and name, RM type and archetype id are the only discriminators for 41.0%, 29.5% and 17.8% of the 427 colliding groups | An id-only key; a key omitting the name, which loses the largest discriminator; keying by position everywhere |
 | Revision handling | Recompile, replay, and report per entry | No specification promises path stability across revisions, and specialisation provably changes codes | Migrating layout silently; discarding unmatched entries |
-| Coded field resolution | Local for archetype-local sets, network only where the template names a target | ADL 2 section 8.1; a local set has no URL to ask about | Expanding everything over the network |
+| Coded field resolution | Local first, a server call only for what the template does not carry | Measured over 102 templates: 97.6% of 843 coded fields get their membership from the template, and an enumerated external code carries no rubric there | Expanding everything over the network; treating membership and display as one question |
+| Value set identity in FHIR | A minted URL under the deployer's domain, encoding the archetype id, with the archetype version as `version` | No openEHR specification defines a canonical URI for a local value set, and FHIR requires a `url`; the archetype id is globally unique | A `urn:` form, which does not resolve; a URL under `specifications.openehr.org`, which is another publisher's namespace |
 | Terminology wire | FHIR R4 4.0.1 | AQL section 3.9.5.1 names `hl7.org/fhir/4.0` and never R5 | R5 |
 | Field-level errors | Validated locally before the post, and owned by FerroCHART | The ITS-REST error body is optional, conditional, and carries no path | Rendering the CDR's error body |
 | Compile site | The server | The owner's decision, and `openehr-its` has no WASM-capable feature set | Compiling in the browser |
@@ -690,7 +771,10 @@ The specification defects and silences found during this research, each an
 4. **AQL says nothing about path stability across template revisions**, while
    specialisation provably changes the codes a path is built from.
 5. **No canonical URI exists** for an openEHR terminology, an archetype-local
-   value set, or a template-local value set.
+   value set, or a template-local value set, so every implementation that
+   wants to expand a local value set has to mint one and they will not agree.
+   The openEHR Base FHIR implementation guide covers the RM support
+   terminology only, and is an unpublished ci-build.
 6. **`OpenehrProfile.xsd` has no `C_DV_SCALE`**, so an ADL 1.4 operational
    template cannot express a `DV_SCALE` constraint in the domain-type form
    even though RM 1.1.0 defines the type.
