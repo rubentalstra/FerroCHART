@@ -576,6 +576,22 @@ fn an_ordinal_keeps_list_order_and_stores_the_symbols_code() {
 }
 
 #[test]
+fn a_scale_is_an_ordinal_with_a_real_score() {
+    // openEHR RM Release-1.1.0 data_types.html section 6.2.5: a `DV_SCALE` is
+    // a `DV_ORDINAL` whose value is a real. The openEHR ITS-XML 2.0.0
+    // `OpenehrProfile.xsd` declares no `C_DV_SCALE`, so only an ADL 2 template
+    // can state one.
+    let form = from_adl2(ADL2_EXTRAS);
+    let scale = field(&form, "id12");
+    assert_eq!(scale.rm_type.as_str(), "DV_SCALE");
+    let FieldKind::Ordinal(ref ordinal) = scale.kind else {
+        panic!("id12 is not an ordinal");
+    };
+    let scores: Vec<f64> = ordinal.options.iter().map(|option| option.score).collect();
+    assert_eq!(scores, [0.0, 0.5]);
+}
+
+#[test]
 fn an_adl2_value_set_the_archetype_enumerates_needs_no_terminology_server() {
     // openEHR AM Release-2.3.0 ADL2.html section 7.13.5.1: an `ac`-code names
     // a value set, and the archetype's terminology may list its members.
