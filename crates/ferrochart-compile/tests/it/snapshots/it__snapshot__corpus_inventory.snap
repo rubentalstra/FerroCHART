@@ -1,0 +1,125 @@
+---
+source: crates/ferrochart-compile/tests/it/snapshot.rs
+expression: "lines.join(\"\\n\")"
+---
+aboriginal-and-torres-strait-islander-health-check-master.opt  groups=323 fields=303 boolean=7 choice=22 coded=49 count=8 date=5 date-time=42 duration=11 proportion=1 quantity=24 text=134
+aedes-indices-jm.opt  groups=5 fields=4 proportion=3 text=1
+alcohol-consumption-summary-item-r1.opt  groups=3 fields=3 coded=1 date-time=1 text=1
+alcohol-consumption-summary-item-r2.opt  groups=4 fields=14 choice=3 coded=1 count=1 date=3 date-time=1 quantity=2 text=3
+antibiotic-prophylaxis.opt  groups=5 fields=3 text=3
+au-covid-19-likelihood-assessment.opt  groups=34 fields=40 coded=6 count=3 date-time=9 text=22
+birth-detail-jm.opt  groups=1 fields=3 coded=2 duration=1
+birth-summary-jm.opt  groups=4 fields=4 coded=2 duration=2
+blood-donation-summary-jm.opt  groups=4 fields=1 date-time=1
+body-temperature-jm.opt  groups=6 fields=1 quantity=1
+bpg-administration-jm.opt  groups=5 fields=6 count=1 date-time=1 text=4
+bpg-medication-screening-jm.opt  groups=6 fields=3 coded=1 text=2
+case-demographic-information-jm.opt  groups=43 fields=84 date-time=1 duration=2 quantity=6 text=75
+cause-of-death-jm.opt  groups=6 fields=4 text=4
+clinical-context-jm.opt  groups=98 fields=52 choice=2 coded=14 date-time=2 duration=3 quantity=9 text=22
+clinical-management-jm.opt  groups=33 fields=37 choice=2 coded=7 date-time=8 text=20
+clinical-notes-jm.opt  groups=3 fields=1 text=1
+clinical-screening-jm.opt  groups=24 fields=17 choice=3 coded=4 date-time=2 quantity=1 text=7
+cohort.opt  groups=20 fields=68 boolean=2 choice=2 coded=18 count=2 date-time=2 identifier=14 text=26 uri=2
+csf-blood-cell-count-and-differential.opt  groups=1 fields=8 proportion=5 quantity=2 text=1
+date-of-birth-jm.opt  groups=3 fields=1 date-time=1
+death-summary-jm.opt  groups=3 fields=2 date-time=1 text=1
+education-summary-item-r2.opt  groups=3 fields=3 date-time=1 text=2
+education-summary-jm.opt  groups=3 fields=1 text=1
+environmental-survey-jm.opt  groups=3 fields=5 coded=4 text=1
+exposure-profile-jm.opt  groups=10 fields=8 choice=1 coded=1 date-time=2 text=4
+exposure-screening-jm.opt  groups=6 fields=4 choice=1 coded=1 text=2
+family-history-summary-item-r1.opt  groups=3 fields=2 date-time=1 text=1
+family-history-summary-item-r2.opt  groups=5 fields=14 boolean=1 choice=1 date-time=3 duration=2 text=7
+family.opt  groups=34 fields=118 boolean=4 choice=4 coded=36 count=4 date-time=2 identifier=27 ordinal=1 text=38 uri=2
+father-demographic-information-jm.opt  groups=22 fields=32 choice=1 coded=2 date-time=1 duration=1 text=27
+field-investigator-classification-jm.opt  groups=13 fields=14 coded=4 text=10
+food-and-nutrition-summary-jm.opt  groups=3 fields=1 coded=1
+gender-item-r1.opt  groups=3 fields=2 date-time=1 text=1
+genomics-example-template.opt  groups=34 fields=139 boolean=2 choice=12 coded=3 count=29 date-time=6 parsable=4 proportion=1 quantity=6 text=63 uri=13
+health-issue-item-r2.opt  groups=3 fields=2 text=2
+home-environment-jm.opt  groups=6 fields=12 count=6 text=6
+imaging-examination-result-jm.opt  groups=6 fields=5 date-time=1 text=4
+imaging-examination-result.opt  groups=11 fields=41 coded=2 date-time=5 identifier=11 multimedia=3 text=17 uri=3
+immunoglobulin-test-finding-jm.opt  groups=1 fields=6 choice=2 text=4
+india-ink-stain-findings.opt  groups=2 fields=7 coded=2 text=5
+infant-clinical-context-jm.opt  groups=59 fields=37 choice=1 coded=9 duration=2 quantity=9 text=16
+infant-measurements-jm.opt  groups=43 fields=13 coded=3 quantity=6 text=4
+infectious-disease-investigation-metadata-jm.opt  groups=18 fields=61 count=2 date-time=8 text=51
+inpatient-episode-details-jm.opt  groups=1 fields=3 date-time=2 text=1
+investigator-classification-initial-jm.opt  groups=4 fields=3 coded=1 text=2
+investigator-diagnosis-jm.opt  groups=7 fields=3 text=3
+ips-allergies-and-intolerances.opt  groups=11 fields=19 choice=5 coded=2 date-time=2 text=10
+ips-problem-list.opt  groups=13 fields=17 choice=4 coded=6 date-time=2 text=5
+laboratory-analyte-result-interpretative-jm.opt  groups=1 fields=2 text=2
+laboratory-analyte-result-quantitative-jm.opt  groups=1 fields=2 choice=1 text=1
+laboratory-test-result-jm.opt  groups=12 fields=20 choice=1 coded=1 date-time=3 text=15
+local-final-infectious-disease-investigation-classification-jm.opt  groups=3 fields=9 choice=1 coded=3 text=5
+management-screening-jm.opt  groups=6 fields=3 coded=1 date-time=1 text=1
+medication-order-item-r1.opt  groups=10 fields=36 boolean=1 coded=1 count=1 date-time=4 duration=2 identifier=1 parsable=1 quantity=2 text=23
+microbiology-culture-findings-jm.opt  groups=2 fields=5 coded=3 text=2
+microbiology-parasitology-findings.opt  groups=2 fields=6 choice=1 coded=1 quantity=1 text=3
+molecular-microbial-test-findings-jm.opt  groups=1 fields=5 coded=1 quantity=1 text=3
+molecular-pathology-report.opt  groups=50 fields=166 boolean=1 choice=22 coded=6 count=30 date-time=2 identifier=1 proportion=1 quantity=5 text=84 uri=14
+mother-demographic-information-jm.opt  groups=22 fields=32 choice=1 coded=2 date-time=1 duration=1 text=27
+neuro-examination-findings-jm.opt  groups=11 fields=11 choice=3 coded=2 text=6
+non-treponemal-screening-jm.opt  groups=1 fields=4 proportion=1 text=3
+obstetric-summary-item-r1.opt  groups=3 fields=3 count=2 date-time=1
+obstetric-summary-jm.opt  groups=3 fields=6 count=6
+occupation-summary-item-r2.opt  groups=4 fields=8 choice=1 date-time=3 text=4
+occupation-summary-jm.opt  groups=6 fields=8 text=8
+openehr-confirmed-covid-19-infection-report-v0-2.opt  groups=95 fields=91 boolean=1 choice=7 coded=31 count=1 date-time=12 duration=1 text=38
+openehr-confirmed-covid-19-infection-report-v0.opt  groups=83 fields=88 choice=8 coded=53 date-time=10 duration=2 text=15
+openehr-suspected-covid-19-assessment-v0.opt  groups=43 fields=38 choice=1 coded=31 date-time=3 quantity=1 text=2
+openehr-suspected-covid-19-risk-assessment-nephrology-v0.opt  groups=76 fields=130 choice=1 coded=52 count=3 date-time=8 quantity=1 text=65
+openehr-suspected-covid-19-risk-assessment-v0.opt  groups=52 fields=38 coded=13 count=3 date-time=5 quantity=1 text=16
+organisation-healthcare-facility-jm.opt  groups=2 fields=7 text=7
+other-diagnosis-jm.opt  groups=3 fields=1 text=1
+outcome-jm.opt  groups=9 fields=3 coded=1 date-time=1 text=1
+person-jm-adult-patient.opt  groups=7 fields=35 quantity=2 text=33
+person-jm-child-patient.opt  groups=6 fields=33 quantity=2 text=31
+person-jm-clinician.opt  groups=3 fields=8 text=8
+person-jm-contact-for-tracing.opt  groups=6 fields=25 quantity=2 text=23
+person-jm-father.opt  groups=5 fields=21 coded=1 text=20
+person-jm-guardian.opt  groups=5 fields=21 coded=2 text=19
+person-jm-investigating-officer.opt  groups=3 fields=8 text=8
+person-jm-nameless-infant-patient.opt  groups=6 fields=27 quantity=2 text=25
+person-jm-next-of-kin.opt  groups=5 fields=23 coded=1 text=22
+person-jm-notifying-individual.opt  groups=2 fields=7 text=7
+person-jm-public-health-official.opt  groups=3 fields=8 text=8
+phenopacket.opt  groups=18 fields=66 boolean=2 choice=2 coded=18 count=2 date-time=2 identifier=13 text=25 uri=2
+phone-jm-home.opt  groups=1 fields=3 text=3
+phone-jm-mobile.opt  groups=1 fields=3 text=3
+phone-jm-unspecified.opt  groups=1 fields=3 coded=1 text=2
+phone-jm-work.opt  groups=1 fields=3 text=3
+pregnancy-screening-jm.opt  groups=5 fields=1 coded=1
+problem-diagnosis-item-r1.opt  groups=5 fields=11 choice=1 coded=2 date-time=2 text=6
+problem-diagnosis-screening-jm.opt  groups=6 fields=2 coded=1 text=1
+receiving-laboratory-private-jm.opt  groups=2 fields=7 text=7
+receiving-laboratory-public-jm.opt  groups=1 fields=2 text=2
+sex-and-gender-jm-newborn.opt  groups=3 fields=1 text=1
+sex-and-gender-jm.opt  groups=3 fields=1 text=1
+social-network-jm.opt  groups=8 fields=24 coded=1 text=23
+social-profile-jm.opt  groups=24 fields=45 coded=1 count=6 text=38
+structured-name-jm-core.opt  groups=1 fields=4 text=4
+structured-name-jm-full-maiden.opt  groups=1 fields=6 text=6
+structured-name-jm-full.opt  groups=1 fields=7 text=7
+suspected-covid-19-assessment-v0-1.opt  groups=59 fields=55 choice=1 coded=40 count=3 date-time=3 quantity=1 text=7
+symptom-sign-screening-jm.opt  groups=6 fields=5 coded=2 date-time=2 text=1
+symptom-sign-screening.opt  groups=7 fields=10 coded=4 date-time=2 text=4
+tobacco-smoking-summary-item-r1.opt  groups=3 fields=3 coded=1 date-time=1 text=1
+tobacco-smoking-summary-item-r2.opt  groups=5 fields=12 choice=1 coded=2 count=2 date=2 date-time=1 quantity=3 text=1
+travel-event-international-jm.opt  groups=3 fields=11 date-time=4 text=7
+travel-event-jm.opt  groups=3 fields=4 date-time=2 text=2
+travel-event-visitor-jm.opt  groups=3 fields=9 date-time=3 text=6
+travel-profile-jm.opt  groups=11 fields=19 coded=1 date-time=5 text=13
+travel-screening-jm.opt  groups=6 fields=5 coded=1 date-time=1 text=3
+treatment-summary-jm.opt  groups=4 fields=7 date-time=3 text=4
+treponemal-confirmation-test-jm.opt  groups=1 fields=5 proportion=1 text=4
+vaccinations-jm.opt  groups=15 fields=8 choice=1 coded=1 date-time=1 text=5
+white-cell-count-and-differential.opt  groups=1 fields=7 proportion=5 quantity=1 text=1
+wound-assert-report.opt  groups=24 fields=46 boolean=1 choice=3 coded=7 date-time=2 multimedia=1 proportion=2 quantity=7 text=23
+wound-assert.opt  groups=7 fields=21 boolean=1 choice=3 coded=5 date-time=2 quantity=1 text=9
+wound-assessment-panel.opt  groups=15 fields=32 coded=20 multimedia=1 proportion=2 quantity=6 text=3
+wound-presence-assertion.opt  groups=7 fields=17 boolean=1 coded=8 date-time=3 multimedia=1 text=4
+wound-related-observations-panel.opt  groups=14 fields=24 coded=1 multimedia=1 proportion=2 quantity=6 text=14

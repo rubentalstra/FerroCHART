@@ -23,6 +23,13 @@ the build order.
 
 ### Added
 
+- Snapshots of the derived form over the whole vendored corpus (#18). An
+  inventory carries one line per template with its group and field counts and
+  the kinds it derives, so a change shows as one changed line naming the
+  template rather than as a moved total; four whole documents are snapshotted
+  beside it, from a 4-field form to a 303-field one. A test also derives twenty
+  templates twice and compares the bytes, so the format's determinism claim is
+  checked rather than trusted.
 - A fetch script for the ADL 2 archetype library (#49), pinned to a commit of
   `openEHR/adl-archetypes`. It brings 322 ADL 2 archetypes and 330 ADL 1.4
   twins, 321 of them the same archetype in both dialects, which is the first
