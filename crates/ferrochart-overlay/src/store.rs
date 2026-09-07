@@ -337,13 +337,18 @@ impl Overlay {
                 walk_to_root(&known, &section.id)?;
             }
         }
-        let mut seen: BTreeSet<Vec<String>> = BTreeSet::new();
-        for entry in &self.entries {
-            if !seen.insert(step_identity(&entry.key)) {
+        // The entries are in key order, so two entries on one node are
+        // adjacent.
+        for pair in self.entries.windows(2) {
+            if let [left, right] = pair
+                && left.key.steps == right.key.steps
+            {
                 return Err(OverlayError::DuplicateEntry {
-                    key: entry.key.to_string(),
+                    key: left.key.to_string(),
                 });
             }
+        }
+        for entry in &self.entries {
             if entry.key.is_positional != entry.anchor.is_some() {
                 return Err(OverlayError::AnchorMismatch {
                     key: entry.key.to_string(),
@@ -380,24 +385,6 @@ fn walk_to_root(
         at = known.get(section).copied().flatten();
     }
     Ok(())
-}
-
-/// The identity two entries must not share: the step chain, ordinals included.
-fn step_identity(key: &NodeKey) -> Vec<String> {
-    key.steps
-        .iter()
-        .map(|step| {
-            format!(
-                "{}|{}|{}|{}|{}|{}",
-                step.rm_attribute,
-                step.node_id.as_ref().map_or("", |code| code.as_str()),
-                step.archetype_id.as_ref().map_or("", |id| id.as_str()),
-                step.rm_type,
-                step.pinned_name.as_deref().unwrap_or(""),
-                step.sibling_ordinal,
-            )
-        })
-        .collect()
 }
 
 /// Whether two keys name the same node, whatever either says about being
