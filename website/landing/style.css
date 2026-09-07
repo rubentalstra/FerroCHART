@@ -1,0 +1,410 @@
+/* SPDX-FileCopyrightText: Ruben Talstra */
+/* SPDX-License-Identifier: BUSL-1.1 */
+
+/* The FerroCHART landing page: the "Rose & Iron" tokens, and the layout.
+
+   Self-contained. No external font, script, style, or image, and every URL is
+   relative, so the page satisfies the `default-src 'self'` policy it carries.
+
+   COLOUR RULE. assets/brand/README.md is the authority for this palette, and
+   it records the measured contrast of every token against exactly two grounds:
+   --fc-surface (#f8fafc) and --fc-tile (#0b1220). This page therefore uses one
+   ground per theme and never tints a panel, so every recorded ratio holds
+   exactly. Structure comes from rules, borders, and space. The pairs used,
+   with the figure the brand file records:
+
+     light  ink on surface ............ 17.06  body text
+            rose-deep on surface ......  7.32  links, figures, the status pill
+            surface on rose-deep ......  7.32  the filled button
+            rose on surface ...........  5.61  the eyebrow and the card tags
+     dark   mist on tile .............. 17.09  body text
+            rose-light on tile ........  5.01  links, figures, the status pill
+            tile on rose-light ........  5.01  the filled button
+            blush on tile .............  8.39  the eyebrow and the card tags
+
+   The two grounds are the only pair the brand file does not state, because it
+   is the ground itself: 17.06 and 17.09 are computed here from the same tokens.
+
+   The brand file states no secondary neutral, so two tones are derived here.
+   Both are a color-mix of the two tokens already on the ground, and both carry
+   the ratio computed for them:
+
+     --fc-muted   fg 72% over bg     6.94 light / 9.10 dark  (text, AA at any size)
+     --fc-border  fg 20% over bg     1.53 light / 1.77 dark  (decoration only,
+                  never a control's only affordance, so WCAG 2.2 SC 1.4.11
+                  does not govern it) */
+
+:root {
+  /* The palette, copied from assets/brand/tokens.css. */
+  --fc-rose: #c2185b;
+  --fc-rose-deep: #9d1e52;
+  --fc-rose-light: #e04f84;
+  --fc-blush: #f48fb1;
+  --fc-ink: #0f172a;
+  --fc-mist: #f1f5f9;
+  --fc-tile: #0b1220;
+  --fc-surface: #f8fafc;
+
+  /* The roles. Each names the ground it is for, because the mark colour and
+     the text colour are not the same value on either ground. */
+  --fc-bg: var(--fc-surface);
+  --fc-fg: var(--fc-ink);
+  --fc-accent: var(--fc-rose);
+  --fc-link: var(--fc-rose-deep);
+  --fc-on-accent: var(--fc-surface);
+
+  --fc-muted: color-mix(in srgb, var(--fc-fg) 72%, var(--fc-bg));
+  --fc-border: color-mix(in srgb, var(--fc-fg) 20%, var(--fc-bg));
+  --fc-border-strong: color-mix(in srgb, var(--fc-fg) 34%, var(--fc-bg));
+
+  --fc-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --fc-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --fc-max: 1060px;
+  --fc-radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fc-bg: var(--fc-tile);
+    --fc-fg: var(--fc-mist);
+    --fc-accent: var(--fc-blush);
+    --fc-link: var(--fc-rose-light);
+    --fc-on-accent: var(--fc-tile);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--fc-sans);
+  font-size: 17px;
+  line-height: 1.62;
+  color: var(--fc-fg);
+  background: var(--fc-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 { letter-spacing: -0.012em; line-height: 1.2; }
+
+a { color: var(--fc-link); text-decoration: underline; text-underline-offset: 0.16em; }
+a:hover { text-decoration-thickness: 2px; }
+
+:focus-visible {
+  outline: 3px solid var(--fc-link);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+img, svg { max-width: 100%; height: auto; }
+
+code {
+  font-family: var(--fc-mono);
+  font-size: 0.9em;
+  padding: 0.08em 0.3em;
+  border: 1px solid var(--fc-border);
+  border-radius: 5px;
+  overflow-wrap: anywhere;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--fc-max);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* The skip link sits off-screen until it takes focus. */
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+}
+.skip:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: var(--fc-bg);
+  border: 2px solid var(--fc-link);
+  border-radius: var(--fc-radius);
+}
+
+/* Nav */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--fc-bg);
+  border-bottom: 1px solid var(--fc-border);
+}
+.nav .wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 60px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--fc-fg);
+  text-decoration: none;
+}
+.brand img { width: 28px; height: 28px; }
+.nav-links {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1.35rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.nav-links a { color: var(--fc-fg); text-decoration: none; }
+.nav-links a:hover { color: var(--fc-link); text-decoration: underline; }
+
+/* Buttons. The filled button reverses the link pair, which the brand file
+   records in both directions: 7.32 in light, 5.01 in dark. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.7rem 1.3rem;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+}
+.btn-primary { background: var(--fc-link); color: var(--fc-on-accent); }
+.btn-primary:hover { background: var(--fc-fg); color: var(--fc-bg); text-decoration: none; }
+.btn-ghost { border-color: var(--fc-border-strong); color: var(--fc-fg); }
+.btn-ghost:hover { border-color: var(--fc-link); color: var(--fc-link); text-decoration: none; }
+
+.cta { display: flex; gap: 0.85rem; flex-wrap: wrap; }
+.cta-centred { justify-content: center; margin-top: 2rem; }
+
+/* Hero */
+
+.hero { padding: clamp(2.75rem, 7vw, 4.5rem) 0 clamp(2.25rem, 5vw, 3.5rem); text-align: center; }
+.hero .cta { justify-content: center; }
+.hero-logo { width: 88px; height: 88px; margin: 0 auto 1.25rem; display: block; }
+.status-pill {
+  display: inline-block;
+  margin: 0 auto 1.35rem;
+  padding: 0.3rem 0.9rem;
+  border: 1px solid var(--fc-border-strong);
+  border-radius: 999px;
+  color: var(--fc-link);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.hero h1 {
+  font-size: clamp(1.75rem, 4.2vw, 2.7rem);
+  margin: 0 auto 1.1rem;
+  max-width: 26ch;
+}
+.hero .sub {
+  color: var(--fc-muted);
+  font-size: clamp(1.02rem, 1.6vw, 1.14rem);
+  max-width: 62ch;
+  margin: 0 auto 2rem;
+}
+.hero .note {
+  margin: 1.75rem auto 0;
+  max-width: 56ch;
+  color: var(--fc-muted);
+  font-size: 0.88rem;
+}
+
+/* Section scaffolding. A rule separates sections, because a tinted panel
+   would move the ground the brand ratios were measured against. */
+
+section { padding: clamp(2.75rem, 6vw, 4rem) 0; }
+.ruled { border-block: 1px solid var(--fc-border); }
+
+.section-head { max-width: 62ch; margin: 0 auto 2.5rem; text-align: center; }
+.section-head h2 { font-size: clamp(1.4rem, 3vw, 2rem); margin: 0 0 0.7rem; }
+.section-head p { color: var(--fc-muted); margin: 0; }
+.eyebrow {
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--fc-accent);
+  margin-bottom: 0.55rem;
+}
+
+/* The measured figures */
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1rem;
+}
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.35rem;
+  border: 1px solid var(--fc-border);
+  border-radius: var(--fc-radius);
+}
+.figure-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fc-muted);
+}
+.figure-big {
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--fc-link);
+  font-variant-numeric: tabular-nums;
+}
+.figure-of { font-size: 1rem; font-weight: 600; color: var(--fc-muted); }
+.figure-cap { font-size: 0.92rem; color: var(--fc-muted); }
+.figures-note {
+  margin: 1.75rem auto 0;
+  max-width: 70ch;
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--fc-muted);
+}
+
+/* Cards */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.card {
+  padding: 1.4rem;
+  border: 1px solid var(--fc-border);
+  border-radius: var(--fc-radius);
+}
+.card h3 { margin: 0 0 0.5rem; font-size: 1.06rem; }
+.card p { margin: 0; color: var(--fc-muted); font-size: 0.95rem; }
+
+.rules { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.rules .card h3 code { font-size: 0.92em; border: 0; padding: 0; }
+
+.audiences { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+.tag {
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: var(--fc-accent);
+  margin-bottom: 0.45rem;
+}
+.audience ul {
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+}
+
+/* The overlay panel and the replay classes */
+
+.panel {
+  max-width: 68ch;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  border: 1px solid var(--fc-border);
+  border-radius: var(--fc-radius);
+}
+.panel p { margin: 0 0 1rem; color: var(--fc-muted); }
+.panel p:last-child { margin-bottom: 0; }
+.panel .claim { color: var(--fc-fg); font-weight: 600; }
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+.chips li {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--fc-border-strong);
+  border-radius: 999px;
+  font-family: var(--fc-mono);
+  font-size: 0.85rem;
+  color: var(--fc-fg);
+}
+
+/* The status pair. The left card's border carries the accent so the two read
+   apart at a glance; the wording, never the colour, says which is which. */
+
+.status-grid { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.state h3 { font-size: 1.15rem; margin-bottom: 0.75rem; }
+.state ul { margin: 0; padding-left: 1.15rem; color: var(--fc-muted); font-size: 0.95rem; }
+.state li { margin: 0.4rem 0; }
+.state-yes { border-color: var(--fc-border-strong); border-left: 4px solid var(--fc-link); }
+.state-no { border-left: 4px solid var(--fc-border-strong); }
+
+/* Footer */
+
+.footer {
+  border-top: 1px solid var(--fc-border);
+  padding: 3rem 0 2.25rem;
+  font-size: 0.93rem;
+}
+.footer-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.footer-brand { max-width: 46ch; }
+.footer-brand .brand { margin-bottom: 0.8rem; }
+.footer-brand p { color: var(--fc-muted); margin: 0.5rem 0; }
+.footer-links { display: flex; gap: 3rem; flex-wrap: wrap; }
+.footer-links h2 {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fc-fg);
+}
+.footer-links ul { list-style: none; margin: 0; padding: 0; }
+.footer-links li { margin: 0.4rem 0; }
+.footer-note {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--fc-border);
+  color: var(--fc-muted);
+  font-size: 0.86rem;
+}
+.footer-note p { margin: 0.35rem 0; max-width: 78ch; }
+
+/* Responsive */
+
+@media (max-width: 760px) {
+  .nav-links { gap: 1rem; font-size: 0.9rem; }
+  .nav-links .hide-sm { display: none; }
+  .footer-links { gap: 2rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; }
+}
