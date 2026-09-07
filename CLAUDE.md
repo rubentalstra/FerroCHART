@@ -11,7 +11,7 @@ dependency). It reads compositions back into the same form, and uses a FHIR
 terminology server (FerroTERM is the reference) to expand the value sets behind
 coded fields.
 
-The name follows the Ferro family (FerroEHR, FerroTERM, FerroBRIDGE, FerroCKM).
+The name follows the Ferro family (FerroEHR, FerroTERM, FerroBRIDGE).
 FerroCHART in prose, `ferrochart` in identifiers. The product is not called
 FerroFORM because ferroform.eu was already registered
 (`.claude/memory/domain-ferrochart-eu.md`).
@@ -270,8 +270,7 @@ apply always. Read the relevant one before working in that area.
 Five sibling repositories are checked out beside this one, and none of them is
 ever edited from here (`.claude/memory/sibling-projects.md`). `FerroEHR`
 (`../ferroehr`) is the reference CDR, `FerroTERM` (`../FerroTERM`) the
-reference terminology server, `FerroCKM` (`../FerroCKM`) governs the templates
-this project compiles, `FerroBRIDGE` (`../FerroBRIDGE`) is where this
+reference terminology server, `FerroBRIDGE` (`../FerroBRIDGE`) is where this
 configuration came from, and `FerroHEALTH` (`../FerroHEALTH`) carries the
 family site and brand.
 

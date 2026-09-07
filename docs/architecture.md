@@ -10,7 +10,7 @@ decision below carries a citation to a primary source or the explicit label
 
 The research ran on 2026-09-06 in four passes: the openEHR specifications and
 the pin choice, the reuse audit of FerroEHR, the reuse and pattern audit of
-FerroTERM, FerroCKM and FerroBRIDGE, and the prior-art survey. The findings and
+FerroTERM and FerroBRIDGE, and the prior-art survey. The findings and
 their citations are recorded on issue #1.
 
 Read `.claude/rules/spec-adherence.md` before changing anything here. The
@@ -84,11 +84,10 @@ ahead of the published RM release, and the ITS-BMM tree carries AM 2.4.0,
 BASE 1.3.0 and TERM 3.1.0 schemas ahead of their published component releases.
 FerroCHART pins the published release and selects the matching generation.
 
-**The AM release and the ADL document version are separate numbers.** FerroCKM
-records AM 2.4.0 and `openehr-adl` describes itself as ADL 2.4.0, while the
-current AM component release is 2.3.0. Documents inside an AM release carry
-their own versions, so these statements are compatible. Never conflate them in
-a citation.
+**The AM release and the ADL document version are separate numbers.**
+`openehr-adl` describes itself as ADL 2.4.0 while the current AM component
+release is 2.3.0. Documents inside an AM release carry their own versions, so
+both statements are true. Never conflate them in a citation.
 
 `docs/VERSIONS.md` repeats these rows and `scripts/checks/versions.sh` fails on
 any disagreement.
@@ -596,7 +595,7 @@ as `text/plain`, so a CDR may implement one, the other, or both.
 `GET /v1/definition/template/adl1.4/{template_id}` returns the canonical OPT
 XML under `Accept: application/xml` and the web template under
 `Accept: application/openehr.wt+json`, which means FerroCHART can take a
-template from a CDR as well as from FerroCKM.
+template from a CDR as well as from a file on disk.
 
 **A template id has four forms**, and one of them moves: a partial HRID such
 as `openEHR-EHR-COMPOSITION.t_vital_signs.v1` "resolves to latest major
@@ -701,9 +700,9 @@ profile pins `panic = "unwind"` and `overflow-checks = true`.
 
 ## 12. What each seam carries
 
-- **FerroCKM to FerroCHART:** an operational template, as OPT 1.4 XML or ADL 2
-  source. FerroCKM exports OPT 1.4 and retrieves over
-  `GET /templates/{cid}/opt` with a `get-latest-published` selector.
+- **A modelling tool to FerroCHART:** an operational template, as OPT 1.4 XML
+  or ADL 2 source. It arrives as a file, so whichever tool authored it is
+  outside this design.
 - **A CDR to FerroCHART:** a template, and a COMPOSITION on read-back.
 - **FerroCHART to a CDR:** a COMPOSITION in a canonical serialisation, with
   `If-Match` on update.
@@ -789,9 +788,9 @@ Each release is green before the next starts.
 
 ## 16. What is outside, and what is reported upstream
 
-Outside: authoring or editing archetypes and templates, which is FerroCKM's
-job; being a CDR, which is FerroEHR's; and mapping compositions to FHIR or
-OMOP, which is FerroBRIDGE's.
+Outside: authoring or editing archetypes and templates, which belongs to a
+modelling tool; being a CDR, which is FerroEHR's; and mapping compositions to
+FHIR or OMOP, which is FerroBRIDGE's.
 
 The specification defects and silences found during this research, each an
 `upstream-report` candidate:
