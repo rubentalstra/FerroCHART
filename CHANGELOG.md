@@ -47,6 +47,28 @@ the build order.
   reads back into the right occurrence. Where several form nodes share an
   identity and the data cannot fill them all, the assignment is a guess the
   reader reports as one rather than presenting as certain.
+- The pre-post validation gate (#24), in the new `ferrochart-validate` crate
+  and `ferrochart_server::commit`. A COMPOSITION FerroCHART built is judged
+  against its own operational template before any request reaches a CDR, and
+  every failure it finds is keyed onto the form definition, so a renderer puts
+  it on the field a clinician got wrong. The gate is the only path in this
+  workspace from entered values to a CDR write, and the ordering is tested by
+  construction: the client is pointed at a port nothing listens on, so a
+  refusal proves the gate ran first. A negative case per constraint kind
+  covers the value set, the numeric range, the string pattern, the data value
+  class, the occurrences, the cardinality, a mandatory node left out, and a
+  code outside its openEHR terminology group. A live case commits through the
+  gate to a real CDR and reads the document back.
+- A validation report a renderer reads, in `ferrochart-form`. It carries one
+  failure per problem, each with the node key it belongs to, the path it was
+  found at, its message and its category, so a renderer still links one crate
+  of this tree. A failure that names no field of the form keeps its path and
+  is reported unplaced rather than dropped.
+- A best-effort reader for a CDR's own error body, marked vendor-specific.
+  openEHR ITS-REST Release-1.1.0 publishes no path on an error entry, so the
+  reader recognises one inside the prose where a CDR writes one and reports
+  the refusal verbatim where it does not.
+
 - Three layers that guard the two documents FerroCHART publishes, after a
   dependency's cargo feature took one of them off the wire with no change to
   this tree (#107). `serde_json/arbitrary_precision`, enabled for the whole
@@ -137,6 +159,17 @@ the build order.
   from `Parameters`, which is why the terminology engine of the same release
   line is left alone: FerroCHART is a client of a terminology server rather
   than one. `docs/architecture.md` section 7.3 records both decisions.
+
+### Fixed
+
+- A COMPOSITION FerroCHART built put no `ARCHETYPED` on any node below its
+  root, so every ENTRY it wrote violated `Is_archetype_root`
+  (openEHR RM Release-1.1.0 `ehr.html` section 8.3.1, with
+  `LOCATABLE.Archetyped_valid` in `common.html` section 3.1.2). Every
+  archetype root below the document root now carries its own archetype
+  identifier and the Reference Model release, and the template identifier
+  stays at the document root alone, which is what `common.html` section 3.2.3
+  says. The pre-post gate of #24 is what found it.
 
 ### Changed
 

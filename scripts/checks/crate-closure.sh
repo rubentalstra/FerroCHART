@@ -18,6 +18,10 @@
 #   ferrochart-compose    the composition builder. It links ferrochart-form and
 #                         nothing else, so it works from the form definition
 #                         rather than from the template.
+#   ferrochart-validate   the pre-post validation gate. It links
+#                         ferrochart-form for the keys a failure is reported
+#                         against and nothing else, so it never reaches the
+#                         CDR client and cannot post what it judged.
 #   ferrochart-term       the terminology client. It links ferrochart-compile
 #                         for the template terminology it resolves value sets
 #                         out of, and ferrochart-form, and nothing else: it
@@ -68,6 +72,7 @@ promises=(
   "ferrochart-renderer|ferrochart-form"
   "ferrochart-cdr|ferrochart-form"
   "ferrochart-compose|ferrochart-form"
+  "ferrochart-validate|ferrochart-form"
   "ferrochart-term|ferrochart-compile ferrochart-form"
   "ferrochart-webtemplate|ferrochart-form"
 )

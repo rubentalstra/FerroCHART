@@ -562,10 +562,18 @@ name = "ferrochart-server"
 version = "0.0.4"
 dependencies = [
  "axum",
+ "ferrochart-cdr",
+ "ferrochart-compile",
+ "ferrochart-compose",
+ "ferrochart-form",
+ "ferrochart-validate",
+ "openehr-base",
+ "openehr-rm",
  "serde_json",
  "thiserror",
  "tokio",
  "tracing",
+ "url",
 ]
 
 [[package]]
@@ -586,6 +594,20 @@ dependencies = [
  "tracing",
  "url",
  "wiremock",
+]
+
+[[package]]
+name = "ferrochart-validate"
+version = "0.0.4"
+dependencies = [
+ "ferrochart-compile",
+ "ferrochart-compose",
+ "ferrochart-form",
+ "openehr-its",
+ "openehr-rm",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]
