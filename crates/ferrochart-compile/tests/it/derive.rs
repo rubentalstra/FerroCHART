@@ -1002,3 +1002,73 @@ fn a_reference_band_on_an_interval_end_is_refused() {
         other => panic!("the refusal is {other:?}"),
     }
 }
+
+#[test]
+fn an_ordinal_carries_its_symbols_in_the_order_the_template_lists_them() {
+    // openEHR RM Release-1.1.0 `data_types.html` section 6.2.4 gives
+    // `DV_ORDINAL` a `symbol` and a `value`, and states no invariant tying
+    // them: the pairing is the template's, so the field carries the pairs the
+    // template lists and adds none.
+    let form = from_opt14(GRID);
+    let FieldKind::Ordinal(ref ordinal) = *kind(&form, "at0035") else {
+        panic!("at0035 is not an ordinal");
+    };
+    let pairs: Vec<(f64, &str)> = ordinal
+        .options
+        .iter()
+        .map(|option| (option.score, option.symbol.code.as_str()))
+        .collect();
+    assert_eq!(
+        pairs,
+        vec![(0.0, "at0036"), (1.0, "at0037"), (2.0, "at0038")]
+    );
+    assert_eq!(
+        ordinal.options[1].label.get(&english()),
+        Some("Mild"),
+        "a symbol's rubric comes from the template terminology"
+    );
+}
+
+#[test]
+fn a_state_carries_the_machine_the_template_states() {
+    // `DV_STATE` (section 4.2.3) is the one field kind no AOM prose governs:
+    // `C_DV_STATE` is declared in the openEHR ITS-XML 2.0.0
+    // `OpenehrProfile.xsd` and nowhere else, so the XSD is the oracle for its
+    // shape and the field carries the machine rather than interpreting it.
+    let form = from_opt14(GRID);
+    let FieldKind::State(ref state) = *kind(&form, "at0039") else {
+        panic!("at0039 is not a state");
+    };
+    let names: Vec<(&str, bool)> = state
+        .states
+        .iter()
+        .map(|option| (option.name.as_str(), option.is_terminal))
+        .collect();
+    assert_eq!(names, vec![("planned", false), ("completed", true)]);
+    assert_eq!(
+        state.states[0].transitions[0].event, "start",
+        "a non-terminal state carries the transitions out of it"
+    );
+    assert_eq!(
+        state.states[0].transitions[0].next_state.as_deref(),
+        Some("completed")
+    );
+}
+
+#[test]
+fn a_scale_derives_to_the_same_field_kind_as_an_ordinal() {
+    // Section 6.2.5 makes `DV_SCALE` a `DV_ORDINAL` whose value is real
+    // rather than integral, so both derive to one field kind. ADL 1.4 cannot
+    // state one: `OpenehrProfile.xsd` declares no `C_DV_SCALE`, so the ADL 2
+    // reader is the only path to it and this case comes from there.
+    let form = from_adl2(ADL2_EXTRAS);
+    let FieldKind::Ordinal(ref scale) = *kind(&form, "id12") else {
+        panic!("id12 is not a scale");
+    };
+    let scores: Vec<f64> = scale.options.iter().map(|option| option.score).collect();
+    assert_eq!(
+        scores,
+        vec![0.0, 0.5],
+        "a scale keeps the fractional scores an ordinal could not hold"
+    );
+}

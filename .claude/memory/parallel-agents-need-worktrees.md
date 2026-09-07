@@ -31,3 +31,10 @@ confirm every path is yours. Also state the branch explicitly with
 `git switch -c`: a `git switch` that was part of a command a hook blocked
 leaves you on the previous branch, which is how one commit landed on the wrong
 one that day. See [[pr-auto-merge]].
+
+**Remove a worktree when its pull request merges.** Each one carries its own
+`target/`, which reaches 5 to 8 GB after a full test run, so eleven merged
+worktrees filled the disk on 2026-09-07 and a `Bash` call failed with
+`ENOSPC` mid-task. `git worktree remove --force <path>` then
+`git worktree prune`; that run recovered 184 GB. The isolation is still
+right, and the cleanup is part of the merge, not an afterthought.

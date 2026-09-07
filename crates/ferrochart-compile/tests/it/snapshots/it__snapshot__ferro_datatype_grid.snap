@@ -2100,6 +2100,238 @@ expression: form
             "prefill": null,
             "is_deprecated": false,
             "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0035",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 21
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_ORDINAL",
+            "label": {
+              "en": "Ordinal grade"
+            },
+            "help": {
+              "en": "A DV_ORDINAL, which RM data_types.html section 6.2.4 pairs a symbol with an integer."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "ordinal",
+              "options": [
+                {
+                  "score": 0.0,
+                  "symbol": {
+                    "terminology": "local",
+                    "code": "at0036"
+                  },
+                  "label": {
+                    "en": "None"
+                  },
+                  "description": {
+                    "en": "No grade."
+                  }
+                },
+                {
+                  "score": 1.0,
+                  "symbol": {
+                    "terminology": "local",
+                    "code": "at0037"
+                  },
+                  "label": {
+                    "en": "Mild"
+                  },
+                  "description": {
+                    "en": "A mild grade."
+                  }
+                },
+                {
+                  "score": 2.0,
+                  "symbol": {
+                    "terminology": "local",
+                    "code": "at0038"
+                  },
+                  "label": {
+                    "en": "Severe"
+                  },
+                  "description": {
+                    "en": "A severe grade."
+                  }
+                }
+              ]
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0039",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 22
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_STATE",
+            "label": {
+              "en": "Workflow state"
+            },
+            "help": {
+              "en": "A DV_STATE, whose state machine no openEHR specification defines: only Template.xsd does."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "state",
+              "states": [
+                {
+                  "name": "planned",
+                  "is_terminal": false,
+                  "transitions": [
+                    {
+                      "event": "start",
+                      "action": null,
+                      "guard": null,
+                      "next_state": "completed"
+                    }
+                  ]
+                },
+                {
+                  "name": "completed",
+                  "is_terminal": true,
+                  "transitions": []
+                }
+              ]
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
           }
         ],
         "undetermined": [
