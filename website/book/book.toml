@@ -12,6 +12,12 @@ src = "src"
 build-dir = "book"
 
 [output.html]
+# The book is published under /docs/, with the landing page at the site root
+# (scripts/site/assemble.sh). site-url makes the book's asset, search index,
+# and 404 links absolute under that prefix, which is also what lets one 404
+# page work from both depths. The cost is that `mdbook serve` alone cannot
+# render the book correctly; assemble the site and serve that instead.
+site-url = "/docs/"
 default-theme = "rust"
 preferred-dark-theme = "coal"
 git-repository-url = "https://github.com/rubentalstra/FerroCHART"

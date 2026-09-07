@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<!-- SPDX-FileCopyrightText: Ruben Talstra -->
+<!-- SPDX-License-Identifier: BUSL-1.1 -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- GitHub Pages sets no response headers, so the policy travels in a
+       <meta> element. Every source is 'self': the page loads no external
+       script, style, font, or image, and connects to nothing at load time. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>FerroCHART: an openEHR form builder in pure Rust</title>
+  <meta name="description" content="FerroCHART compiles an openEHR operational template into a form definition and keeps hand-authored layout in a separate overlay, so a template revision replays that layout and reports what it did to it. Today it is a compiler: 121 of the 123 vendored openEHR CKM templates derive a form, 2658 fields across 1789 groups, both ADL generations read. Nothing renders a form to a clinician yet. Business Source License 1.1.">
+  <link rel="icon" type="image/svg+xml" href="./assets/brand/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/brand/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./assets/brand/favicon-16.png">
+  <link rel="apple-touch-icon" href="./assets/brand/apple-touch-icon.png">
+  <link rel="canonical" href="https://ferrochart.eu/">
+  <link rel="stylesheet" href="./style.css">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ferrochart.eu/">
+  <meta property="og:site_name" content="FerroCHART">
+  <meta property="og:title" content="FerroCHART: an openEHR form builder in pure Rust">
+  <meta property="og:description" content="An openEHR operational template compiled into a form definition, with hand-authored layout in a separate overlay that a template revision replays and reports on. Today it is a compiler, and nothing renders a form to a clinician yet.">
+  <meta property="og:image" content="https://ferrochart.eu/assets/brand/ferrochart-social.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Structured data. A browser never executes an application/ld+json data
+       block (https://html.spec.whatwg.org/multipage/scripting.html#data-block),
+       so script-src does not govern it and the page stays CSP-clean. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "FerroCHART",
+    "description": "A pure-Rust openEHR form builder. It compiles an operational template into a form definition and stores hand-authored layout in a separate overlay, keyed by node identity, so a recompile from a revised template replays the overlay and reports what it did to the authored layout.",
+    "codeRepository": "https://github.com/rubentalstra/FerroCHART",
+    "programmingLanguage": "Rust",
+    "license": "https://spdx.org/licenses/BUSL-1.1.html",
+    "applicationCategory": "HealthApplication",
+    "runtimePlatform": "Linux",
+    "version": "0.0.3"
+  }
+  </script>
+</head>
+<body>
+
+  <a class="skip" href="#main">Skip to the content</a>
+
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="./">
+        <img src="./assets/brand/ferrochart-icon.svg" alt="" aria-hidden="true" width="28" height="28">
+        <span>FerroCHART</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="./docs/">Docs</a>
+        <a href="./docs/evaluate/the-problem.html" class="hide-sm">The problem</a>
+        <a href="./docs/evaluate/build-order.html" class="hide-sm">Build order</a>
+        <a href="#status">Status</a>
+        <a href="https://github.com/rubentalstra/FerroCHART" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- The top. What it is, and what it does not do yet, in the same breath. -->
+    <section class="hero">
+      <div class="wrap">
+        <img class="hero-logo" src="./assets/brand/ferrochart-icon.svg" alt="FerroCHART" width="88" height="88">
+        <p class="status-pill" role="note">v0.0.3 published. A compiler and its supply chain.</p>
+        <h1>openEHR operational templates, compiled into forms, in pure Rust.</h1>
+        <p class="sub">
+          FerroCHART walks an operational template and derives a field from the
+          Reference Model type and the constraint at each node. The layout,
+          labels, and visibility rules a person authors on top live in a
+          separate overlay, so a template revision replays that work and
+          reports what happened to it. Nothing renders a form to a clinician
+          yet, and the page below says exactly where the line is.
+        </p>
+        <div class="cta">
+          <a class="btn btn-primary" href="./docs/">Read the documentation</a>
+          <a class="btn btn-ghost" href="#status">What works today</a>
+        </div>
+        <p class="note">
+          Ferro for the Rust family FerroCHART shares with FerroEHR, FerroTERM,
+          and FerroBRIDGE. CHART for the thing a clinician fills in.
+        </p>
+      </div>
+    </section>
+
+    <!-- What it measurably does. Every figure comes from the compiler run over
+         the vendored CKM corpus, which snapshot tests hold in CI. -->
+    <section id="measured">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Measured over the vendored corpus</span>
+          <h2>What the compiler does to a real template corpus</h2>
+          <p>
+            The figures come from running the derivation over the openEHR CKM
+            templates this repository vendors. The totals are asserted in the
+            test suite, and a snapshot inventory covers every template in the
+            corpus, so a change to any of these numbers fails the build.
+          </p>
+        </div>
+        <div class="figures">
+          <div class="figure">
+            <span class="figure-name">Templates that derive a form</span>
+            <span class="figure-big">121 <span class="figure-of">of 123</span></span>
+            <span class="figure-cap">Of the 123 vendored CKM templates, 121 read, and every one that reads derives a form.</span>
+          </div>
+          <div class="figure">
+            <span class="figure-name">Fields derived</span>
+            <span class="figure-big">2658</span>
+            <span class="figure-cap">Each with the units, value set, date precision, or repeatability its node constrains.</span>
+          </div>
+          <div class="figure">
+            <span class="figure-name">Groups they sit in</span>
+            <span class="figure-big">1789</span>
+            <span class="figure-cap">A <code>CLUSTER</code> whose upper occurrence is above one becomes a repeatable group.</span>
+          </div>
+          <div class="figure">
+            <span class="figure-name">ADL generations read</span>
+            <span class="figure-big">2</span>
+            <span class="figure-cap">ADL 1.4 and ADL 2 normalize into one internal constraint model, so the derivation is written once.</span>
+          </div>
+        </div>
+        <p class="figures-note">
+          Measured at v0.0.3. The
+          <a href="./docs/evaluate/build-order.html">build order</a> says what
+          each release adds, and the tracker is the live version.
+        </p>
+      </div>
+    </section>
+
+    <!-- The mechanical half: the derivation rules, which the specifications
+         govern in full. -->
+    <section id="derive" class="ruled">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The mechanical half</span>
+          <h2>A field comes from the type and the constraint at its node</h2>
+          <p>
+            No form is hand-written per template, and no field is hand-coded
+            per archetype. The Reference Model type at each node decides the
+            field kind, and the constraint decides what the field permits.
+          </p>
+        </div>
+        <div class="grid rules">
+          <article class="card">
+            <h3><code>DV_QUANTITY</code></h3>
+            <p>A number, carrying the units the template permits and the magnitude range each unit states.</p>
+          </article>
+          <article class="card">
+            <h3><code>DV_CODED_TEXT</code></h3>
+            <p>A selection over its value set, with the rubrics the template's own terminology states for each code.</p>
+          </article>
+          <article class="card">
+            <h3><code>DV_DATE_TIME</code></h3>
+            <p>A date field at the precision the constraint states, rather than at whatever a widget defaults to.</p>
+          </article>
+          <article class="card">
+            <h3><code>CLUSTER</code></h3>
+            <p>A group, and a repeatable one when its upper occurrence is above one.</p>
+          </article>
+        </div>
+        <p class="figures-note">
+          The full rule table, class by class, is section 5 of the
+          <a href="https://github.com/rubentalstra/FerroCHART/blob/main/docs/architecture.md" rel="noopener">architecture document</a>,
+          where every row carries its Reference Model section. The
+          <a href="./docs/evaluate/design.html">design chapter</a> is its
+          shape.
+        </p>
+      </div>
+    </section>
+
+    <!-- The half no specification governs, and the report that is the product. -->
+    <section id="overlay">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The half nobody has built</span>
+          <h2>Your layout survives the template revision, and you are told what changed</h2>
+          <p>
+            Field order, grouping, labels, help text, defaults, and conditional
+            visibility are in no openEHR specification. A person spends hours
+            on them. Then the template is revised.
+          </p>
+        </div>
+        <div class="panel">
+          <p>
+            FerroCHART keeps that work in a separate overlay, keyed by the
+            identity of the node it decorates. Recompile from the revised
+            template, replay the overlay, and every entry comes back
+            classified:
+          </p>
+          <ul class="chips">
+            <li>matched</li>
+            <li>moved</li>
+            <li>ambiguous</li>
+            <li>reordered</li>
+            <li>retyped</li>
+            <li>disappeared</li>
+            <li>new</li>
+          </ul>
+          <p>
+            Nothing is discarded, and nothing is silently rebound. An entry the
+            new template no longer resolves is kept against its old key, so a
+            later revision that restores the node restores its layout. A move
+            is a suggestion for you to accept, because rebinding layout onto a
+            node you did not choose is how a form ends up on the wrong clinical
+            concept.
+          </p>
+          <p class="claim">
+            None of the openEHR form implementations surveyed for this project
+            reports what a recompile did to hand-authored layout. That report
+            is the reason this project exists, and
+            <a href="./docs/evaluate/the-problem.html">the problem chapter</a>
+            names what each surveyed approach does instead.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- One card per question a reader arrives with. -->
+    <section id="audiences" class="ruled">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Who it is for</span>
+          <h2>Four questions, four answers</h2>
+        </div>
+        <div class="grid audiences">
+
+          <article class="card audience">
+            <span class="tag">Clinical modelling</span>
+            <h3>Will it read my templates?</h3>
+            <p>
+              Both ADL generations are read and normalized into one internal
+              constraint model, so the field derivation is written once rather
+              than once per generation. Against the vendored CKM corpus, 121 of
+              123 templates read and all 121 derive a form.
+            </p>
+            <ul>
+              <li><a href="./docs/evaluate/design.html">How a form is derived</a></li>
+              <li><a href="./docs/evaluate/the-problem.html">What a template does not tell you</a></li>
+            </ul>
+          </article>
+
+          <article class="card audience">
+            <span class="tag">Integration</span>
+            <h3>Which CDR does it work with?</h3>
+            <p>
+              Any of them. FerroCHART is a client of the openEHR ITS-REST API
+              and is never a compile-time dependency of a CDR, so it works
+              against the CDR your hospital already runs. A form builder tied
+              to one CDR is no use to the people who asked for this. The
+              ITS-REST client, the composition builder, and the FHIR
+              terminology client are decided and scheduled for v0.0.5; they are
+              not written yet.
+            </p>
+            <ul>
+              <li><a href="./docs/evaluate/build-order.html">What each release adds</a></li>
+              <li><a href="./docs/evaluate/versions.html">The pinned specification versions</a></li>
+            </ul>
+          </article>
+
+          <article class="card audience">
+            <span class="tag">Operations</span>
+            <h3>What is actually published?</h3>
+            <p>
+              Binaries for four Linux targets, a distroless container image,
+              and a standalone <code>compose.yaml</code>. Every asset is
+              checksummed and carries a Sigstore attestation, so you can check
+              where a binary came from before you trust it. The published
+              binary reads its configuration, binds a listener, and answers a
+              health probe; the routes that do the work arrive with the client.
+            </p>
+            <ul>
+              <li><a href="./docs/operate/configuration.html">Configuration</a></li>
+              <li><a href="https://github.com/rubentalstra/FerroCHART/releases" rel="noopener">Releases and their attestations</a></li>
+            </ul>
+          </article>
+
+          <article class="card audience">
+            <span class="tag">Evaluation</span>
+            <h3>May I use it, and what does it cost?</h3>
+            <p>
+              The Business Source License 1.1, with no open-core tier: the
+              compiler, the overlay, the server, and the tools are in one
+              repository under one licence. Reading, building, modifying, and
+              redistributing the source is free, and so is every
+              non-production use. Production use is free for personal use,
+              research, teaching, and a non-profit or public body outside the
+              course of a business; any other production use needs a commercial
+              licence. Each version becomes Apache License 2.0 four years
+              after it is published.
+            </p>
+            <ul>
+              <li><a href="./docs/evaluate/licensing.html">Which licence applies to you</a></li>
+              <li><a href="./docs/contribute/discipline.html">The working discipline</a></li>
+            </ul>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- The honest status. This section outranks the pitch above it. -->
+    <section id="status">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Where the project is</span>
+          <h2>What works, and what does not</h2>
+          <p>
+            A release today is a compiler and its supply chain. It is not
+            something a ward could use, and this list is how you tell the two
+            apart.
+          </p>
+        </div>
+        <div class="grid status-grid">
+          <article class="card state state-yes">
+            <h3>Works today</h3>
+            <ul>
+              <li>Both ADL generations read into one internal constraint model.</li>
+              <li>The derivation table and the form definition it produces, over the whole vendored corpus.</li>
+              <li>The overlay store, its key, and the replay report, under test in the repository. They ship in v0.0.4.</li>
+              <li>Releases for four Linux targets, a container image, and a compose file, signed and attested.</li>
+            </ul>
+          </article>
+          <article class="card state state-no">
+            <h3>Does not work yet</h3>
+            <ul>
+              <li>Nothing renders a form to a clinician. The renderer arrives with v0.1.0.</li>
+              <li>Nothing builds a COMPOSITION or commits one to a CDR. That arrives with v0.0.5.</li>
+              <li>There is no authoring surface for the overlay, so you cannot lay a form out by hand yet.</li>
+              <li>No round trip has been proven against a running CDR.</li>
+            </ul>
+          </article>
+        </div>
+        <div class="cta cta-centred">
+          <a class="btn btn-primary" href="./docs/evaluate/build-order.html">See the build order</a>
+          <a class="btn btn-ghost" href="https://github.com/rubentalstra/FerroCHART/milestones" rel="noopener">See the milestones</a>
+        </div>
+        <p class="figures-note">
+          The tracker is the scope. Every issue carries its acceptance
+          criteria, and a release is cut when its milestone reaches zero open
+          issues.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="./">
+            <img src="./assets/brand/ferrochart-icon.svg" alt="" aria-hidden="true" width="28" height="28">
+            <span>FerroCHART</span>
+          </a>
+          <p>
+            A pure-Rust openEHR form builder and renderer, licensed under the
+            <a href="https://github.com/rubentalstra/FerroCHART/blob/main/LICENSE" rel="noopener">Business Source License 1.1</a>.
+            Contributions are licensed inbound equals outbound under the same
+            licence, with no contributor licence agreement and no copyright
+            assignment.
+            <a href="./docs/evaluate/licensing.html">Which licence applies to you</a>.
+          </p>
+          <p>
+            One of the <a href="https://ferrohealth.eu" rel="noopener">FerroHEALTH</a>
+            servers: FerroEHR stores the data, FerroTERM answers the
+            terminology questions, FerroBRIDGE moves it to FHIR and OMOP, and
+            FerroCHART is how it gets entered in the first place.
+          </p>
+        </div>
+        <div class="footer-links">
+          <div>
+            <h2>Read</h2>
+            <ul>
+              <li><a href="./docs/">Documentation</a></li>
+              <li><a href="./docs/evaluate/the-problem.html">The problem</a></li>
+              <li><a href="./docs/evaluate/design.html">The design</a></li>
+              <li><a href="./docs/evaluate/build-order.html">Build order</a></li>
+              <li><a href="./docs/evaluate/versions.html">Pinned versions</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Project</h2>
+            <ul>
+              <li><a href="https://github.com/rubentalstra/FerroCHART" rel="noopener">GitHub</a></li>
+              <li><a href="https://github.com/rubentalstra/FerroCHART/releases" rel="noopener">Releases</a></li>
+              <li><a href="https://github.com/rubentalstra/FerroCHART/issues" rel="noopener">Issues</a></li>
+              <li><a href="https://github.com/rubentalstra/FerroCHART/blob/main/SECURITY.md" rel="noopener">Report a vulnerability</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-note">
+        <p>
+          openEHR is a registered trademark of the openEHR Foundation. HL7 and
+          FHIR are registered trademarks of Health Level Seven International.
+          Neither organisation endorses FerroCHART.
+        </p>
+        <p>FerroCHART, a FerroHEALTH project. ferrochart.eu</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
