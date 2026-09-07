@@ -65,7 +65,7 @@ release, the document, and the section.
 | openehr-adl | 0.0.61 | BUSL-1.1. The ADL 2, cADL and ODIN parser and the AOM 2 validation catalogue. |
 | openehr-its | 0.0.61 | BUSL-1.1 and Apache-2.0. Carries `opt14`, `flat` and the ITS-REST types. |
 | openehr-query | 0.0.61 | BUSL-1.1. Taken only when FerroCHART composes AQL queries rather than parsing paths. |
-| fhir-types | 0.1.84 | Apache-2.0. The FHIR model, generated per FHIR version from the published HL7 packages, plus the terminology operation request and response contracts. Section 7.3 takes it as the source of every FHIR resource FerroCHART reads or emits. |
+| fhir-types | 0.1.85 | Apache-2.0. The FHIR model, generated per FHIR version from the published HL7 packages, plus the terminology operation request and response contracts. Section 7.3 takes it as the source of every FHIR resource FerroCHART reads or emits. |
 
 Four things this table has to say out loud.
 

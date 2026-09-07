@@ -45,7 +45,7 @@ the build order.
   section permits statuses beyond that set. Nothing absorbs an upstream
   failure into an empty value.
 - The FHIR model comes from the published `fhir-types` crate (Apache-2.0,
-  pinned at 0.1.84), which `ferrochart-term` now depends on (#95). It is
+  pinned at 0.1.85), which `ferrochart-term` now depends on (#95). It is
   generated from the HL7 FHIR packages, so `ValueSet`, `CodeSystem`,
   `ConceptMap`, `Parameters` and `OperationOutcome` are read from a generated
   model the way the openEHR types already are, and no FHIR resource is

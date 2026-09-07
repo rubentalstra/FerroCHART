@@ -67,12 +67,12 @@ fn a_minted_value_set_survives_the_fhir_json_codec() {
     assert_eq!(
         object
             .get("resourceType")
-            .and_then(serde_json::Value::as_str),
+            .and_then(fhir_types::codec::Value::as_str),
         Some("ValueSet"),
         "a FHIR resource carries its type in the JSON it is sent as"
     );
     assert_eq!(
-        object.get("url").and_then(serde_json::Value::as_str),
+        object.get("url").and_then(fhir_types::codec::Value::as_str),
         Some(VALUE_SET_URL)
     );
 

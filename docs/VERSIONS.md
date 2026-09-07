@@ -92,7 +92,7 @@ packages and released from FerroTERM, which is never a dependency here.
 
 | Item | Pin | Repeated in |
 |---|---|---|
-| fhir-types | 0.1.84 | `docs/architecture.md` §2, root `Cargo.toml` |
+| fhir-types | 0.1.85 | `docs/architecture.md` §2, root `Cargo.toml` |
 
 Two lockstep lines now feed this project. `fhir-types` releases together with
 `fhir-terminology` and `sct-ecl` on one FerroTERM version, the way the
