@@ -23,6 +23,12 @@ the build order.
 
 ### Added
 
+- `docs/architecture.md` section 6.5 records the five things the replay's
+  outcome classes left underdetermined, decided while implementing #19 and
+  #20. The load-bearing one is that a `retyped` outcome is unreachable from
+  the key alone, because a field's key step says `ELEMENT` while the field
+  collects a `DV_*` class. Section 11 states where the line between
+  `ferrochart-form` and `ferrochart-overlay` falls and why (#72).
 - The layout overlay and its store (#19), in `ferrochart-overlay`. An overlay
   carries what no specification governs: field order, authored sections,
   labels, help text, defaults, conditional visibility and widget choice. It is
