@@ -7,8 +7,10 @@
 //! The material is real: the committed CKM operational template pack, read by
 //! the ADL 1.4 reader and derived by the compiler. What a template revision
 //! would have done is applied to the derived form here, because the pack holds
-//! no two versions of one template.
-// TODO(#21): prove the replay against a genuine template revision.
+//! no two versions of one template, and none can be obtained: the openEHR CKM
+//! serves no earlier revision of a template and no archetype in the pack
+//! appears at two major versions (#21). `real_revision.rs` replays against the
+//! largest real difference the pack can produce instead.
 
 use std::fs;
 use std::path::{Path, PathBuf};

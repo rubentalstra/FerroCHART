@@ -14,6 +14,7 @@
 
 mod corpus;
 mod geometry;
+mod real_revision;
 mod replay;
 mod report;
 mod store;
