@@ -13,8 +13,7 @@
 use std::fmt;
 
 use ferrochart_form::key::NodeKey;
-
-use crate::layout::{ColumnCount, ColumnSpan, SectionId};
+use ferrochart_form::layout::{ColumnCount, ColumnSpan, SectionId};
 
 /// Something the overlay stores and a person should still see.
 #[derive(Debug, Clone, PartialEq, Eq)]

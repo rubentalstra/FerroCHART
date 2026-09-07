@@ -15,13 +15,13 @@ use std::collections::{BTreeMap, BTreeSet};
 use ferrochart_form::definition::FormDefinition;
 use ferrochart_form::ids::{RmTypeName, TemplateId};
 use ferrochart_form::key::NodeKey;
+use ferrochart_form::layout::{ColumnCount, Layout, Section, SectionId};
 use serde::{Deserialize, Serialize};
 
 use crate::advice::Advisory;
 use crate::entry::{OverlayEntry, PositionalAnchor};
 use crate::error::OverlayError;
 use crate::index::Index;
-use crate::layout::{ColumnCount, Layout, Section, SectionId};
 
 /// The version of the overlay format this crate defines.
 ///

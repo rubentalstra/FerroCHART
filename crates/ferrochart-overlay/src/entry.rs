@@ -5,9 +5,8 @@
 
 use ferrochart_form::ids::RmTypeName;
 use ferrochart_form::key::NodeKey;
+use ferrochart_form::layout::Layout;
 use serde::{Deserialize, Serialize};
-
-use crate::layout::Layout;
 
 /// What a positionally keyed entry was anchored to when it was authored.
 ///

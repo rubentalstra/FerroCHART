@@ -10,12 +10,12 @@
 
 use std::error::Error;
 
+use ferrochart_form::layout::{
+    CharacterWidth, ColumnCount, ColumnSpan, Geometry, HintName, Layout, Section, SectionId,
+};
 use ferrochart_form::text::Localized;
 use ferrochart_overlay::advice::Advisory;
 use ferrochart_overlay::error::OverlayError;
-use ferrochart_overlay::layout::{
-    CharacterWidth, ColumnCount, ColumnSpan, Geometry, HintName, Layout, Section, SectionId,
-};
 use ferrochart_overlay::replay::replay;
 use ferrochart_overlay::store::{Author, Overlay};
 
@@ -39,27 +39,6 @@ fn in_wide(geometry: Geometry) -> Layout {
         geometry,
         ..Layout::new()
     }
-}
-
-#[test]
-fn a_section_that_declares_nothing_is_one_column() {
-    let section = Section::new(SectionId::new("counts"), Localized::empty());
-    assert_eq!(section.columns, ColumnCount::ONE);
-    assert_eq!(section.columns.get(), 1);
-    assert!(!section.columns.is_crowded());
-}
-
-#[test]
-fn a_column_count_outside_one_to_twelve_is_not_representable() {
-    assert!(ColumnCount::try_from(0).is_err());
-    assert!(ColumnCount::try_from(13).is_err());
-    assert_eq!(columns(1), ColumnCount::ONE);
-    assert_eq!(columns(12).get(), 12);
-    let refused = ColumnCount::try_from(13).unwrap_err();
-    assert!(refused.to_string().contains("1 to 12 columns"), "{refused}");
-    assert!(ColumnSpan::try_from(0).is_err());
-    assert!(ColumnSpan::try_from(13).is_err());
-    assert!(CharacterWidth::try_from(0).is_err());
 }
 
 #[test]
@@ -112,30 +91,6 @@ fn a_section_wider_than_four_columns_is_stored_and_advised_against() {
     let report = replay(&overlay, &definition);
     assert_eq!(report.advisories().cloned().collect::<Vec<_>>(), advised);
     assert!(report.to_string().contains("is 5 columns wide"), "{report}");
-}
-
-#[test]
-fn an_item_that_asks_for_nothing_takes_its_sections_full_width() {
-    let geometry = Geometry::default();
-    assert!(geometry.is_empty());
-    assert_eq!(geometry.span, None);
-    assert_eq!(geometry.span_in(ColumnCount::ONE), ColumnSpan::ONE);
-    assert_eq!(geometry.span_in(columns(4)).get(), 4);
-}
-
-#[test]
-fn a_stated_span_is_clamped_by_a_narrower_grid_and_the_overlay_keeps_it() {
-    let geometry = Geometry {
-        span: Some(span(6)),
-        ..Geometry::default()
-    };
-    assert_eq!(geometry.span_in(columns(12)).get(), 6);
-    assert_eq!(geometry.span_in(columns(3)).get(), 3);
-    assert_eq!(
-        geometry.span,
-        Some(span(6)),
-        "clamping is the renderer's, so nothing stored is discarded"
-    );
 }
 
 #[test]

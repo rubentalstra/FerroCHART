@@ -782,7 +782,8 @@ than a server-shaped HTTP client, one module owning every request, typed
 errors carrying the upstream status and body, a separate WASM release profile,
 and the Tailwind standalone CLI. Two guards from that lane are adopted here: a
 boundary check that walks the resolved dependency closure so the UI cannot
-link an engine crate, and a gzipped bundle-size gate.
+link an engine crate, which landed with issue #72 as
+`scripts/checks/crate-closure.sh`, and a gzipped bundle-size gate.
 
 **A third party can write their own renderer** against the published form
 definition, which is the reason section 4 owns the type rather than
@@ -814,9 +815,18 @@ form definition a contract a third party can implement against rather than a
 crate graph they have to adopt.
 
 The implementation of issues #19 and #20 put both halves in
-`ferrochart-overlay`, so the types move to match this before the renderer is
-built (issue #72). The layout types already reference the definition's own
-`Prefill`, so the move removes a cross-crate dependency rather than adding one.
+`ferrochart-overlay`, and issue #72 moved the types to match this before the
+renderer was built. The layout types already referenced the definition's own
+`Prefill`, so the move removed a cross-crate dependency rather than adding one.
+Neither crate re-exports anything the other owns: a caller that needs a layout
+type names `ferrochart-form`.
+
+**The two closure promises are checked, not asserted.**
+`scripts/checks/crate-closure.sh` reads the resolved dependency graph and fails
+when `ferrochart-form` links any other crate of this tree, or when
+`ferrochart-renderer` links anything but `ferrochart-form`. It walks the
+transitive normal and build closure, so a first-party crate arriving through an
+intermediate is caught too, and it is a CI lane of its own.
 
 The root manifest carries the workspace lints of `.claude/rules/reliability.md`
 at their stated tiers, `unsafe_code = "forbid"` among them, and the release

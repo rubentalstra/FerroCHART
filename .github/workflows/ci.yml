@@ -330,6 +330,25 @@ jobs:
       # yanked, licences, bans and sources, so there is no separate audit job.
       - run: cargo deny check
 
+  # The first-party dependency-closure guard. ferrochart-form is the published
+  # contract, so it links no other crate of this tree, and the renderer links
+  # ferrochart-form alone (docs/architecture.md sections 10 and 11). It reads
+  # the resolved graph, so it needs cargo.
+  crate-closure:
+    name: crate-closure
+    needs: detect
+    if: needs.detect.outputs.cargo == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+      - run: bash scripts/checks/crate-closure.sh
+
   msrv:
     name: msrv (cargo-hack)
     needs: detect
@@ -395,6 +414,7 @@ jobs:
       - test
       - doc
       - cargo-deny
+      - crate-closure
       - msrv
       - dependency-review
     if: always()
