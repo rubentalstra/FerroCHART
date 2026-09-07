@@ -21,6 +21,8 @@ the build order.
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-09-07
+
 ### Added
 
 - Snapshots of the derived form over the whole vendored corpus (#18). An
@@ -196,6 +198,7 @@ the build order.
   The configuration is FerroBRIDGE's, adapted from the FHIR and OMOP oracles to
   the openEHR Reference Model, the Archetype Object Model, ITS-REST, and AQL.
 
-[Unreleased]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.2...HEAD
+[Unreleased]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.3...HEAD
+[0.0.3]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/rubentalstra/FerroCHART/releases/tag/v0.0.1
