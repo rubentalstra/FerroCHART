@@ -20,18 +20,49 @@ It runs as its own server beside any openEHR CDR reached over the openEHR
 ITS-REST API, and uses any FHIR terminology server to expand the value sets
 behind coded fields.
 
-## Status: the design is settled, the engine is being built
+## Status: it compiles a template into a form
+
+**What works today.** Point it at an openEHR operational template and it
+produces a form definition: fields with their permitted units, value sets,
+date precisions and repeatability, derived from the Reference Model type and
+the constraint at each node. Both ADL generations are read. Measured against
+the 123 openEHR CKM templates this repository vendors, 121 read and all 121
+derive a form, 2658 fields across 1789 groups.
+
+**What does not work yet.** Nothing renders that form to a clinician, builds a
+COMPOSITION out of it, or commits one to a CDR. The layout overlay, which is
+the reason this project exists, is being built now. So a release today is a
+compiler and its supply chain, not a product a ward could use.
 
 The design of record is [`docs/architecture.md`](docs/architecture.md), the
 output of the research program on
 [issue #1](https://github.com/rubentalstra/FerroCHART/issues/1), where every
 decision carries a citation or an explicit note that no specification governs
-it.
+it. Section 14 is the build order, and the milestones track it.
 
-A release publishes signed binaries and a container image, and the build order
-in `docs/architecture.md` section 14 says what each one adds. **Nothing here
-compiles a template into a form yet**, so a release today is the scaffolding
-rather than the product. Watch the milestones for when that changes.
+## Try it
+
+A release publishes a `compose.yaml` you can run without cloning anything.
+FerroCHART talks to an openEHR CDR and a FHIR terminology server, so the
+default path needs both endpoints; the `demo` profile starts FerroEHR and
+FerroTERM alongside it instead.
+
+```sh
+curl -LO https://github.com/rubentalstra/FerroCHART/releases/latest/download/compose.yaml
+docker compose --profile demo up
+```
+
+The demo profile pulls three separately licensed images and exists for
+evaluation. Read the header of the file before running it anywhere real.
+
+Every release asset is checksummed and carries a Sigstore attestation, so you
+can check where a binary came from before you trust it:
+
+```sh
+gh attestation verify ferrochart-v0.0.3-x86_64-unknown-linux-musl.tar.gz \
+  --repo rubentalstra/FerroCHART \
+  --signer-workflow rubentalstra/FerroCHART/.github/workflows/release-build.yml
+```
 
 ## Why this exists
 
@@ -52,12 +83,18 @@ by the openEHR community rather than invented here.
   unit, `DV_CODED_TEXT` becomes a selection bound to a value set, a `CLUSTER`
   that may repeat becomes a repeatable group. No form is hand-written per
   template, and no field is hand-coded per archetype.
-- **Hand-authored layout lives in a separate overlay**, keyed by AQL path.
-  Templates get revised, and the layout, labels, help text, and visibility
-  rules a person spent hours on must survive the revision. Recompile from the
-  new template, replay the overlay, and report which paths disappeared. An
-  editor that loses that work on a template update is the failure mode this
-  design exists to avoid.
+- **Hand-authored layout lives in a separate overlay**, keyed by node
+  identity. Templates get revised, and the layout, labels, help text, and
+  visibility rules a person spent hours on must survive the revision.
+  Recompile from the new template, replay the overlay, and report what
+  matched, what disappeared, what moved and what became ambiguous. An editor
+  that loses that work on a template update is the failure mode this design
+  exists to avoid, and no tool surveyed for this project reports it.
+- **Both ADL generations are read**, and they normalize into one internal
+  constraint model, so the field derivation is written once rather than once
+  per generation.
+- **The openEHR model comes from the published `openehr-*` crates**, which are
+  generated from the openEHR BMM schemas, rather than from a generator here.
 - **Any CDR, over ITS-REST.** FerroCHART is a client of the openEHR REST API,
   never a compile-time dependency of a CDR. It works against the CDR a hospital
   already runs. A form builder that works with only one CDR is no use to the
@@ -70,18 +107,7 @@ by the openEHR community rather than invented here.
 - **Business Source License 1.1.** Free for non-commercial use, a commercial
   licence for production use in a business. See below.
 
-## What is decided since the research closed
-
-Both template generations are read, and they normalize into one internal
-constraint model so the field derivation is written once. The openEHR model
-comes from the published `openehr-*` crates rather than a generator here. The
-form definition is FerroCHART's own type projected from the web template,
-which is a compatibility target and not a specification. The compiler runs on
-the server and the renderer reads the definition it serves. The acceptance
-instrument is a per-datatype template grid, a round trip against a CDR, and an
-overlay replay against a real template revision.
-
-The reasoning and the citations are in
+Every decision above, with the reasoning and the citations behind it, is in
 [`docs/architecture.md`](docs/architecture.md) §15, the decision register.
 
 ## Licensing
