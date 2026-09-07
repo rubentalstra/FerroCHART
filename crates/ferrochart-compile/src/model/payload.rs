@@ -132,7 +132,7 @@ pub enum DefaultValue {
 
 /// A constraint on a boolean.
 ///
-/// openEHR AM Release-2.3.0 `AOM1.4.html` section 4.3.8 and `AOM2.html`
+/// openEHR AM Release-2.3.0 `AOM1.4.html` section 6.2.2 `C_BOOLEAN` and `AOM2.html`
 /// section 4.5.11.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BooleanConstraint {
@@ -147,7 +147,7 @@ pub struct BooleanConstraint {
 
 /// A constraint on an integer.
 ///
-/// openEHR AM Release-2.3.0 `AOM1.4.html` section 4.3.8 and `AOM2.html`
+/// openEHR AM Release-2.3.0 `AOM1.4.html` section 6.2.4 `C_INTEGER` and `AOM2.html`
 /// section 4.5.14.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IntegerConstraint {
@@ -161,7 +161,7 @@ pub struct IntegerConstraint {
 
 /// A constraint on a real number.
 ///
-/// openEHR AM Release-2.3.0 `AOM1.4.html` section 4.3.8 and `AOM2.html`
+/// openEHR AM Release-2.3.0 `AOM1.4.html` section 6.2.5 `C_REAL` and `AOM2.html`
 /// section 4.5.15.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RealConstraint {
@@ -175,7 +175,7 @@ pub struct RealConstraint {
 
 /// A constraint on a string.
 ///
-/// openEHR AM Release-2.3.0 `AOM1.4.html` section 4.3.8 and `AOM2.html`
+/// openEHR AM Release-2.3.0 `AOM1.4.html` section 6.2.3 `C_STRING` and `AOM2.html`
 /// section 4.5.12.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TextConstraint {
@@ -308,7 +308,8 @@ pub struct QuantityConstraint {
 
 /// A constraint on a date, a time, a date and time, or a duration.
 ///
-/// openEHR AM Release-2.3.0 `AOM1.4.html` section 4.3.8 spells the pattern as
+/// openEHR AM Release-2.3.0 `AOM1.4.html` sections 6.2.6 `C_DATE`, 6.2.7
+/// `C_TIME`, 6.2.8 `C_DATE_TIME` and 6.2.9 `C_DURATION` spell the pattern as
 /// `C_DATE.pattern`; `AOM2.html` sections 4.5.18 to 4.5.21 spell it as
 /// `C_TEMPORAL.pattern_constraint`. Both land here.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -328,7 +329,8 @@ pub struct TemporalConstraint {
 
 /// Whether a temporal value must carry a timezone.
 ///
-/// openEHR AM Release-2.3.0 `AOM1.4.html` section 4.3.8, `VALIDITY_KIND`.
+/// openEHR AM Release-2.3.0 `AOM1.4.html` sections 6.2.7 `C_TIME` and 6.2.8
+/// `C_DATE_TIME`, whose `timezone_validity` is a `VALIDITY_KIND`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum TimezoneValidity {

@@ -192,7 +192,7 @@ impl AttributeContext {
 /// A value range, as distinct from a count.
 ///
 /// The bounds carry their own inclusivity because openEHR AM Release-2.3.0
-/// `AOM1.4.html` section 4.3.7 constrains a primitive with an
+/// `AOM1.4.html` sections 6.2.2 to 6.2.9 constrain a primitive with an
 /// `Interval<T>`, whose ends may be open.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Bounds<T> {

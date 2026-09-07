@@ -161,11 +161,20 @@ The form definition is what the compiler emits and what the renderer reads. It
 is a projection of the operational template, and a form never admits what the
 template refuses.
 
-**FerroCHART compiles to the web template shape and owns its own type over
-it.** `openehr_its::flat::webtemplate::builder::build_web_template` produces
-the web template, carrying `aqlPath`, `inputs`, `min` and `max`, localized
-labels and term bindings per node. FerroCHART projects that into its own form
-definition type rather than publishing the web template as its public format.
+**The compiler derives the form definition from the internal constraint model,
+and the web template is a compatibility surface beside that path rather than a
+step along it.** This is a correction. The section used to say FerroCHART
+compiles to the web template shape and projects its own type out of it, which
+is how the design was drawn before the readers existed. What was built instead
+reads an operational template into the internal constraint model of section 3
+and derives the form definition from that, because the model already carries
+everything the derivation needs and a detour through a format with no
+normative document would only lose fidelity on the way.
+
+So the web template keeps a job, and it is a narrower one: reading a web
+template another tool produced, and writing one another tool can consume.
+That work is issue #54, and it inherits the three obligations below, which
+belong to the compatibility surface rather than to the compiler.
 
 The reason is that the web template is a compatibility target and not a
 specification, and this has to be said every time the format is named. There
@@ -182,14 +191,20 @@ and version, freedom to carry what a form needs and a wire format does not,
 and a single place where a web template divergence is absorbed. It costs a
 mapping layer, which is the price paid deliberately.
 
-**Unknown members are preserved verbatim.** The EHRbase SDK preserves
+The type exists and is published from `ferrochart-form`, which performs no I/O
+and depends on nothing else in the tree, so a third party can write a renderer
+against it. Its serialisation is byte-deterministic, so recompiling an
+unchanged template produces an identical document.
+
+**Unknown members are preserved verbatim, on the compatibility surface.** The EHRbase SDK preserves
 arbitrary template annotations through a catch-all map, and FerroCHART does
 the same: any member of a consumed web template that FerroCHART does not model
 is carried through a round trip unchanged. A third party's metadata is not
 destroyed by passing through this tool.
 
-**Two web template facts that bite.** `min` and `max` on a node are the
-flattened integers rather than the constraint expressions, and `semVer` is
+**Two web template facts that bite**, both of them the compatibility
+surface's problem rather than the compiler's. `min` and `max` on a node are
+the flattened integers rather than the constraint expressions, and `semVer` is
 always null for an OPT 1.4 template, so template version detection never
 relies on it.
 
