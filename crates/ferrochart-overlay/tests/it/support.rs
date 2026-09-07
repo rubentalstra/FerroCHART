@@ -7,8 +7,8 @@
 //! The material is real: the committed CKM operational template pack, read by
 //! the ADL 1.4 reader and derived by the compiler. What a template revision
 //! would have done is applied to the derived form here, because the pack holds
-//! no two versions of one template. Proving the replay against a genuine
-//! revision is its own issue.
+//! no two versions of one template.
+// TODO(#21): prove the replay against a genuine template revision.
 
 use std::fs;
 use std::path::{Path, PathBuf};

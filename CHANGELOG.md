@@ -29,6 +29,13 @@ the build order.
   the key alone, because a field's key step says `ELEMENT` while the field
   collects a `DV_*` class. Section 11 states where the line between
   `ferrochart-form` and `ferrochart-overlay` falls and why (#72).
+- The citation rule says that `docs/architecture.md` is citable, because it is
+  the design of record and permanent, while a plan document is not. The rule
+  banned "an internal markdown file" while justifying the ban with plan
+  documents, which left every architecture citation in the overlay crate
+  arguably against the rules. Also fixes a `codegen.md` reference to a
+  `CLAUDE.md` heading that does not exist (#77) and a prose deferral where a
+  `TODO` belongs (#78).
 - The layout overlay and its store (#19), in `ferrochart-overlay`. An overlay
   carries what no specification governs: field order, authored sections,
   labels, help text, defaults, conditional visibility and widget choice. It is

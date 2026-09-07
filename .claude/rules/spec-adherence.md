@@ -84,13 +84,18 @@ it for a conformance requirement.
 - **Cite the source.** A conformance-relevant decision names the specification
   and section in the commit or PR description. A deliberate deviation or gap
   gets a `// NOTE:` with the reference and the reason.
-- **Cite ONLY durable references, never an internal markdown file as a design
-  authority.** In code, doc comments, and findings, justify behaviour by citing
-  one of the six sources above or official external documentation (the Rust
-  book and reference, a pinned crate's docs.rs page). An internal plan document
-  is deleted in the PR that implements it and is never a citable authority; the
-  durable record is the closed issues, PR descriptions, `CHANGELOG.md`, git
-  history, and the living reference docs. Where the specifications are SILENT
+- **Cite ONLY durable references.** In code, doc comments, and findings,
+  justify behaviour by citing one of the six sources above, official external
+  documentation (the Rust book and reference, a pinned crate's docs.rs page),
+  or `docs/architecture.md`. The architecture is citable because it is the
+  design of record and permanent, and because the decisions it holds are the
+  ones no specification governs, so nothing else could carry them. A citation
+  to it is paired with the "no specification governs this" label rather than
+  standing in for a specification. **A plan document is never citable**: it is
+  deleted in the pull request that implements it, so the citation rots on the
+  day the work lands. The rest of the durable record is the closed issues, the
+  pull request descriptions, `CHANGELOG.md` and git history. Where the
+  specifications are SILENT
   (layout, the process model, storage mechanics, transport details,
   infrastructure), flag it explicitly: "no specification governs this: our own
   design". Layout is the largest such area, and it is most of the product.
