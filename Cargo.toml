@@ -43,6 +43,10 @@ thiserror = "2.0.20"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["fmt", "env-filter"] }
 
+# Test-only. `.claude/rules/testing.md` names insta as the snapshot tool, and
+# `cargo insta review` as how a change to one is read before it is accepted.
+insta = { version = "1.48.0", features = ["json"] }
+
 ferrochart-form = { path = "crates/ferrochart-form" }
 ferrochart-compile = { path = "crates/ferrochart-compile" }
 ferrochart-overlay = { path = "crates/ferrochart-overlay" }

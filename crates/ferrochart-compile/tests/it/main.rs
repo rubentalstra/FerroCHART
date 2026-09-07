@@ -17,4 +17,5 @@ mod adl2;
 mod corpus;
 mod derive;
 mod matched_pair;
+mod snapshot;
 mod support;

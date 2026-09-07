@@ -1,0 +1,2195 @@
+---
+source: crates/ferrochart-compile/tests/it/snapshot.rs
+expression: form
+---
+{
+  "format_version": 1,
+  "template_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+  "default_language": "en",
+  "languages": [
+    "en"
+  ],
+  "root": {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "",
+          "node_id": "at0000",
+          "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+          "rm_type": "OBSERVATION",
+          "pinned_name": null,
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "rm_type": "OBSERVATION",
+    "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+    "label": {
+      "en": "Ferro data type grid"
+    },
+    "help": {
+      "en": "A synthetic template invented for the field derivation tests."
+    },
+    "occurrences": {
+      "minimum": 1,
+      "maximum": 1
+    },
+    "shape": "plain",
+    "name_constraint": null,
+    "is_ordered": false,
+    "is_unique": false,
+    "is_deprecated": false,
+    "items": [
+      {
+        "item": "group",
+        "key": {
+          "steps": [
+            {
+              "rm_attribute": "",
+              "node_id": "at0000",
+              "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+              "rm_type": "OBSERVATION",
+              "pinned_name": null,
+              "sibling_ordinal": 0
+            },
+            {
+              "rm_attribute": "data",
+              "node_id": "at0001",
+              "archetype_id": null,
+              "rm_type": "ITEM_TREE",
+              "pinned_name": null,
+              "sibling_ordinal": 0
+            }
+          ],
+          "is_positional": false
+        },
+        "rm_type": "ITEM_TREE",
+        "archetype_id": null,
+        "label": {
+          "en": "Tree"
+        },
+        "help": {
+          "en": "The item tree."
+        },
+        "occurrences": {
+          "minimum": 1,
+          "maximum": 1
+        },
+        "shape": "tree",
+        "name_constraint": null,
+        "is_ordered": false,
+        "is_unique": false,
+        "is_deprecated": false,
+        "items": [
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0010",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_BOOLEAN",
+            "label": {
+              "en": "Confirmed"
+            },
+            "help": {
+              "en": "A boolean the template has already decided."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "boolean",
+              "true_allowed": true,
+              "false_allowed": false
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": true
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0011",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 1
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_BOOLEAN",
+            "label": {
+              "en": "Present"
+            },
+            "help": {
+              "en": "A boolean the clinician decides."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "boolean",
+              "true_allowed": true,
+              "false_allowed": true
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0012",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 2
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_COUNT",
+            "label": {
+              "en": "Episodes"
+            },
+            "help": {
+              "en": "A synthetic count."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "count",
+              "options": [],
+              "ranges": [
+                {
+                  "minimum": 0,
+                  "maximum": 10,
+                  "minimum_included": true,
+                  "maximum_included": true
+                }
+              ]
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0013",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 3
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_DATE",
+            "label": {
+              "en": "Onset date"
+            },
+            "help": {
+              "en": "A synthetic partial date."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "date",
+              "month": "optional",
+              "day": "prohibited",
+              "ranges": []
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0014",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 4
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_TIME",
+            "label": {
+              "en": "Onset time"
+            },
+            "help": {
+              "en": "A synthetic partial time."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "time",
+              "minute": "optional",
+              "second": "prohibited",
+              "timezone": "prohibited",
+              "ranges": []
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0015",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 5
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_DATE_TIME",
+            "label": {
+              "en": "Recorded"
+            },
+            "help": {
+              "en": "A synthetic date and time."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "date_time",
+              "month": "mandatory",
+              "day": "mandatory",
+              "hour": "optional",
+              "minute": "optional",
+              "second": "optional",
+              "timezone": "optional",
+              "ranges": []
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0016",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 6
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_DURATION",
+            "label": {
+              "en": "Elapsed"
+            },
+            "help": {
+              "en": "A synthetic duration."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "duration",
+              "components": [
+                "years",
+                "months",
+                "days"
+              ],
+              "ranges": []
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0017",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 7
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_IDENTIFIER",
+            "label": {
+              "en": "Record number"
+            },
+            "help": {
+              "en": "A synthetic identifier."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "identifier",
+              "issuer": {
+                "patterns": [],
+                "options": [
+                  "Ferro synthetic registry"
+                ],
+                "options_closed": true
+              },
+              "assigner": {
+                "patterns": [],
+                "options": [
+                  "Ferro synthetic assigner"
+                ],
+                "options_closed": true
+              },
+              "id": {
+                "patterns": [
+                  "[0-9]{6}"
+                ],
+                "options": [],
+                "options_closed": false
+              },
+              "type": {
+                "patterns": [],
+                "options": [
+                  "synthetic"
+                ],
+                "options_closed": true
+              }
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0018",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 8
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_MULTIMEDIA",
+            "label": {
+              "en": "Attachment"
+            },
+            "help": {
+              "en": "A synthetic attachment."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "multimedia",
+              "media_types": {
+                "source": "enumerated",
+                "terminology": "IANA_media-types",
+                "options": [
+                  {
+                    "code": {
+                      "terminology": "IANA_media-types",
+                      "code": "image/png"
+                    },
+                    "label": {},
+                    "description": {}
+                  },
+                  {
+                    "code": {
+                      "terminology": "IANA_media-types",
+                      "code": "image/jpeg"
+                    },
+                    "label": {},
+                    "description": {}
+                  }
+                ],
+                "needs_display_lookup": true
+              },
+              "uri": null
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0019",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 9
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_PARSABLE",
+            "label": {
+              "en": "Instructions"
+            },
+            "help": {
+              "en": "A synthetic parsable text."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "parsable",
+              "formalism": {
+                "patterns": [],
+                "options": [
+                  "text/plain",
+                  "text/markdown"
+                ],
+                "options_closed": true
+              },
+              "value": {
+                "patterns": [],
+                "options": [],
+                "options_closed": false
+              }
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0020",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 10
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_URI",
+            "label": {
+              "en": "Reference"
+            },
+            "help": {
+              "en": "A synthetic reference."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "uri",
+              "patterns": [
+                "https://.*"
+              ],
+              "required_scheme": null
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0021",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 11
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_EHR_URI",
+            "label": {
+              "en": "Record link"
+            },
+            "help": {
+              "en": "A synthetic link into an EHR."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "uri",
+              "patterns": [],
+              "required_scheme": "ehr"
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0022",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 12
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_INTERVAL<DV_COUNT>",
+            "label": {
+              "en": "Range of episodes"
+            },
+            "help": {
+              "en": "A synthetic interval of counts."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "interval",
+              "element_rm_type": "DV_COUNT",
+              "lower": {
+                "kind": "count",
+                "options": [],
+                "ranges": [
+                  {
+                    "minimum": 0,
+                    "maximum": 5,
+                    "minimum_included": true,
+                    "maximum_included": true
+                  }
+                ]
+              },
+              "upper": {
+                "kind": "count",
+                "options": [],
+                "ranges": [
+                  {
+                    "minimum": 6,
+                    "maximum": 9,
+                    "minimum_included": true,
+                    "maximum_included": true
+                  }
+                ]
+              },
+              "lower_included": null,
+              "upper_included": null,
+              "lower_unbounded": null,
+              "upper_unbounded": null
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0023",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 13
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DATA_VALUE",
+            "label": {
+              "en": "Finding"
+            },
+            "help": {
+              "en": "A synthetic finding, coded or free text."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "choice",
+              "alternatives": [
+                {
+                  "key": {
+                    "steps": [
+                      {
+                        "rm_attribute": "",
+                        "node_id": "at0000",
+                        "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                        "rm_type": "OBSERVATION",
+                        "pinned_name": null,
+                        "sibling_ordinal": 0
+                      },
+                      {
+                        "rm_attribute": "data",
+                        "node_id": "at0001",
+                        "archetype_id": null,
+                        "rm_type": "ITEM_TREE",
+                        "pinned_name": null,
+                        "sibling_ordinal": 0
+                      },
+                      {
+                        "rm_attribute": "items",
+                        "node_id": "at0023",
+                        "archetype_id": null,
+                        "rm_type": "ELEMENT",
+                        "pinned_name": null,
+                        "sibling_ordinal": 13
+                      },
+                      {
+                        "rm_attribute": "value",
+                        "node_id": null,
+                        "archetype_id": null,
+                        "rm_type": "DV_CODED_TEXT",
+                        "pinned_name": null,
+                        "sibling_ordinal": 0
+                      }
+                    ],
+                    "is_positional": true
+                  },
+                  "rm_type": "DV_CODED_TEXT",
+                  "label": {},
+                  "occurrences": {
+                    "minimum": 1,
+                    "maximum": 1
+                  },
+                  "kind": {
+                    "kind": "coded",
+                    "value_set": {
+                      "source": "enumerated",
+                      "terminology": "local",
+                      "options": [
+                        {
+                          "code": {
+                            "terminology": "local",
+                            "code": "at0030"
+                          },
+                          "label": {
+                            "en": "Positive"
+                          },
+                          "description": {
+                            "en": "A synthetic positive finding."
+                          }
+                        },
+                        {
+                          "code": {
+                            "terminology": "local",
+                            "code": "at0031"
+                          },
+                          "label": {
+                            "en": "Negative"
+                          },
+                          "description": {
+                            "en": "A synthetic negative finding."
+                          }
+                        }
+                      ],
+                      "needs_display_lookup": false
+                    },
+                    "strictness": null,
+                    "rubric": null
+                  },
+                  "prefill": null
+                },
+                {
+                  "key": {
+                    "steps": [
+                      {
+                        "rm_attribute": "",
+                        "node_id": "at0000",
+                        "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                        "rm_type": "OBSERVATION",
+                        "pinned_name": null,
+                        "sibling_ordinal": 0
+                      },
+                      {
+                        "rm_attribute": "data",
+                        "node_id": "at0001",
+                        "archetype_id": null,
+                        "rm_type": "ITEM_TREE",
+                        "pinned_name": null,
+                        "sibling_ordinal": 0
+                      },
+                      {
+                        "rm_attribute": "items",
+                        "node_id": "at0023",
+                        "archetype_id": null,
+                        "rm_type": "ELEMENT",
+                        "pinned_name": null,
+                        "sibling_ordinal": 13
+                      },
+                      {
+                        "rm_attribute": "value",
+                        "node_id": null,
+                        "archetype_id": null,
+                        "rm_type": "DV_TEXT",
+                        "pinned_name": null,
+                        "sibling_ordinal": 1
+                      }
+                    ],
+                    "is_positional": true
+                  },
+                  "rm_type": "DV_TEXT",
+                  "label": {},
+                  "occurrences": {
+                    "minimum": 1,
+                    "maximum": 1
+                  },
+                  "kind": {
+                    "kind": "text",
+                    "patterns": [],
+                    "options": [],
+                    "options_closed": false
+                  },
+                  "prefill": null
+                }
+              ]
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0025",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 15
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_TEXT",
+            "label": {
+              "en": "Note"
+            },
+            "help": {
+              "en": "A synthetic repeatable note."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": null
+            },
+            "kind": {
+              "kind": "text",
+              "patterns": [],
+              "options": [],
+              "options_closed": false
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0026",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 16
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_TEXT",
+            "label": {
+              "en": "Summary"
+            },
+            "help": {
+              "en": "A synthetic mandatory summary."
+            },
+            "occurrences": {
+              "minimum": 1,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "text",
+              "patterns": [],
+              "options": [],
+              "options_closed": false
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": false,
+              "options": [],
+              "accepts_reason": false
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0027",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 17
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_TEXT",
+            "label": {
+              "en": "Named note"
+            },
+            "help": {
+              "en": "A note whose name the template leaves open."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "text",
+              "patterns": [],
+              "options": [],
+              "options_closed": false
+            },
+            "name_constraint": {
+              "key": {
+                "steps": [
+                  {
+                    "rm_attribute": "",
+                    "node_id": "at0000",
+                    "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                    "rm_type": "OBSERVATION",
+                    "pinned_name": null,
+                    "sibling_ordinal": 0
+                  },
+                  {
+                    "rm_attribute": "data",
+                    "node_id": "at0001",
+                    "archetype_id": null,
+                    "rm_type": "ITEM_TREE",
+                    "pinned_name": null,
+                    "sibling_ordinal": 0
+                  },
+                  {
+                    "rm_attribute": "items",
+                    "node_id": "at0027",
+                    "archetype_id": null,
+                    "rm_type": "ELEMENT",
+                    "pinned_name": null,
+                    "sibling_ordinal": 17
+                  },
+                  {
+                    "rm_attribute": "name",
+                    "node_id": null,
+                    "archetype_id": null,
+                    "rm_type": "DV_CODED_TEXT",
+                    "pinned_name": null,
+                    "sibling_ordinal": 0
+                  }
+                ],
+                "is_positional": true
+              },
+              "rm_type": "DV_CODED_TEXT",
+              "kind": {
+                "kind": "coded",
+                "value_set": {
+                  "source": "enumerated",
+                  "terminology": "local",
+                  "options": [
+                    {
+                      "code": {
+                        "terminology": "local",
+                        "code": "at0032"
+                      },
+                      "label": {
+                        "en": "First note"
+                      },
+                      "description": {
+                        "en": "One name the template admits."
+                      }
+                    },
+                    {
+                      "code": {
+                        "terminology": "local",
+                        "code": "at0033"
+                      },
+                      "label": {
+                        "en": "Second note"
+                      },
+                      "description": {
+                        "en": "The other name the template admits."
+                      }
+                    }
+                  ],
+                  "needs_display_lookup": false
+                },
+                "strictness": null,
+                "rubric": null
+              }
+            },
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0028",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 18
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_PROPORTION",
+            "label": {
+              "en": "Share"
+            },
+            "help": {
+              "en": "A synthetic percentage."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "proportion",
+              "kinds": [
+                "percent"
+              ],
+              "numerator": {
+                "options": [],
+                "ranges": [
+                  {
+                    "minimum": 0.0,
+                    "maximum": 100.0,
+                    "minimum_included": true,
+                    "maximum_included": true
+                  }
+                ]
+              },
+              "denominator": {
+                "options": [],
+                "ranges": []
+              },
+              "decimals": {
+                "options": [
+                  1
+                ],
+                "ranges": []
+              },
+              "is_integral": null
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0034",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 20
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_QUANTITY",
+            "label": {
+              "en": "Pressure"
+            },
+            "help": {
+              "en": "A synthetic pressure in two units."
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "quantity",
+              "property": {
+                "terminology": "openehr",
+                "code": "125"
+              },
+              "units": [
+                {
+                  "units": "mm[Hg]",
+                  "magnitude": {
+                    "minimum": 0.0,
+                    "maximum": 400.0,
+                    "minimum_included": true,
+                    "maximum_included": true
+                  },
+                  "decimals": {
+                    "minimum": 0,
+                    "maximum": 0,
+                    "minimum_included": true,
+                    "maximum_included": true
+                  }
+                },
+                {
+                  "units": "kPa",
+                  "magnitude": {
+                    "minimum": 0.0,
+                    "maximum": 53.3,
+                    "minimum_included": true,
+                    "maximum_included": true
+                  },
+                  "decimals": {
+                    "minimum": 1,
+                    "maximum": 1,
+                    "minimum_included": true,
+                    "maximum_included": true
+                  }
+                }
+              ]
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": null,
+            "is_deprecated": false,
+            "is_fixed": false
+          }
+        ],
+        "undetermined": [
+          {
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0024",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 14
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "ELEMENT",
+            "label": {
+              "en": "Anything"
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "reason": {
+              "reason": "unconstrained_value"
+            }
+          },
+          {
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_datatype_grid.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0029",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 19
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "ELEMENT",
+            "label": {
+              "en": "Unbounded"
+            },
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "reason": {
+              "reason": "untyped_interval"
+            }
+          }
+        ]
+      }
+    ],
+    "undetermined": []
+  }
+}

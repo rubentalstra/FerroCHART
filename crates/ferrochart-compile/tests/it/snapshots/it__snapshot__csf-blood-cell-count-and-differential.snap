@@ -1,0 +1,902 @@
+---
+source: crates/ferrochart-compile/tests/it/snapshot.rs
+expression: form
+---
+{
+  "format_version": 1,
+  "template_id": "CSF blood cell count and differential",
+  "default_language": "en",
+  "languages": [
+    "en"
+  ],
+  "root": {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "",
+          "node_id": "at0000",
+          "archetype_id": "openEHR-EHR-CLUSTER.lab_blood_cell_count.v0",
+          "rm_type": "CLUSTER",
+          "pinned_name": "CSF blood cell count and differential",
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "rm_type": "CLUSTER",
+    "archetype_id": "openEHR-EHR-CLUSTER.lab_blood_cell_count.v0",
+    "label": {
+      "en": "Blood cell count and differential finding"
+    },
+    "help": {
+      "en": "Relative and absolute amounts of blood cells identified within an identified specimen."
+    },
+    "occurrences": {
+      "minimum": 1,
+      "maximum": 1
+    },
+    "shape": "cluster",
+    "name_constraint": null,
+    "is_ordered": false,
+    "is_unique": false,
+    "is_deprecated": false,
+    "items": [
+      {
+        "item": "field",
+        "key": {
+          "steps": [
+            {
+              "rm_attribute": "",
+              "node_id": "at0000",
+              "archetype_id": "openEHR-EHR-CLUSTER.lab_blood_cell_count.v0",
+              "rm_type": "CLUSTER",
+              "pinned_name": "CSF blood cell count and differential",
+              "sibling_ordinal": 0
+            },
+            {
+              "rm_attribute": "items",
+              "node_id": "at0001",
+              "archetype_id": null,
+              "rm_type": "ELEMENT",
+              "pinned_name": null,
+              "sibling_ordinal": 1
+            }
+          ],
+          "is_positional": false
+        },
+        "rm_type": "DV_QUANTITY",
+        "label": {
+          "en": "Red cell count (RCC)"
+        },
+        "help": {
+          "en": "Total number of erythrocytes per volume unit of the specimen."
+        },
+        "occurrences": {
+          "minimum": 0,
+          "maximum": 1
+        },
+        "kind": {
+          "kind": "quantity",
+          "property": null,
+          "units": [
+            {
+              "units": "10*6/uL",
+              "magnitude": null,
+              "decimals": null
+            },
+            {
+              "units": "10*12/L",
+              "magnitude": null,
+              "decimals": null
+            },
+            {
+              "units": "1/[HPF]",
+              "magnitude": null,
+              "decimals": null
+            }
+          ]
+        },
+        "name_constraint": null,
+        "is_ordered": false,
+        "is_unique": false,
+        "null_flavour": {
+          "is_offered": true,
+          "options": [
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "253"
+              },
+              "rubric": "unknown"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "271"
+              },
+              "rubric": "no information"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "272"
+              },
+              "rubric": "masked"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "273"
+              },
+              "rubric": "not applicable"
+            }
+          ],
+          "accepts_reason": true
+        },
+        "prefill": null,
+        "is_deprecated": false,
+        "is_fixed": false
+      },
+      {
+        "item": "field",
+        "key": {
+          "steps": [
+            {
+              "rm_attribute": "",
+              "node_id": "at0000",
+              "archetype_id": "openEHR-EHR-CLUSTER.lab_blood_cell_count.v0",
+              "rm_type": "CLUSTER",
+              "pinned_name": "CSF blood cell count and differential",
+              "sibling_ordinal": 0
+            },
+            {
+              "rm_attribute": "items",
+              "node_id": "at0002",
+              "archetype_id": null,
+              "rm_type": "ELEMENT",
+              "pinned_name": null,
+              "sibling_ordinal": 2
+            }
+          ],
+          "is_positional": false
+        },
+        "rm_type": "DV_QUANTITY",
+        "label": {
+          "en": "White cell count (WCC)"
+        },
+        "help": {
+          "en": "Total number of leucocytes per volume unit of the specimen."
+        },
+        "occurrences": {
+          "minimum": 0,
+          "maximum": 1
+        },
+        "kind": {
+          "kind": "quantity",
+          "property": null,
+          "units": [
+            {
+              "units": "10*9/L",
+              "magnitude": null,
+              "decimals": null
+            },
+            {
+              "units": "10*3/uL",
+              "magnitude": null,
+              "decimals": null
+            },
+            {
+              "units": "1/[HPF]",
+              "magnitude": null,
+              "decimals": null
+            }
+          ]
+        },
+        "name_constraint": null,
+        "is_ordered": false,
+        "is_unique": false,
+        "null_flavour": {
+          "is_offered": true,
+          "options": [
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "253"
+              },
+              "rubric": "unknown"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "271"
+              },
+              "rubric": "no information"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "272"
+              },
+              "rubric": "masked"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "273"
+              },
+              "rubric": "not applicable"
+            }
+          ],
+          "accepts_reason": true
+        },
+        "prefill": null,
+        "is_deprecated": false,
+        "is_fixed": false
+      },
+      {
+        "item": "field",
+        "key": {
+          "steps": [
+            {
+              "rm_attribute": "",
+              "node_id": "at0000",
+              "archetype_id": "openEHR-EHR-CLUSTER.lab_blood_cell_count.v0",
+              "rm_type": "CLUSTER",
+              "pinned_name": "CSF blood cell count and differential",
+              "sibling_ordinal": 0
+            },
+            {
+              "rm_attribute": "items",
+              "node_id": "at0016",
+              "archetype_id": null,
+              "rm_type": "ELEMENT",
+              "pinned_name": null,
+              "sibling_ordinal": 3
+            }
+          ],
+          "is_positional": false
+        },
+        "rm_type": "DV_PROPORTION",
+        "label": {
+          "en": "Neutrophil %"
+        },
+        "help": {
+          "en": "The proportion of neutrophils compared to the total white blood cell count."
+        },
+        "occurrences": {
+          "minimum": 0,
+          "maximum": 1
+        },
+        "kind": {
+          "kind": "proportion",
+          "kinds": [
+            "percent"
+          ],
+          "numerator": {
+            "options": [],
+            "ranges": [
+              {
+                "minimum": 0.0,
+                "maximum": 100.0,
+                "minimum_included": true,
+                "maximum_included": true
+              }
+            ]
+          },
+          "denominator": {
+            "options": [],
+            "ranges": []
+          },
+          "decimals": {
+            "options": [],
+            "ranges": [
+              {
+                "minimum": 1,
+                "maximum": 1,
+                "minimum_included": true,
+                "maximum_included": true
+              }
+            ]
+          },
+          "is_integral": null
+        },
+        "name_constraint": null,
+        "is_ordered": false,
+        "is_unique": false,
+        "null_flavour": {
+          "is_offered": true,
+          "options": [
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "253"
+              },
+              "rubric": "unknown"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "271"
+              },
+              "rubric": "no information"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "272"
+              },
+              "rubric": "masked"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "273"
+              },
+              "rubric": "not applicable"
+            }
+          ],
+          "accepts_reason": true
+        },
+        "prefill": null,
+        "is_deprecated": false,
+        "is_fixed": false
+      },
+      {
+        "item": "field",
+        "key": {
+          "steps": [
+            {
+              "rm_attribute": "",
+              "node_id": "at0000",
+              "archetype_id": "openEHR-EHR-CLUSTER.lab_blood_cell_count.v0",
+              "rm_type": "CLUSTER",
+              "pinned_name": "CSF blood cell count and differential",
+              "sibling_ordinal": 0
+            },
+            {
+              "rm_attribute": "items",
+              "node_id": "at0017",
+              "archetype_id": null,
+              "rm_type": "ELEMENT",
+              "pinned_name": null,
+              "sibling_ordinal": 4
+            }
+          ],
+          "is_positional": false
+        },
+        "rm_type": "DV_PROPORTION",
+        "label": {
+          "en": "Lymphocyte %"
+        },
+        "help": {
+          "en": "The proportion of lymphocytes compared to the total white blood cell count."
+        },
+        "occurrences": {
+          "minimum": 0,
+          "maximum": 1
+        },
+        "kind": {
+          "kind": "proportion",
+          "kinds": [
+            "percent"
+          ],
+          "numerator": {
+            "options": [],
+            "ranges": [
+              {
+                "minimum": 0.0,
+                "maximum": 100.0,
+                "minimum_included": true,
+                "maximum_included": true
+              }
+            ]
+          },
+          "denominator": {
+            "options": [],
+            "ranges": []
+          },
+          "decimals": {
+            "options": [],
+            "ranges": [
+              {
+                "minimum": 1,
+                "maximum": 1,
+                "minimum_included": true,
+                "maximum_included": true
+              }
+            ]
+          },
+          "is_integral": null
+        },
+        "name_constraint": null,
+        "is_ordered": false,
+        "is_unique": false,
+        "null_flavour": {
+          "is_offered": true,
+          "options": [
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "253"
+              },
+              "rubric": "unknown"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "271"
+              },
+              "rubric": "no information"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "272"
+              },
+              "rubric": "masked"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "273"
+              },
+              "rubric": "not applicable"
+            }
+          ],
+          "accepts_reason": true
+        },
+        "prefill": null,
+        "is_deprecated": false,
+        "is_fixed": false
+      },
+      {
+        "item": "field",
+        "key": {
+          "steps": [
+            {
+              "rm_attribute": "",
+              "node_id": "at0000",
+              "archetype_id": "openEHR-EHR-CLUSTER.lab_blood_cell_count.v0",
+              "rm_type": "CLUSTER",
+              "pinned_name": "CSF blood cell count and differential",
+              "sibling_ordinal": 0
+            },
+            {
+              "rm_attribute": "items",
+              "node_id": "at0018",
+              "archetype_id": null,
+              "rm_type": "ELEMENT",
+              "pinned_name": null,
+              "sibling_ordinal": 5
+            }
+          ],
+          "is_positional": false
+        },
+        "rm_type": "DV_PROPORTION",
+        "label": {
+          "en": "Monocyte %"
+        },
+        "help": {
+          "en": "The proportion of monocytes compared to the total white blood cell count."
+        },
+        "occurrences": {
+          "minimum": 0,
+          "maximum": 1
+        },
+        "kind": {
+          "kind": "proportion",
+          "kinds": [
+            "percent"
+          ],
+          "numerator": {
+            "options": [],
+            "ranges": [
+              {
+                "minimum": 0.0,
+                "maximum": 100.0,
+                "minimum_included": true,
+                "maximum_included": true
+              }
+            ]
+          },
+          "denominator": {
+            "options": [],
+            "ranges": []
+          },
+          "decimals": {
+            "options": [],
+            "ranges": [
+              {
+                "minimum": 1,
+                "maximum": 1,
+                "minimum_included": true,
+                "maximum_included": true
+              }
+            ]
+          },
+          "is_integral": null
+        },
+        "name_constraint": null,
+        "is_ordered": false,
+        "is_unique": false,
+        "null_flavour": {
+          "is_offered": true,
+          "options": [
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "253"
+              },
+              "rubric": "unknown"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "271"
+              },
+              "rubric": "no information"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "272"
+              },
+              "rubric": "masked"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "273"
+              },
+              "rubric": "not applicable"
+            }
+          ],
+          "accepts_reason": true
+        },
+        "prefill": null,
+        "is_deprecated": false,
+        "is_fixed": false
+      },
+      {
+        "item": "field",
+        "key": {
+          "steps": [
+            {
+              "rm_attribute": "",
+              "node_id": "at0000",
+              "archetype_id": "openEHR-EHR-CLUSTER.lab_blood_cell_count.v0",
+              "rm_type": "CLUSTER",
+              "pinned_name": "CSF blood cell count and differential",
+              "sibling_ordinal": 0
+            },
+            {
+              "rm_attribute": "items",
+              "node_id": "at0019",
+              "archetype_id": null,
+              "rm_type": "ELEMENT",
+              "pinned_name": null,
+              "sibling_ordinal": 6
+            }
+          ],
+          "is_positional": false
+        },
+        "rm_type": "DV_PROPORTION",
+        "label": {
+          "en": "Eosinophil %"
+        },
+        "help": {
+          "en": "The proportion of eosinophils compared to the white blood cell count."
+        },
+        "occurrences": {
+          "minimum": 0,
+          "maximum": 1
+        },
+        "kind": {
+          "kind": "proportion",
+          "kinds": [
+            "percent"
+          ],
+          "numerator": {
+            "options": [],
+            "ranges": [
+              {
+                "minimum": 0.0,
+                "maximum": 100.0,
+                "minimum_included": true,
+                "maximum_included": true
+              }
+            ]
+          },
+          "denominator": {
+            "options": [],
+            "ranges": []
+          },
+          "decimals": {
+            "options": [],
+            "ranges": [
+              {
+                "minimum": 1,
+                "maximum": 1,
+                "minimum_included": true,
+                "maximum_included": true
+              }
+            ]
+          },
+          "is_integral": null
+        },
+        "name_constraint": null,
+        "is_ordered": false,
+        "is_unique": false,
+        "null_flavour": {
+          "is_offered": true,
+          "options": [
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "253"
+              },
+              "rubric": "unknown"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "271"
+              },
+              "rubric": "no information"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "272"
+              },
+              "rubric": "masked"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "273"
+              },
+              "rubric": "not applicable"
+            }
+          ],
+          "accepts_reason": true
+        },
+        "prefill": null,
+        "is_deprecated": false,
+        "is_fixed": false
+      },
+      {
+        "item": "field",
+        "key": {
+          "steps": [
+            {
+              "rm_attribute": "",
+              "node_id": "at0000",
+              "archetype_id": "openEHR-EHR-CLUSTER.lab_blood_cell_count.v0",
+              "rm_type": "CLUSTER",
+              "pinned_name": "CSF blood cell count and differential",
+              "sibling_ordinal": 0
+            },
+            {
+              "rm_attribute": "items",
+              "node_id": "at0020",
+              "archetype_id": null,
+              "rm_type": "ELEMENT",
+              "pinned_name": null,
+              "sibling_ordinal": 7
+            }
+          ],
+          "is_positional": false
+        },
+        "rm_type": "DV_PROPORTION",
+        "label": {
+          "en": "Basophil %"
+        },
+        "help": {
+          "en": "The proportion of basophils observed compared to the total white blood cell count."
+        },
+        "occurrences": {
+          "minimum": 0,
+          "maximum": 1
+        },
+        "kind": {
+          "kind": "proportion",
+          "kinds": [
+            "percent"
+          ],
+          "numerator": {
+            "options": [],
+            "ranges": [
+              {
+                "minimum": 0.0,
+                "maximum": 100.0,
+                "minimum_included": true,
+                "maximum_included": true
+              }
+            ]
+          },
+          "denominator": {
+            "options": [],
+            "ranges": []
+          },
+          "decimals": {
+            "options": [],
+            "ranges": [
+              {
+                "minimum": 1,
+                "maximum": 1,
+                "minimum_included": true,
+                "maximum_included": true
+              }
+            ]
+          },
+          "is_integral": null
+        },
+        "name_constraint": null,
+        "is_ordered": false,
+        "is_unique": false,
+        "null_flavour": {
+          "is_offered": true,
+          "options": [
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "253"
+              },
+              "rubric": "unknown"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "271"
+              },
+              "rubric": "no information"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "272"
+              },
+              "rubric": "masked"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "273"
+              },
+              "rubric": "not applicable"
+            }
+          ],
+          "accepts_reason": true
+        },
+        "prefill": null,
+        "is_deprecated": false,
+        "is_fixed": false
+      },
+      {
+        "item": "field",
+        "key": {
+          "steps": [
+            {
+              "rm_attribute": "",
+              "node_id": "at0000",
+              "archetype_id": "openEHR-EHR-CLUSTER.lab_blood_cell_count.v0",
+              "rm_type": "CLUSTER",
+              "pinned_name": "CSF blood cell count and differential",
+              "sibling_ordinal": 0
+            },
+            {
+              "rm_attribute": "items",
+              "node_id": "at0014",
+              "archetype_id": null,
+              "rm_type": "ELEMENT",
+              "pinned_name": null,
+              "sibling_ordinal": 8
+            }
+          ],
+          "is_positional": false
+        },
+        "rm_type": "DV_TEXT",
+        "label": {
+          "en": "Comment"
+        },
+        "help": {
+          "en": "Additional narrative about the blood cell count, not captured in other fields."
+        },
+        "occurrences": {
+          "minimum": 0,
+          "maximum": 1
+        },
+        "kind": {
+          "kind": "text",
+          "patterns": [],
+          "options": [],
+          "options_closed": false
+        },
+        "name_constraint": null,
+        "is_ordered": false,
+        "is_unique": false,
+        "null_flavour": {
+          "is_offered": true,
+          "options": [
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "253"
+              },
+              "rubric": "unknown"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "271"
+              },
+              "rubric": "no information"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "272"
+              },
+              "rubric": "masked"
+            },
+            {
+              "code": {
+                "terminology": "openehr",
+                "code": "273"
+              },
+              "rubric": "not applicable"
+            }
+          ],
+          "accepts_reason": true
+        },
+        "prefill": null,
+        "is_deprecated": false,
+        "is_fixed": false
+      }
+    ],
+    "undetermined": [
+      {
+        "key": {
+          "steps": [
+            {
+              "rm_attribute": "",
+              "node_id": "at0000",
+              "archetype_id": "openEHR-EHR-CLUSTER.lab_blood_cell_count.v0",
+              "rm_type": "CLUSTER",
+              "pinned_name": "CSF blood cell count and differential",
+              "sibling_ordinal": 0
+            },
+            {
+              "rm_attribute": "items",
+              "node_id": "at0012",
+              "archetype_id": null,
+              "rm_type": "CLUSTER",
+              "pinned_name": null,
+              "sibling_ordinal": 0
+            }
+          ],
+          "is_positional": false
+        },
+        "rm_type": "CLUSTER",
+        "label": {
+          "en": "Specimen"
+        },
+        "occurrences": {
+          "minimum": 0,
+          "maximum": null
+        },
+        "reason": {
+          "reason": "open_slot",
+          "includes": [
+            {
+              "assertion": "archetype_id_pattern",
+              "value": "openEHR-EHR-CLUSTER\\.specimen(-[a-zA-Z0-9_]+)*\\.v1"
+            }
+          ],
+          "excludes": []
+        }
+      }
+    ]
+  }
+}
