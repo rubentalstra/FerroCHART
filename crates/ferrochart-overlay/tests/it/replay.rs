@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 
 //! The replay, one case per outcome class of `docs/architecture.md`
-//! section 6.4.
+//! section 6.5.
 //!
 //! Each case authors an overlay against a form derived from a committed CKM
 //! operational template, then replays it against that form with one thing

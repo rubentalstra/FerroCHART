@@ -36,7 +36,7 @@ const LISTED: usize = 10;
 /// What became of one overlay entry.
 ///
 /// The seven outcomes are the classification of `docs/architecture.md`
-/// section 6.4. Four of them need a person: a move, an ambiguity, a
+/// section 6.5. Four of them need a person: a move, an ambiguity, a
 /// reordering and a retype are all reported and never applied.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
