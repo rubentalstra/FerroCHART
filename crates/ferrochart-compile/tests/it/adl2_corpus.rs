@@ -13,13 +13,53 @@
 //! neither: absence prints what to run and returns, and `FERROCHART_REQUIRE_ADL2`
 //! makes absence a failure. CI sets that after fetching, so the assertions run
 //! there every time and a fetch that quietly stops is a red build.
+//!
+//! # The dual-dialect pairing, and what it can prove
+//!
+//! 321 of the archetypes are published in both dialects, and that pairing is
+//! the only real material the equivalence property of `docs/architecture.md`
+//! section 3 could have had. It cannot have it, for two reasons found by
+//! measuring the pack rather than assuming.
+//!
+//! **The ADL 1.4 reader cannot be pointed at the 1.4 half.**
+//! [`ferrochart_compile::adl14`] reads an operational template in the ITS-XML
+//! 2.0.0 `Template.xsd` serialisation, and the twins are ADL 1.4 text. Nothing
+//! in the pinned crate set turns one into the other: `openehr_its` parses OPT
+//! 1.4 XML and AOM 2 XML and has no ADL 1.4 text parser, `openehr_adl` parses
+//! ADL 1.4 text only as the front end of its own ADL 1.4 to ADL 2 converter,
+//! whose own documentation records that no openEHR specification governs that
+//! conversion, and the upstream tree publishes no XML and no `.opt` at all.
+//! Reading a twin through that converter would run the ADL 2 reader twice over
+//! a third party's conversion and say nothing about the ADL 1.4 reader, and
+//! writing the conversion here would validate a reader against our own output.
+//!
+//! **The two halves are not two authorings.** Every one of the 321 ADL 2 files
+//! carries the `generated` marker in its archetype header, which openEHR AM
+//! Release-2.3.0 `ADL2.html` section 7.5 §Generated Indicator defines as the
+//! flag for an ADL 2 artefact generated from a flat ADL 1.4 one. So the pack
+//! holds one authoring and a conversion of it, and a full structural
+//! comparison would be a comparison against that converter: it drops the
+//! rubric of an RM-structure node, synthesises node identifiers with a
+//! placeholder rubric, and in a long tail of archetypes rewrites a rubric
+//! outright.
+//!
+//! What survives both facts is the narrow property
+//! [`the_dual_dialect_pairs_agree_on_what_both_dialects_state`] asserts, and
+//! it is stated there with what it does not prove.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use ferrochart_compile::adl2;
+use ferrochart_compile::error::ReadError;
+use ferrochart_compile::model::node::ConstraintTemplate;
 use openehr_adl::artefact::ArchetypeRepository;
+use openehr_adl::parse::Dialect;
+use openehr_am::v2_4::aom2::archetype::archetype::Archetype;
+use openehr_am::v2_4::aom2::archetype::authored_archetype::AuthoredArchetype;
+use openehr_am::v2_4::aom2::constraint_model::c_object::CObject;
+use openehr_am::v2_4::aom2::terminology::archetype_terminology::ArchetypeTerminology;
 
 fn corpus() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../corpus/archetypes/adl2")
@@ -186,8 +226,111 @@ fn head_of(message: &str) -> String {
     )
 }
 
+/// One published archetype, in whichever dialect, reduced to the three facts
+/// both dialects state and neither the pack's conversion nor the flattening
+/// can move.
+#[derive(Debug, PartialEq, Eq)]
+struct Stated {
+    /// The language the archetype is authored in.
+    language: String,
+    /// The Reference Model class the root node constrains.
+    rm_type: String,
+    /// The rubric the archetype gives its own concept.
+    concept: String,
+}
+
+/// The terminology of an assembled archetype, whichever subtype it is.
+fn terminology_of(archetype: &Archetype) -> &ArchetypeTerminology {
+    match *archetype {
+        Archetype::AuthoredArchetype(ref authored) => match **authored {
+            AuthoredArchetype::AuthoredArchetype(ref data) => &data.terminology,
+            AuthoredArchetype::Template(ref template) => &template.terminology,
+            AuthoredArchetype::OperationalTemplate(ref template) => &template.terminology,
+        },
+        Archetype::TemplateOverlay(ref overlay) => &overlay.terminology,
+    }
+}
+
+/// The root object of an assembled archetype, whichever subtype it is.
+fn definition_of(archetype: &Archetype) -> CObject {
+    let definition = match *archetype {
+        Archetype::AuthoredArchetype(ref authored) => match **authored {
+            AuthoredArchetype::AuthoredArchetype(ref data) => &data.definition,
+            AuthoredArchetype::Template(ref template) => &template.definition,
+            AuthoredArchetype::OperationalTemplate(ref template) => &template.definition,
+        },
+        Archetype::TemplateOverlay(ref overlay) => &overlay.definition,
+    };
+    CObject::CComplexObject(definition.clone())
+}
+
+/// What the ADL 1.4 twin states, read by `openehr_adl`'s ADL 1.4 front end.
+///
+/// The front end is a parse and not the conversion that follows it: the
+/// concept code, the rubrics and the root Reference Model type come back as
+/// the 1.4 source spells them.
+fn stated_by_adl14(source: &str) -> Result<Stated, String> {
+    let archetype = openehr_adl::assemble::parse_artefact(source, Dialect::Adl14)
+        .map_err(|errors| format!("the ADL 1.4 twin does not parse: {errors:?}"))?;
+    let terminology = terminology_of(&archetype);
+    let language = terminology.original_language.clone();
+    let concept = terminology
+        .term_definitions
+        .get(&language)
+        .and_then(|definitions| definitions.get(&terminology.concept_code))
+        .ok_or_else(|| {
+            format!(
+                "the ADL 1.4 twin defines no rubric for {}",
+                terminology.concept_code
+            )
+        })?
+        .text
+        .clone();
+    Ok(Stated {
+        language,
+        rm_type: openehr_adl::aom::access::object_rm_type(&definition_of(&archetype)).to_owned(),
+        concept,
+    })
+}
+
+/// What the ADL 2 half states, read through the internal constraint model.
+fn stated_by_the_model(model: &ConstraintTemplate) -> Result<Stated, String> {
+    let root = model.root();
+    let code = root
+        .identity()
+        .node_id()
+        .ok_or_else(|| "the root node carries no code".to_owned())?;
+    let concept = model
+        .terminology(root.terminology_scope())
+        .and_then(|terminology| terminology.rubric(model.language(), code))
+        .ok_or_else(|| format!("the model defines no rubric for {code}"))?
+        .text()
+        .to_owned();
+    Ok(Stated {
+        language: model.language().as_str().to_owned(),
+        rm_type: root.identity().rm_type().as_str().to_owned(),
+        concept,
+    })
+}
+
+/// Every pair in the library agrees on the language, the root Reference Model
+/// type and the concept rubric.
+///
+/// **What this proves.** For every archetype the library publishes in both
+/// dialects and this reader can read, the internal constraint model the ADL 2
+/// reader fills names the same clinical concept, in the same language, over
+/// the same Reference Model class as the published ADL 1.4 twin. The three
+/// facts are the ones both dialects state the same way, and the ones the
+/// pack's own 1.4 to 2 conversion and the ADL 2 flattening both leave alone.
+///
+/// **What it does not prove.** It does not exercise
+/// [`ferrochart_compile::adl14`] at all: the 1.4 half is read by
+/// `openehr_adl`'s ADL 1.4 front end, for the reason the module doc records.
+/// So it is not the equivalence of `docs/architecture.md` section 3, which
+/// only the hand-authored pair in `matched_pair.rs` states, and it says
+/// nothing about node structure, occurrences or constraint payloads.
 #[test]
-fn the_library_carries_the_dual_dialect_pairing() {
+fn the_dual_dialect_pairs_agree_on_what_both_dialects_state() {
     let adls = sources("adls");
     if !present(&adls) {
         return;
@@ -195,15 +338,92 @@ fn the_library_carries_the_dual_dialect_pairing() {
     let adl = sources("adl");
     assert_eq!(adl.len(), 330, "the fetched library changed size");
 
-    let two: BTreeSet<String> = adls.iter().map(|p| concept(p)).collect();
-    let one: BTreeSet<String> = adl.iter().map(|p| concept(p)).collect();
-    let paired = two.intersection(&one).count();
+    let mut two: BTreeMap<String, PathBuf> = BTreeMap::new();
+    for path in &adls {
+        two.insert(concept(path), path.clone());
+    }
+    let mut one: BTreeMap<String, PathBuf> = BTreeMap::new();
+    for path in &adl {
+        one.insert(concept(path), path.clone());
+    }
+    let paired: Vec<(&String, &PathBuf)> = two
+        .iter()
+        .filter(|(identity, _)| one.contains_key(*identity))
+        .collect();
 
-    // The pairing is what makes the library worth fetching: the same clinical
-    // archetype in both dialects is the only real input the equivalence
-    // property has.
-    // TODO(#59): read the 1.4 twins and compare the two internal models. The
-    // 1.4 reader takes an operational template rather than an archetype, so
-    // the comparison needs a template that composes them.
-    assert_eq!(paired, 321, "the dual-dialect pairing changed");
+    // The pairing is what makes the library worth fetching, and it is asserted
+    // before it is used so a pack that lost its 1.4 half cannot pass by
+    // comparing nothing.
+    assert_eq!(paired.len(), 321, "the dual-dialect pairing changed");
+
+    let mut repository = ArchetypeRepository::new();
+    let mut ordered = adls.clone();
+    ordered.sort_by_key(|path| (depth(path), path.clone()));
+    for path in &ordered {
+        let source = fs::read_to_string(path).expect("a fetched archetype is UTF-8");
+        if let Ok(archetype) = adl2::parse(&source) {
+            repository.insert(archetype);
+        }
+    }
+
+    let mut compared = 0_usize;
+    let mut generated = 0_usize;
+    let mut unreadable: BTreeMap<String, usize> = BTreeMap::new();
+    let mut disagreed: Vec<String> = Vec::new();
+    for (identity, two_path) in paired {
+        let one_path = &one[identity];
+        let from_adl14 =
+            stated_by_adl14(&fs::read_to_string(one_path).expect("a fetched archetype is UTF-8"))
+                .unwrap_or_else(|reason| panic!("{identity}: {reason}"));
+
+        let source = fs::read_to_string(two_path).expect("a fetched archetype is UTF-8");
+        if openehr_adl::source::parse_source(&source, Dialect::Adl2)
+            .is_ok_and(|artefact| artefact.meta.generated)
+        {
+            generated += 1;
+        }
+        let read = adl2::parse(&source).and_then(|root| {
+            openehr_adl::opt::create_opt(&root, &repository)
+                .map_err(ReadError::from)
+                .and_then(|operational| adl2::read(&operational))
+        });
+        let model = match read {
+            Ok(model) => model,
+            Err(error) => {
+                *unreadable.entry(head_of(&error.to_string())).or_default() += 1;
+                continue;
+            }
+        };
+        compared += 1;
+        let from_adl2 =
+            stated_by_the_model(&model).unwrap_or_else(|reason| panic!("{identity}: {reason}"));
+        if from_adl14 != from_adl2 {
+            disagreed.push(format!(
+                "{identity}: 1.4 states {from_adl14:?}, ADL 2 {from_adl2:?}"
+            ));
+        }
+    }
+
+    assert!(disagreed.is_empty(), "{}", disagreed.join("\n"));
+
+    // The module doc rests on this: the ADL 2 half of every pair declares
+    // itself generated, so the pack is one authoring and a conversion of it.
+    assert_eq!(
+        generated, 321,
+        "the pack stopped declaring itself generated"
+    );
+
+    // The 21 pairs left out are the ADL 2 halves the reader refuses, and they
+    // are the same two families `the_reader_reads_the_published_adl2_library`
+    // adjudicates. Counting them here keeps a refusal from quietly shrinking
+    // the comparison.
+    assert_eq!(unreadable.values().sum::<usize>(), 21, "{unreadable:#?}");
+    assert!(
+        unreadable
+            .keys()
+            .all(|reason| reason.starts_with("requires an unfilled")
+                || reason.starts_with("the operational template could not be generated")),
+        "a new refusal family: {unreadable:#?}"
+    );
+    assert_eq!(compared, 300);
 }
