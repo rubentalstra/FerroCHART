@@ -106,6 +106,12 @@ fn a_section_wider_than_four_columns_is_stored_and_advised_against() {
         "{}",
         advised[0]
     );
+
+    // A person is told when they declare the width and again by every replay,
+    // because a form nobody has opened since is still that wide.
+    let report = replay(&overlay, &definition);
+    assert_eq!(report.advisories().cloned().collect::<Vec<_>>(), advised);
+    assert!(report.to_string().contains("is 5 columns wide"), "{report}");
 }
 
 #[test]
