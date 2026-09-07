@@ -444,6 +444,7 @@ version = "0.0.2"
 name = "ferrochart-compile"
 version = "0.0.2"
 dependencies = [
+ "ferrochart-form",
  "openehr-adl",
  "openehr-am",
  "openehr-base",

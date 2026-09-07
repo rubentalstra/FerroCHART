@@ -16,6 +16,10 @@ use crate::value::{BindingStrictness, Code, Prefill, ValueSet};
 
 /// One entry field of a form.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "each flag is an independent fact the template states, and this is a published record a renderer reads field by field"
+)]
 pub struct FormField {
     /// What names the field.
     pub key: NodeKey,
@@ -32,6 +36,13 @@ pub struct FormField {
     /// The constraint on the node's Reference Model name, where the template
     /// leaves the name open.
     pub name_constraint: Option<NameConstraint>,
+    /// Whether the order of the field's repeats carries meaning.
+    ///
+    /// openEHR AM Release-2.3.0 `AOM1.4.html` section 4.3.5,
+    /// `CARDINALITY.is_ordered`, of the attribute the field sits under.
+    pub is_ordered: bool,
+    /// Whether the field's repeats must differ from one another.
+    pub is_unique: bool,
     /// The null-flavour affordance beside the field.
     pub null_flavour: NullFlavour,
     /// The value the template prefills the field with.
@@ -307,6 +318,20 @@ pub struct CountField {
     pub ranges: Vec<Range<i64>>,
 }
 
+/// A real number.
+///
+/// This is not a field kind of its own: no Reference Model data type collects
+/// a bare real. It is the shape a real-valued attribute of one takes, such as
+/// `DV_PROPORTION.numerator` (openEHR RM Release-1.1.0 `data_types.html`
+/// section 6.2.10).
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+pub struct RealField {
+    /// The values the template enumerates, in the order it lists them.
+    pub options: Vec<f64>,
+    /// Every range the template admits.
+    pub ranges: Vec<Range<f64>>,
+}
+
 /// One permitted unit of a quantity.
 ///
 /// openEHR RM Release-1.1.0 `data_types.html` section 6.2.8: each permitted
@@ -358,14 +383,14 @@ pub enum ProportionKind {
     IntegerFraction,
     /// A kind outside the five the specification names, kept as the integer
     /// the template states rather than dropped.
-    Other(i32),
+    Other(i64),
 }
 
 impl ProportionKind {
     /// The kind the integer names, per openEHR RM Release-1.1.0
     /// `data_types.html` section 6.2.11.
     #[must_use]
-    pub const fn from_code(code: i32) -> Self {
+    pub const fn from_code(code: i64) -> Self {
         match code {
             0 => Self::Ratio,
             1 => Self::Unitary,
@@ -383,14 +408,16 @@ pub struct ProportionField {
     /// The kinds the template admits, in the order it lists them.
     ///
     /// Empty where the template constrains `type` not at all, which admits
-    /// every kind.
+    /// every kind. The kind decides how many numbers the form collects:
+    /// `pk_percent` and `pk_unitary` fix the denominator, so one number is
+    /// entered, and the other three collect both.
     pub kinds: Vec<ProportionKind>,
     /// The numerators the template admits.
-    pub numerator: Option<Range<f64>>,
+    pub numerator: RealField,
     /// The denominators the template admits.
-    pub denominator: Option<Range<f64>>,
+    pub denominator: RealField,
     /// The decimal places the template admits.
-    pub decimals: Option<Range<i64>>,
+    pub decimals: CountField,
     /// Whether both parts must be whole numbers, where the template says.
     pub is_integral: Option<bool>,
 }
