@@ -23,6 +23,15 @@ the build order.
 
 ### Added
 
+- A COMPOSITION reads back into the form it was built from (#23), completing
+  the pair. The reader walks the data rather than the form, so a node the form
+  does not cover is reported instead of silently dropped, which is what an
+  editing round trip needs if it is not to delete a colleague's content. Over
+  the committed pack every value entered comes back against its own field, a
+  null flavour and its reason survive both directions, and a repeated field
+  reads back into the right occurrence. Where several form nodes share an
+  identity and the data cannot fill them all, the assignment is a guess the
+  reader reports as one rather than presenting as certain.
 - Three layers that guard the two documents FerroCHART publishes, after a
   dependency's cargo feature took one of them off the wire with no change to
   this tree (#107). `serde_json/arbitrary_precision`, enabled for the whole

@@ -407,6 +407,17 @@ reading a committed COMPOSITION back into the same form definition yields the
 same field values. That survives every normalisation the Reference Model
 leaves open.
 
+**One case the inverse genuinely does not cover, and the reader reports it.**
+Several form nodes can share an `archetype_node_id` and a name, separated only
+by their order. BASE Release-1.2.0 `architecture_overview.html` section 11.2.4
+says so directly: "Archetype paths are not guaranteed to uniquely identify
+items in data". A node that carries nothing is not written at all, because a
+`CLUSTER` with no items is illegal, so when fewer data nodes come back than the
+form has tied siblings, every later sibling shifts up and the reader cannot
+know which slot a value belongs to. It assigns in order and reports the
+assignment as a guess, in the same vocabulary the overlay replay already uses
+for this (`ambiguous`, section 6.5). 18 of the committed templates hit it.
+
 Excluded from strict equality, each for a reason: byte equality; `uid`;
 container order where the template's `CARDINALITY.is_ordered` is false;
 `DV_QUANTITY.precision`, `magnitude_status`, `accuracy` and
