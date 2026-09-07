@@ -566,9 +566,22 @@ impl Layout {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn hints_serialize_in_name_order() {
+        // `ferrochart-overlay` promises a byte-deterministic document, and the
+        // one map in the format lives here, so the ordering claim is asserted
+        // beside the type that has to keep it.
+        let mut layout = Layout::new();
+        for name in ["zebra", "alpha", "mid"] {
+            layout.hints.insert(HintName::new(name), "value".to_owned());
+        }
+        let json = serde_json::to_string(&layout.hints).expect("hints serialize");
+        assert_eq!(json, r#"{"alpha":"value","mid":"value","zebra":"value"}"#);
+    }
+
     use super::{
-        CharacterWidth, ColumnCount, ColumnSpan, Condition, Geometry, Layout, Section, SectionId,
-        Visibility,
+        CharacterWidth, ColumnCount, ColumnSpan, Condition, Geometry, HintName, Layout, Section,
+        SectionId, Visibility,
     };
     use crate::ids::{RmAttributeName, RmTypeName};
     use crate::key::{KeyStep, NodeKey};

@@ -568,6 +568,15 @@ person to resolve the same node under two headings.
 is what the definition holds literally, and the report shows both keys, so the
 rename is visible to the person accepting it. It is not a class of its own.
 
+**One document state is a refusal on one path and advice on another, and that
+is deliberate.** Naming a section that does not exist is refused when a person
+authors it, because they can still fix the name while they are looking at it.
+The same state reached by dropping a section afterwards is reported instead,
+because refusing it would refuse the person's own change of mind and rewriting
+the entries would discard the record of what they wanted. So an entry pointing
+at a missing section is an error at authoring time and an advisory afterwards,
+and the difference is when the person can still act.
+
 ## 7. Terminology
 
 A coded field needs its permitted codes, and where they come from is decided
@@ -796,7 +805,7 @@ the manifest rather than by habit.
 
 | Crate | Role |
 |---|---|
-| `ferrochart-form` | The form definition type, the overlay's layout types, and their serialisations. No I/O. |
+| `ferrochart-form` | The form definition type, the overlay's layout types, and their serialisations. No I/O, and nothing else from this tree; `thiserror` for its one error type is the only dependency. |
 | `ferrochart-compile` | Operational template to form definition. Owns the internal constraint model of section 3 and the derivation of section 5. |
 | `ferrochart-overlay` | Overlay storage, the key normalization of section 6.2, replay, and the differential report. Not the layout types themselves. |
 | `ferrochart-cdr` | The ITS-REST client of section 8. |
