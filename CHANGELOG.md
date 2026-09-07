@@ -45,6 +45,13 @@ the build order.
   arguably against the rules. Also fixes a `codegen.md` reference to a
   `CLAUDE.md` heading that does not exist (#77) and a prose deferral where a
   `TODO` belongs (#78).
+- The replay runs against the largest real difference the corpus can produce
+  (#21): an overlay authored on every node of one CKM entry, replayed against
+  a second entry for the same clinical concept. Nothing survives, and that is
+  the point: the two differ in the pinned name of nearly every node, so 0 of
+  171 entries match and the replay reports 7 moved, 164 disappeared and 181
+  appeared rather than rebinding layout onto nodes that merely look similar.
+  Every entry is still accounted for and every key still held.
 - The layout overlay and its store (#19), in `ferrochart-overlay`. An overlay
   carries what no specification governs: field order, authored sections,
   labels, help text, defaults, conditional visibility and widget choice. It is
