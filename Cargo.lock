@@ -520,6 +520,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "ferrochart-compose"
+version = "0.0.4"
+dependencies = [
+ "ferrochart-compile",
+ "ferrochart-form",
+ "openehr-base",
+ "openehr-rm",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "ferrochart-form"
 version = "0.0.4"
 dependencies = [

@@ -331,6 +331,89 @@ openEHR specification governs it. These are the reason section 6 exists.
 11. **`C_DV_STATE` semantics.** Defined in the XSD, defined in no prose.
 12. **The layout overlay itself.** Section 6.
 
+### 5.3 The Reference Model envelope, and what FerroCHART invents
+
+The table above has a row per data type and no row for a single envelope
+class, because a form has no widget for `ENTRY.encoding`. A COMPOSITION will
+not validate without them, so this is where each one comes from. All citations
+are RM Release-1.1.0.
+
+| Class | Attribute, 1..1 | Source |
+|---|---|---|
+| COMPOSITION | `language`, `territory` | configuration |
+| | `composer` | the session |
+| | `category` | the template where it constrains one, else configuration |
+| | `archetype_details` | derived, except `rm_version` |
+| EVENT_CONTEXT | `start_time`, `setting` | the session |
+| ENTRY, every one | `language`, `encoding`, `subject` | configuration and the session |
+| HISTORY | `origin` | the session |
+| EVENT | `time` | the session |
+| INTERVAL_EVENT | `width`, `math_function` | nothing supplies them, so it is refused |
+| ACTION | `time`, `ism_transition`, `description` | the session and the form |
+| INSTRUCTION | `narrative` | the entry's own label |
+| ACTIVITY | `description`, `action_archetype_id` | the form, and a widest-pattern default |
+
+No committed template constrains `language`, `territory`, `composer`,
+`setting`, `start_time` or `health_care_facility`, and only 10 of the 123 root
+at COMPOSITION at all, so for 113 of them the whole envelope is FerroCHART's.
+Every invented value carries a `// NOTE:` naming its source.
+
+**`rm_version` is a build constant.** `common.html` section 3.2.3 requires a
+non-empty release string and never says which release the value describes. No
+specification governs the choice: our own design. FerroCHART writes `1.1.0`,
+the release it pins.
+
+**`uid` is not written.** `LOCATABLE.uid` is 0..1, `common.html` section
+3.1.2.1 says it "will usually be empty in most EHR data", the client cannot
+know the version identity before the commit, and the three specifications that
+discuss what to put in it disagree with each other (issue #111). So it is
+omitted on create, either form is accepted on read-back, and no test asserts
+it.
+
+**A template rooted at a fragment class is refused.** 36 of the 123 committed
+templates root at CLUSTER, which is not a `CONTENT_ITEM`, so they describe
+something to slot into an entry rather than a document to commit. The refusal
+names the class rather than wrapping the fragment in an entry FerroCHART
+invented.
+
+**The invariant forbidding a context on a persistent composition is gone.** RM
+Release-1.0.3 carried `Is_persistent_validity: is_persistent implies context =
+Void`. It was removed in 1.0.4, recorded in the 1.1.0 amendment record as
+"SPECRM-52", and replaced by a note in `ehr.html` section 5.2.3.2 saying a
+persistent composition "may optionally have an Event context". The template's
+`existence` on the attribute is now the only rule, and implementing the
+removed invariant would refuse documents the specification permits.
+
+**`composition category` has four members, not three.** The prose names
+`431`, `451` and `433` and then admits "any other code defined in the openEHR
+terminology group"; TERM Release-3.0.0 adds `815|report|`. Membership of the
+group is the test.
+
+**Nothing pattern-matches `archetype_node_id`.** The Reference Model calls it
+"always an at-code" and contradicts itself in the next sentence, ADL 2 uses
+`id`-codes, and a root carries the archetype id (issue #111). FerroCHART reads
+both generations, so the value is carried rather than parsed.
+
+### 5.4 What a round trip may assert
+
+No openEHR specification guarantees that a committed COMPOSITION comes back
+unchanged, and none says what a CDR may normalise. The one thing it sanctions
+a server authoring is version identity. No specification governs this: our own
+design.
+
+So the property FerroCHART holds itself to is the **form-level inverse**:
+reading a committed COMPOSITION back into the same form definition yields the
+same field values. That survives every normalisation the Reference Model
+leaves open.
+
+Excluded from strict equality, each for a reason: byte equality; `uid`;
+container order where the template's `CARDINALITY.is_ordered` is false;
+`DV_QUANTITY.precision`, `magnitude_status`, `accuracy` and
+`units_display_name`; `CODE_PHRASE.preferred_term`; `rm_version`; and
+`DV_TEXT.value` on a `DV_CODED_TEXT`, because the rubric is language-dependent
+and the code is the identity. Read-back matches a coded value on
+`defining_code`, never on `value`.
+
 ## 6. The layout overlay
 
 No specification governs this: our own design.

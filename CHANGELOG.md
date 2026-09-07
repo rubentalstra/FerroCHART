@@ -40,6 +40,15 @@ the build order.
   only report the effect of. The form definition's `FORMAT_VERSION` now says
   what the number covers, so a byte change is a decision rather than an
   accident.
+- The composition builder (part of #23), in `ferrochart-compose`. It turns
+  what a clinician entered into a COMPOSITION, working from the form
+  definition alone and never from the template, which keeps that definition a
+  contract a third party can commit against as well as render against. 78 of
+  the 121 committed templates that read build a document; the 36 rooted at
+  `CLUSTER` are refused by name, because a fragment is not a document.
+  `docs/architecture.md` sections 5.3 and 5.4 record where every Reference
+  Model field a form never shows comes from, which of them FerroCHART invents,
+  and what a round trip may assert.
 - Every chapter that asks for a table of contents is checked to have one
   (#98). `scripts/checks/book-toc.sh` reads the rendered pages, and the docs
   lane runs it after the site is assembled, because mdBook reports a
