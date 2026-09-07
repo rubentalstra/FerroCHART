@@ -164,6 +164,13 @@ the build order.
   instead of dropping it (#87).
 - The book at ferrochart.eu serves the brand favicon. It served mdBook's
   default while `assets/brand/favicon.svg` sat unused in the repository (#94).
+- Every "Suggest an edit" link in the book. `edit-url-template` ended in
+  `src/{path}` and mdBook expands `{path}` to a path that already begins with
+  `src/`, so each link pointed at `website/book/src/src/…` and returned a 404.
+- The book's introduction said there is no binary and listed the architecture
+  and the gates as what exists. Three releases publish binaries for four Linux
+  targets, and the compiler derives a form from 121 of the 123 committed
+  templates. It now says what works and what does not.
 
 ## [0.0.3] - 2026-09-07
 
