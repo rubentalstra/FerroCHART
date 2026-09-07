@@ -18,7 +18,7 @@
 //! restores its layout, and a move is a suggestion a person accepts through
 //! [`crate::store::Author::accept_move`].
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use ferrochart_form::definition::FormDefinition;
@@ -26,6 +26,7 @@ use ferrochart_form::ids::{LanguageTag, RmTypeName, TemplateId};
 use ferrochart_form::key::{KeyStep, NodeKey};
 use ferrochart_form::text::Localized;
 
+use crate::advice::Advisory;
 use crate::entry::OverlayEntry;
 use crate::index::{Index, Target, TargetKind};
 use crate::store::{Overlay, TemplateIdForm};
@@ -153,6 +154,13 @@ pub struct ReferenceReport {
 }
 
 /// What became of one entry.
+///
+/// Geometry rides along as [`EntryReport::advisories`] rather than as an
+/// [`Outcome`] of its own. An outcome answers one question, whether the key
+/// still names the node the layout was authored against, and it is exhaustive
+/// over that question; a broken span is orthogonal to every answer, because a
+/// matched entry and a moved one can each carry one. A variant would force a
+/// choice between the two facts for an entry that has both.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EntryReport {
     /// The key the entry is stored against.
@@ -166,6 +174,8 @@ pub struct EntryReport {
     pub outcome: Outcome,
     /// What became of every node the layout reads.
     pub references: Vec<ReferenceReport>,
+    /// What a person should be told about the entry's geometry.
+    pub advisories: Vec<Advisory>,
 }
 
 /// Whether a node is a group or a field.
@@ -206,6 +216,12 @@ pub struct ReplaySummary {
     pub disappeared: usize,
     /// Nodes of the recompiled definition that no entry decorates.
     pub appeared: usize,
+    /// Geometry a person has to put right.
+    ///
+    /// Not an outcome class: an entry counted here is counted in one of the
+    /// classes above too, because a span that no longer fits its section is
+    /// orthogonal to whether the key still resolves.
+    pub geometry: usize,
 }
 
 impl ReplaySummary {
@@ -236,6 +252,7 @@ pub struct ReplayReport {
     language: LanguageTag,
     entries: Vec<EntryReport>,
     appeared: Vec<NewNode>,
+    sections: Vec<Advisory>,
 }
 
 impl ReplayReport {
@@ -282,11 +299,22 @@ impl ReplayReport {
             .filter(|entry| entry.outcome.needs_decision())
     }
 
+    /// Everything a person should be told about the overlay's geometry,
+    /// sections first and then entries in key order.
+    pub fn advisories(&self) -> impl Iterator<Item = &Advisory> {
+        self.sections.iter().chain(
+            self.entries
+                .iter()
+                .flat_map(|entry| entry.advisories.iter()),
+        )
+    }
+
     /// How many entries fell into each outcome.
     #[must_use]
     pub fn summary(&self) -> ReplaySummary {
         let mut summary = ReplaySummary {
             appeared: self.appeared.len(),
+            geometry: self.advisories().count(),
             ..ReplaySummary::default()
         };
         for entry in &self.entries {
@@ -358,6 +386,7 @@ impl fmt::Display for ReplayReport {
             plural(summary.appeared, "node", "nodes")
         )?;
         self.decisions(f)?;
+        self.geometry(f)?;
         self.gone(f)?;
         self.kept(f)?;
         self.fresh(f)
@@ -440,6 +469,18 @@ impl ReplayReport {
         Ok(())
     }
 
+    fn geometry(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let listed: Vec<&Advisory> = self.advisories().collect();
+        if listed.is_empty() {
+            return Ok(());
+        }
+        writeln!(f, "\nGeometry to put right ({})", listed.len())?;
+        for advisory in listed.iter().take(LISTED) {
+            writeln!(f, "  {advisory}")?;
+        }
+        remainder(f, listed.len(), "geometry notes")
+    }
+
     fn gone(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let gone: Vec<&EntryReport> = self
             .entries
@@ -509,6 +550,7 @@ fn remainder(f: &mut fmt::Formatter<'_>, total: usize, noun: &str) -> fmt::Resul
 #[must_use]
 pub fn replay(overlay: &Overlay, definition: &FormDefinition) -> ReplayReport {
     let index = Index::new(definition);
+    let (sections, mut per_entry) = advisories(overlay);
     let mut entries = Vec::with_capacity(overlay.entries().len());
     let mut decorated: BTreeSet<Vec<KeyStep>> = BTreeSet::new();
     for entry in overlay.entries() {
@@ -535,6 +577,7 @@ pub fn replay(overlay: &Overlay, definition: &FormDefinition) -> ReplayReport {
             label,
             outcome,
             references: references(&index, entry.layout.referenced_nodes()),
+            advisories: per_entry.remove(&entry.key.steps).unwrap_or_default(),
         });
     }
     let appeared = appeared(&index, &decorated);
@@ -545,7 +588,27 @@ pub fn replay(overlay: &Overlay, definition: &FormDefinition) -> ReplayReport {
         language: definition.default_language.clone(),
         entries,
         appeared,
+        sections,
     }
+}
+
+/// The overlay's advisories, split into the ones about a section and the ones
+/// about an entry.
+///
+/// The geometry of an entry is a fact about the overlay rather than about the
+/// recompiled definition, so it is read from the overlay once here and carried
+/// into the report a person actually opens.
+fn advisories(overlay: &Overlay) -> (Vec<Advisory>, BTreeMap<Vec<KeyStep>, Vec<Advisory>>) {
+    let mut sections = Vec::new();
+    let mut per_entry: BTreeMap<Vec<KeyStep>, Vec<Advisory>> = BTreeMap::new();
+    for advisory in overlay.advisories() {
+        let steps = advisory.key().map(|key| key.steps.clone());
+        match steps {
+            Some(steps) => per_entry.entry(steps).or_default().push(advisory),
+            None => sections.push(advisory),
+        }
+    }
+    (sections, per_entry)
 }
 
 /// What became of one entry.

@@ -62,6 +62,35 @@ pub enum OverlayError {
         /// One section on the cycle.
         section: String,
     },
+    /// A section another section sits in was going to be dropped.
+    ///
+    /// Dropping it would leave that section naming a parent the overlay does
+    /// not define, which is a document no reader accepts, so the person drops
+    /// or reparents the inner section first.
+    #[error("section {section} holds section {holds}, so it is not dropped on its own")]
+    SectionInUse {
+        /// The section that was going to be dropped.
+        section: String,
+        /// One section that sits inside it.
+        holds: String,
+    },
+    /// An entry spans more columns than the container it sits in has.
+    ///
+    /// No specification governs this: our own design. The item's container is
+    /// its authored section, and an item in no authored section is in a
+    /// one-column container, so a span of more than one asks for a column that
+    /// is not there.
+    #[error("the entry at {key} spans {span} columns of {container}, which is {columns} wide")]
+    SpanExceedsColumns {
+        /// The key of the entry that spans too far.
+        key: String,
+        /// The span the entry states.
+        span: u8,
+        /// What the item is laid out in.
+        container: String,
+        /// How many columns that container has.
+        columns: u8,
+    },
     /// Two entries of the document decorate one node.
     #[error("two entries decorate the node at {key}")]
     DuplicateEntry {

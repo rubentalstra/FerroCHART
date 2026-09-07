@@ -17,18 +17,21 @@ use ferrochart_form::ids::{RmTypeName, TemplateId};
 use ferrochart_form::key::NodeKey;
 use serde::{Deserialize, Serialize};
 
+use crate::advice::Advisory;
 use crate::entry::{OverlayEntry, PositionalAnchor};
 use crate::error::OverlayError;
 use crate::index::Index;
-use crate::layout::{Layout, Section, SectionId};
+use crate::layout::{ColumnCount, Layout, Section, SectionId};
 
 /// The version of the overlay format this crate defines.
 ///
-/// A reader refuses a document that states any other version. The number
-/// changes only when a document that parsed under the old version would parse
-/// differently under the new one, and a stored key shape cannot change at all
-/// without a migration (`docs/architecture.md` section 6.3).
-pub const FORMAT_VERSION: u32 = 1;
+/// A reader refuses a document that states any other version, in both
+/// directions: a build without geometry refuses a document written with it,
+/// and this build refuses the version before it rather than reading a section
+/// that states no column count as though the person had chosen one. A stored
+/// key shape cannot change at all without a migration
+/// (`docs/architecture.md` section 6.4).
+pub const FORMAT_VERSION: u32 = 2;
 
 /// The form the template identifier an overlay was keyed against takes.
 ///
@@ -239,6 +242,58 @@ impl Overlay {
         &self.sections
     }
 
+    /// The section `id` names.
+    #[must_use]
+    pub fn section(&self, id: &SectionId) -> Option<&Section> {
+        self.sections.iter().find(|section| section.id == *id)
+    }
+
+    /// Everything the overlay stores and a person should still see, in
+    /// section order and then in key order.
+    ///
+    /// An advisory is not a refusal. Each one is a state a person's own edit
+    /// reaches, and the overlay keeps their work and says what is wrong with
+    /// it rather than trimming the document to stay self-consistent.
+    #[must_use]
+    pub fn advisories(&self) -> Vec<Advisory> {
+        let mut found: Vec<Advisory> = self
+            .sections
+            .iter()
+            .filter(|section| section.columns.is_crowded())
+            .map(|section| Advisory::CrowdedSection {
+                section: section.id.clone(),
+                columns: section.columns,
+            })
+            .collect();
+        found.extend(
+            self.entries
+                .iter()
+                .filter_map(|entry| self.geometry_of(entry)),
+        );
+        found
+    }
+
+    /// What is wrong with the geometry of one entry.
+    ///
+    /// At most one thing can be: a section that is gone has no column count
+    /// for a span to overflow, so the missing grouping is the whole report.
+    fn geometry_of(&self, entry: &OverlayEntry) -> Option<Advisory> {
+        let id = entry.layout.section.as_ref()?;
+        let Some(section) = self.section(id) else {
+            return Some(Advisory::SectionDisappeared {
+                key: entry.key.clone(),
+                section: id.clone(),
+            });
+        };
+        let span = entry.layout.geometry.span?;
+        (span.get() > section.columns.get()).then(|| Advisory::SpanOverflows {
+            key: entry.key.clone(),
+            span,
+            section: id.clone(),
+            columns: section.columns,
+        })
+    }
+
     /// Every entry, in key order.
     #[must_use]
     pub fn entries(&self) -> &[OverlayEntry] {
@@ -258,6 +313,35 @@ impl Overlay {
     /// layout, and only a person removes one.
     pub fn remove(&mut self, key: &NodeKey) -> Option<OverlayEntry> {
         self.position(key).map(|at| self.entries.remove(at))
+    }
+
+    /// Drops the section `id` names, returning it.
+    ///
+    /// Entries that belong to the section keep naming it. Clearing them would
+    /// drop the grouping of every item in the section, which is the work the
+    /// overlay exists to keep, so the reference is retained and
+    /// [`Overlay::advisories`] reports it: the same rule an unresolved entry
+    /// follows, and restoring the section restores the grouping.
+    ///
+    /// # Errors
+    /// [`OverlayError::SectionInUse`] when another section sits inside this
+    /// one, because that section would then name a parent the overlay does not
+    /// define and no reader accepts such a document.
+    pub fn remove_section(&mut self, id: &SectionId) -> Result<Option<Section>, OverlayError> {
+        if let Some(inner) = self
+            .sections
+            .iter()
+            .find(|section| section.parent.as_ref() == Some(id))
+        {
+            return Err(OverlayError::SectionInUse {
+                section: id.to_string(),
+                holds: inner.id.to_string(),
+            });
+        }
+        let Some(at) = self.sections.iter().position(|section| section.id == *id) else {
+            return Ok(None);
+        };
+        Ok(Some(self.sections.remove(at)))
     }
 
     /// Reads an overlay document.
@@ -290,6 +374,13 @@ impl Overlay {
             .map_err(|source| OverlayError::NotSerializable { source })
     }
 
+    /// Drops the entry decorating the node `key` names, if there is one.
+    fn discard(&mut self, key: &NodeKey) {
+        if let Some(at) = self.position(key) {
+            self.entries.remove(at);
+        }
+    }
+
     fn position(&self, key: &NodeKey) -> Option<usize> {
         self.entries
             .binary_search_by(|entry| entry.key.steps.cmp(&key.steps))
@@ -309,11 +400,6 @@ impl Overlay {
             }
             Err(at) => self.entries.insert(at, entry),
         }
-    }
-
-    /// Whether the overlay defines the section `id` names.
-    fn has_section(&self, id: &SectionId) -> bool {
-        self.sections.iter().any(|section| section.id == *id)
     }
 
     /// Refuses a document that contradicts itself.
@@ -348,20 +434,15 @@ impl Overlay {
                 });
             }
         }
+        // NOTE: no specification governs this: our own design. An entry naming
+        // a section the document does not define is reported rather than
+        // refused, because dropping a section is a person's own edit.
         for entry in &self.entries {
             if entry.key.is_positional != entry.anchor.is_some() {
                 return Err(OverlayError::AnchorMismatch {
                     key: entry.key.to_string(),
                     is_positional: entry.key.is_positional,
                     has_anchor: entry.anchor.is_some(),
-                });
-            }
-            if let Some(section) = entry.layout.section.as_ref()
-                && !known.contains_key(section)
-            {
-                return Err(OverlayError::UnknownSection {
-                    referrer: format!("the entry at {}", entry.key),
-                    section: section.to_string(),
                 });
             }
         }
@@ -385,6 +466,14 @@ fn walk_to_root(
         at = known.get(section).copied().flatten();
     }
     Ok(())
+}
+
+/// What an error calls the container an item is laid out in.
+fn named(section: Option<&SectionId>) -> String {
+    section.map_or_else(
+        || "the form itself".to_owned(),
+        |id| format!("section \"{id}\""),
+    )
 }
 
 /// Whether two keys name the same node, whatever either says about being
@@ -450,21 +539,29 @@ impl<'a> Author<'a> {
         self.overlay
     }
 
-    /// Records `section`, replacing any section with the same identifier.
+    /// Records `section`, replacing any section with the same identifier, and
+    /// returns what a person should be told about it.
+    ///
+    /// A section is accepted at any width the type admits. Narrowing one an
+    /// item was already laid out in is accepted too, and the entries that no
+    /// longer fit come back as advisories rather than being refused or
+    /// rewritten, because the span the person authored is the record of what
+    /// they wanted (`docs/architecture.md` section 6.3).
     ///
     /// # Errors
     /// [`OverlayError::UnknownSection`] when the section names a parent the
     /// overlay does not define, and [`OverlayError::SectionCycle`] when the
     /// chain of parents leads back to the section itself.
-    pub fn add_section(&mut self, section: Section) -> Result<(), OverlayError> {
+    pub fn add_section(&mut self, section: Section) -> Result<Vec<Advisory>, OverlayError> {
         if let Some(parent) = section.parent.as_ref()
-            && !self.overlay.has_section(parent)
+            && self.overlay.section(parent).is_none()
         {
             return Err(OverlayError::UnknownSection {
                 referrer: format!("section {}", section.id),
                 section: parent.to_string(),
             });
         }
+        let id = section.id.clone();
         let mut sections = self.overlay.sections.clone();
         sections.retain(|held| held.id != section.id);
         sections.push(section);
@@ -477,7 +574,12 @@ impl<'a> Author<'a> {
             walk_to_root(&known, &held.id)?;
         }
         self.overlay.sections = sections;
-        Ok(())
+        Ok(self
+            .overlay
+            .advisories()
+            .into_iter()
+            .filter(|advisory| *advisory.section() == id)
+            .collect())
     }
 
     /// Records `layout` against the node `key` names, replacing what was
@@ -490,15 +592,20 @@ impl<'a> Author<'a> {
     ///
     /// # Errors
     /// [`OverlayError::NoSuchNode`] when the key names no group and no field
-    /// of the form, and [`OverlayError::UnknownSection`] when the layout names
-    /// a section the overlay does not define.
+    /// of the form, [`OverlayError::UnknownSection`] when the layout names a
+    /// section the overlay does not define, and
+    /// [`OverlayError::SpanExceedsColumns`] when it spans more columns than
+    /// that section has.
     pub fn set(&mut self, key: &NodeKey, layout: Layout) -> Result<Placement, OverlayError> {
-        if let Some(section) = layout.section.as_ref()
-            && !self.overlay.has_section(section)
+        let columns = self.container(key, &layout)?;
+        if let Some(span) = layout.geometry.span
+            && span.get() > columns.get()
         {
-            return Err(OverlayError::UnknownSection {
-                referrer: format!("the entry at {key}"),
-                section: section.to_string(),
+            return Err(OverlayError::SpanExceedsColumns {
+                key: key.to_string(),
+                span: span.get(),
+                container: named(layout.section.as_ref()),
+                columns: columns.get(),
             });
         }
         let (stored, rm_type, anchor, placement) = self.place(key)?;
@@ -516,19 +623,51 @@ impl<'a> Author<'a> {
     ///
     /// A move is never applied by the replay itself. This is the one call that
     /// re-keys an entry, and it is the person's decision
-    /// (`docs/architecture.md` section 6.5).
+    /// (`docs/architecture.md` section 6.5). What the person authored travels
+    /// unchanged, geometry included, so a layout this call carries is not
+    /// checked again: the node changed and the layout did not, and refusing
+    /// the move would strand the entry on a key the definition no longer has.
     ///
     /// # Errors
     /// [`OverlayError::NoSuchNode`] when `from` decorates nothing or `to`
-    /// names no node of the form.
+    /// names no node of the form. The entry stays where it is when the move is
+    /// refused.
     pub fn accept_move(&mut self, from: &NodeKey, to: &NodeKey) -> Result<Placement, OverlayError> {
-        let Some(entry) = self.overlay.remove(from) else {
+        let Some(entry) = self.overlay.entry(from).cloned() else {
             return Err(OverlayError::NoSuchNode {
                 template: self.definition.template_id.to_string(),
                 key: from.to_string(),
             });
         };
-        self.set(to, entry.layout)
+        let (stored, rm_type, anchor, placement) = self.place(to)?;
+        if stored.steps != from.steps {
+            self.overlay.discard(from);
+        }
+        self.overlay.put(OverlayEntry {
+            key: stored,
+            rm_type,
+            anchor,
+            layout: entry.layout,
+        });
+        Ok(placement)
+    }
+
+    /// How many columns the container of `layout` lays its items out on.
+    ///
+    /// The container is the authored section the item belongs to. An item in
+    /// no authored section is in a one-column container, so it has no second
+    /// column to span into (`docs/architecture.md` section 6.3).
+    fn container(&self, key: &NodeKey, layout: &Layout) -> Result<ColumnCount, OverlayError> {
+        let Some(id) = layout.section.as_ref() else {
+            return Ok(ColumnCount::ONE);
+        };
+        self.overlay
+            .section(id)
+            .map(|section| section.columns)
+            .ok_or_else(|| OverlayError::UnknownSection {
+                referrer: format!("the entry at {key}"),
+                section: id.to_string(),
+            })
     }
 
     /// Where `key` lands in the definition, what the node collects there, and
