@@ -23,6 +23,21 @@ the build order.
 
 ### Added
 
+- The web template compatibility surface (#54): `ferrochart-webtemplate` reads
+  a web template another tool produced into a form definition, and writes a
+  form definition back out as one. The web template is a compatibility target
+  and no openEHR specification defines it, so the crate sits beside the
+  compiler rather than under it and links `ferrochart-form` and nothing else
+  of this tree. A member the form definition does not model, a third party's
+  annotations among them, survives a round trip verbatim: a read keeps each
+  node's source object beside the definition, and a write starts from it, so
+  a node the definition still states as it was read goes back out untouched.
+  Over the whole vendored CKM pack, every document built from it reads and
+  writes back as the document it came from, with annotations, per-option
+  terminology bindings and members this crate has never seen put into it
+  first. `min` and `max` are read as the flattened integers they are, and
+  template version detection reads `templateId` and the root archetype
+  identifier, never `semVer`, which not one document of the pack states.
 - A COMPOSITION reads back into the form it was built from (#23), completing
   the pair. The reader walks the data rather than the form, so a node the form
   does not cover is reported instead of silently dropped, which is what an

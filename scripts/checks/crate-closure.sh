@@ -23,6 +23,11 @@
 #                         out of, and ferrochart-form, and nothing else: it
 #                         never reaches the CDR client, the overlay store or
 #                         the server surface.
+#   ferrochart-webtemplate
+#                         the web template compatibility surface. It links
+#                         ferrochart-form and nothing else, so reading and
+#                         writing the format never becomes a step in the
+#                         derivation the compiler owns.
 #
 # The check reads the resolved graph from `cargo metadata` and walks the
 # normal and build closure of each package, so it catches a first-party crate
@@ -64,6 +69,7 @@ promises=(
   "ferrochart-cdr|ferrochart-form"
   "ferrochart-compose|ferrochart-form"
   "ferrochart-term|ferrochart-compile ferrochart-form"
+  "ferrochart-webtemplate|ferrochart-form"
 )
 
 metadata="$(cargo metadata --locked --format-version 1 --all-features)"

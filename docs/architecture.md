@@ -181,8 +181,10 @@ normative document would only lose fidelity on the way.
 
 So the web template keeps a job, and it is a narrower one: reading a web
 template another tool produced, and writing one another tool can consume.
-That work is issue #54, and it inherits the three obligations below, which
-belong to the compatibility surface rather than to the compiler.
+That work is `ferrochart-webtemplate`, which links `ferrochart-form` and
+nothing else of this tree, so the format can never become a step in the
+derivation. It inherits the obligations below, which belong to the
+compatibility surface rather than to the compiler.
 
 The reason is that the web template is a compatibility target and not a
 specification, and this has to be said every time the format is named. There
@@ -204,17 +206,60 @@ and depends on nothing else in the tree, so a third party can write a renderer
 against it. Its serialisation is byte-deterministic, so recompiling an
 unchanged template produces an identical document.
 
-**Unknown members are preserved verbatim, on the compatibility surface.** The EHRbase SDK preserves
-arbitrary template annotations through a catch-all map, and FerroCHART does
-the same: any member of a consumed web template that FerroCHART does not model
-is carried through a round trip unchanged. A third party's metadata is not
-destroyed by passing through this tool.
+**Unknown members are preserved verbatim, on the compatibility surface.** The
+EHRbase SDK preserves arbitrary template annotations through a catch-all map,
+and FerroCHART does the same: any member of a consumed web template that
+FerroCHART does not model is carried through a round trip unchanged. A third
+party's metadata is not destroyed by passing through this tool.
+
+**Where they live, and why there.** A read produces two things: the form
+definition, and the source spelling, which holds for each node the JSON object
+the document stated for it, without its `children`, keyed by the node key the
+read derived. A write rebuilds the tree from the form definition and starts
+each node from that object, so a node the form definition still states as it
+was read goes back out untouched, and a node it changed keeps every member
+outside the modelled set and has the rest rewritten. Inside `inputs` the same
+rule applies again, per input and per coded option.
+
+The obvious alternative, keeping only the members the reader did not consume,
+loses two things and was rejected for both. A member the form definition
+models is a value and a spelling, and a web template omits a member rather
+than stating it empty, so "absent" and "stated as zero" are different
+documents a leftovers map cannot tell apart. And a member nested inside one
+the form definition does model, a per-option terminology binding inside
+`inputs` for one, is not a leftover of the node at all and would be dropped.
+No specification governs this: our own design.
 
 **Two web template facts that bite**, both of them the compatibility
-surface's problem rather than the compiler's. `min` and `max` on a node are
-the flattened integers rather than the constraint expressions, and `semVer` is
-always null for an OPT 1.4 template, so template version detection never
-relies on it.
+surface's problem rather than the compiler's.
+
+`min` and `max` on a node are the flattened integers rather than the
+constraint expressions, so they are read as they are, `max` of `-1` being the
+unbounded node, and a pair no count can hold is refused rather than repaired.
+
+`semVer` is always null for an OPT 1.4 template, so template version detection
+never relies on it. A test over the whole vendored CKM pack pins that: 123
+documents, not one of which states the member. What it relies on instead is
+the pair the document does state, `templateId` and the root node's `nodeId`,
+which carries the root archetype identifier with its version part (openEHR
+BASE Release-1.2.0 `base_types.html` section 5, `ARCHETYPE_ID`). That pair is
+an identity rather than a version number, and the surface does not pretend
+otherwise: where a document states no template version, it reports none and
+invents nothing. `semVer` is kept verbatim and readable, and nothing branches
+on it. `version` answers a third question again, being the web template format
+version rather than the template's, so a caller writing a form definition out
+states which format version it is writing.
+
+**What the round trip cannot carry the other way.** A form definition holds
+facts a web template has no member for: the null-flavour affordance beside a
+field, the reference bands shown beside a value, the shape a group's Reference
+Model class gives it, whether a repeat is ordered or unique, whether the
+archetype marks a node deprecated, the bounds of an interval and the state
+machine of a `DV_STATE`. Writing reports the ones that belong to a single item
+rather than dropping them in silence. And a node key read out of a web
+template is not the key the compiler derives from the same operational
+template, because the format has already removed levels and states the class
+of a leaf's value rather than of the `ELEMENT` holding it.
 
 ## 5. Field derivation
 
@@ -996,6 +1041,7 @@ the manifest rather than by habit.
 |---|---|
 | `ferrochart-form` | The form definition type, the overlay's layout types, and their serialisations. No I/O, and nothing else from this tree; `thiserror` for its one error type is the only dependency. |
 | `ferrochart-compile` | Operational template to form definition. Owns the internal constraint model of section 3 and the derivation of section 5. |
+| `ferrochart-webtemplate` | The web template compatibility surface of section 4: reading one into a form definition, and writing one out. Links `ferrochart-form` and nothing else of this tree. |
 | `ferrochart-overlay` | Overlay storage, the key normalization of section 6.2, replay, and the differential report. Not the layout types themselves. |
 | `ferrochart-cdr` | The ITS-REST client of section 8. |
 | `ferrochart-term` | The terminology client of section 7. |
@@ -1022,9 +1068,10 @@ type names `ferrochart-form`.
 **The closure promises are checked, not asserted.**
 `scripts/checks/crate-closure.sh` reads the resolved dependency graph and fails
 when `ferrochart-form` links any other crate of this tree, when
-`ferrochart-renderer` or `ferrochart-cdr` links anything but
-`ferrochart-form`, or when `ferrochart-term` links anything but
-`ferrochart-compile` and `ferrochart-form`. It walks the transitive normal and
+`ferrochart-renderer`, `ferrochart-cdr`, `ferrochart-compose` or
+`ferrochart-webtemplate` links anything but `ferrochart-form`, or when
+`ferrochart-term` links anything but `ferrochart-compile` and
+`ferrochart-form`. It walks the transitive normal and
 build closure, so a first-party crate arriving through an intermediate is
 caught too, and it is a CI lane of its own.
 

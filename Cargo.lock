@@ -589,6 +589,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "ferrochart-webtemplate"
+version = "0.0.4"
+dependencies = [
+ "ferrochart-compile",
+ "ferrochart-form",
+ "openehr-its",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "fhir-types"
 version = "0.1.85"
 source = "registry+https://github.com/rust-lang/crates.io-index"
