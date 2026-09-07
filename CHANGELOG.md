@@ -127,6 +127,17 @@ the build order.
   section it lands in, and an entry whose section was dropped. The overlay
   format version is 2, and version 1 is refused rather than read as a form
   whose author chose one column.
+- A landing page at the site root, with the book under `/docs/` (#92).
+  `scripts/site/assemble.sh` puts `website/landing/` at `/`, the mark and the
+  favicons from `assets/brand/` under `/assets/brand/`, and the built book
+  under `/docs/`; the Docs workflow uploads that assembled directory. The
+  book's `site-url` is `/docs/`, so its asset, search and 404 links resolve
+  under the prefix, and its 404 page is promoted to the site root where
+  GitHub Pages serves it for a miss anywhere. The page draws only on the
+  "Rose & Iron" tokens and the contrast ratios `assets/brand/README.md`
+  records, and it separates what is built from what is not: 121 of the 123
+  vendored CKM templates derive a form, and nothing yet renders a form to a
+  clinician, builds a COMPOSITION, or offers a surface for authoring layout.
 
 ### Changed
 
