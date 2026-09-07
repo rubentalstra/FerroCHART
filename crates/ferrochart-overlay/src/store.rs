@@ -363,8 +363,11 @@ impl Overlay {
     /// Writes the overlay as a document.
     ///
     /// The bytes are deterministic: entries are in key order, sections are in
-    /// identifier order, and every map in the format is ordered, so an
-    /// unchanged overlay writes identically every time.
+    /// identifier order, and the one map the format holds is a
+    /// [`std::collections::BTreeMap`] in `ferrochart-form`, so an unchanged
+    /// overlay writes identically every time. This crate cannot keep that last
+    /// part true on its own, which is why the layout types assert their own
+    /// ordering where they are defined.
     ///
     /// # Errors
     /// [`OverlayError::NotSerializable`] when the JSON writer refuses a value,

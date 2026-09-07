@@ -29,6 +29,12 @@ the build order.
   the key alone, because a field's key step says `ELEMENT` while the field
   collects a `DV_*` class. Section 11 states where the line between
   `ferrochart-form` and `ferrochart-overlay` falls and why (#72).
+- `docs/architecture.md` section 6.5 records why one document state is a
+  refusal at authoring time and an advisory afterwards, and section 11 stops
+  reading as though `ferrochart-form` were dependency-free. Two doc comments
+  that had gone stale with the type move are corrected, and the hint map's
+  ordering is asserted beside the type that has to keep it rather than in
+  another crate's test suite.
 - The book covers what the overlay carries, why its geometry is a column grid,
   and what a replay reports, and says which releases are published and what
   the compiler measurably does.

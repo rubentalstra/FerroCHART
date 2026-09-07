@@ -4,4 +4,5 @@
 //! The form renderer (`docs/architecture.md` section 10).
 //!
 //! It reads the form definition the server publishes and links no engine
-//! crate. That boundary gets its committed check with the renderer itself.
+//! crate. `scripts/checks/crate-closure.sh` enforces that from the resolved
+//! dependency graph, so the boundary is checked rather than intended.
