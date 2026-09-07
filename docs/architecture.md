@@ -516,9 +516,15 @@ layout. **That report is the product.**
 ### 6.2 The key
 
 The overlay is keyed by the identity of the node it decorates, and that
-identity was measured rather than assumed. The measurement walked 102
-operational templates, 87 single-purpose conformance templates and 16 CKM
-clinical templates, node by node, 10,802 nodes in total (issue #8).
+identity was measured rather than assumed. The measurement walked the 102
+operational templates FerroEHR's corpus held on 2026-09-06, node by node,
+10,802 nodes in total (issue #8).
+
+The split issue #8 records for those 102, "87 single-purpose conformance
+templates plus 16 CKM clinical templates", sums to 103 and so cannot be right.
+The total is what every measurement below rests on and it is consistent
+throughout; the split is not re-derivable, because that corpus has since grown
+past 400 templates. Only the total is relied on here.
 
 **An id-only path is not unique inside an operational template.** 427 sibling
 groups share one `node_id` under one attribute, across 14 of the 102
@@ -1280,6 +1286,22 @@ The specification defects and silences found during this research, each an
    multi-terminology binding. Already reported independently on the openEHR
    forum.
 9. **ITS-REST section Conformance reads "tbd."** in a released specification.
+10. **AOM 1.4 states sibling node-id uniqueness as a purpose and never as a
+    rule** (issue #129). §4.2.3.1 says `node_id` "guarantees sibling node
+    unique identification" and no invariant, validity condition or function
+    requires it; `C_OBJECT` and `C_MULTIPLE_ATTRIBUTE` carry no `Invariants`
+    block at all, and the ITS-XML schemas that *are* the OPT 1.4
+    specification carry no `xs:unique`. AOM 2 has the rule (VCOSU). Three
+    consequences follow and each is its own ask: no matching algorithm is
+    defined for a container whose children tie, no collective occurrences are
+    defined for a sibling set outside AOM 2's VSONCO, and nothing downstream
+    can call a colliding template invalid. Two vendored CKM templates carry
+    the shape, and in one of them the cause is a generator emitting each
+    `use_node` expansion twice.
+11. **Fifteen defects in RM Release-1.1.0, BASE Release-1.2.0 and the RM
+    XSDs** (issue #111), four of which change what an implementation writes,
+    the worst being `COMPOSITION.uid` defined three incompatible ways across
+    two current specifications.
 
 ## Sources
 

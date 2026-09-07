@@ -162,6 +162,13 @@ the build order.
 
 ### Fixed
 
+- `docs/architecture.md` section 6.2 recorded a corpus split that does not
+  sum: "87 single-purpose conformance templates plus 16 CKM clinical
+  templates" for a total of 102. The total is consistent everywhere and is
+  what every measurement rests on; the split is not re-derivable, because that
+  corpus has since grown past 400 templates, so the document now says so
+  rather than repeating an arithmetic that cannot be right. Section 16 gains
+  the two upstream-report candidates found since it was written (#111, #129).
 - A composition wrapped around a template rooted below COMPOSITION named the
   entry's archetype as its own, so the document claimed a COMPOSITION was an
   OBSERVATION archetype root. That was 113 of the 123 committed templates.
