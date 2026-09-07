@@ -516,7 +516,7 @@ impl<'a> Author<'a> {
     ///
     /// A move is never applied by the replay itself. This is the one call that
     /// re-keys an entry, and it is the person's decision
-    /// (`docs/architecture.md` section 6.4).
+    /// (`docs/architecture.md` section 6.5).
     ///
     /// # Errors
     /// [`OverlayError::NoSuchNode`] when `from` decorates nothing or `to`

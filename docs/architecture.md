@@ -429,7 +429,68 @@ A positional key is the one a reordering silently breaks, so the replay
 reports every positionally keyed entry whenever its container changed, rather
 than trusting the position.
 
-### 6.3 Stability across revisions
+### 6.3 Geometry: a column grid, and no stored coordinate
+
+No specification governs this: our own design, decided against a survey of 31
+form products and the 123 operational templates this repository vendors
+(issue #69).
+
+**A section declares a column count. An item carries a span, an optional
+break, and an optional width hint. Nothing stores a row or a column index.**
+Placement comes from the sibling order the overlay already has, plus the span,
+plus the break, resolved by the renderer's own auto-placement. A renderer on a
+narrow screen reduces the effective column count and clamps spans; nothing
+stored is discarded, so the same overlay serves a ward-round tablet and a
+desk.
+
+The width hint is in character units rather than pixels, because a field three
+characters wide should look three characters wide at any zoom level, and
+because a pixel does not survive the screen it was authored on.
+
+**Why not free geometry, which is what "move and size" most literally
+suggests.** The evidence is one-sided:
+
+- Of 31 products surveyed, 25 store a device-independent artefact. Of the six
+  that store absolute geometry, one is a design tool rather than a form
+  builder, two are deprecated or superseded, two document the cost in their own
+  documentation and ship a non-absolute alternative beside it, and one has been
+  redesigned twice to escape it. None is a live counter-example.
+- **Better, the closest comparison, shipped a grid.** Its side-by-side field
+  placement arrived in 2026 as a grid over its existing stack layouts, with
+  responsiveness as the reason, replacing an arrangement that had needed
+  custom CSS.
+- Storing a coordinate breaks the accessibility floor the renderer is held to.
+  WCAG 2.2 success criterion 1.4.10 requires reflow at 320 CSS pixels, and the
+  documented failure of criterion 1.3.2 is visual order diverging from source
+  order. Auto-placement from sibling order makes those equal by construction.
+- Clinicians meet two widths in one shift. A study of ward rounds found 57.3%
+  of documentation on a computer on wheels and 35.9% on a tablet, against
+  93.6% at a desktop away from the round, so one authored form is read at both
+  sizes.
+
+**The strongest argument against the grid, and why it does not change the
+answer.** A span cannot express a genuinely spatial form, a dental chart or a
+wound map. The corpus answers that: five of the nine templates carrying vendor
+layout metadata are wound assessments, every one of their 37 entries is the
+structural `pass_through` flag, and four of them carry a `DV_MULTIMEDIA`
+field. Real openEHR wound assessment attaches an image and groups fields
+structurally. It does not lay out a spatial canvas of fields, so the case the
+grid cannot serve is not the case clinicians are asking for.
+
+A second objection is better founded and shapes the validation: density hurts.
+OpenClinica caps its column count at three, citing screen width, and usability
+research finds multi-column forms raise skipped and misinterpreted fields. So
+the column count validates to 1 through 12 and warns above 4, and the default
+span is the section's full width. A one-column form is what an author gets
+until they ask for otherwise.
+
+**If free geometry is genuinely required**, the escape is a per-item hint map
+the compiler never interprets, on the precedent of FHIR's `rendering-style`,
+explicitly outside the clean-replay guarantee. It is not the default and it is
+not portable, and saying so in the format is more honest than pretending a
+coordinate survives a screen change.
+
+### 6.4 Stability across revisions
 
 **No specification says an AQL path is stable across template revisions.**
 AQL Release-1.1.0, BASE Release-1.2.0 sections 10.5, 10.6 and 11, AOM 1.4
@@ -446,7 +507,7 @@ So recompile-and-report is not a fallback. It is the only correct design. The
 key shape of 6.2 is fixed before any overlay is written to disk, because a
 stored key cannot be changed later without a migration.
 
-### 6.4 The replay report
+### 6.5 The replay report
 
 A replay against a recompiled definition classifies every overlay entry, and
 the classification is the feature:
@@ -762,7 +823,7 @@ the web template with unknown members preserved. Snapshot tests over the
 whole vendored grid.
 
 **v0.0.4, the overlay.** The key normalization from issue #8, the overlay
-store, replay, and the differential report of section 6.4, with the replay
+store, replay, and the differential report of section 6.5, with the replay
 test against a real revision.
 
 **v0.0.5, the wire.** The ITS-REST client, the composition builder, read-back
