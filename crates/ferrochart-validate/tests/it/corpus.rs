@@ -40,19 +40,21 @@ fn every_composition_the_builder_produces_is_judged_against_its_own_template() {
         }
     }
 
-    assert_eq!(passed, 69, "the templates that build and pass the gate");
+    assert_eq!(passed, 71, "the templates that build and pass the gate");
     assert_eq!(
         refused.len(),
-        9,
+        7,
         "the templates the gate refuses: {refused:?}"
     );
 
-    // TODO(#122): a template can declare two sibling constraints carrying the
-    // same node id and the same pinned name, which no instance can tell
-    // apart, so a document filling both reads as one node filled twice.
+    // A template can declare two sibling constraints carrying the same node
+    // id and the same pinned name, which no instance can tell apart. The
+    // compiler folds such a group into one node before it derives a field, so
+    // the document it builds writes one node where it used to write two, and
+    // the bound it is judged against is the collective one.
     assert_eq!(
         kinds.get("occurrences").copied(),
-        Some(8),
+        None,
         "sibling constraints an instance cannot separate"
     );
 
@@ -74,7 +76,7 @@ fn every_composition_the_builder_produces_is_judged_against_its_own_template() {
 
     assert_eq!(
         kinds.keys().copied().collect::<Vec<_>>(),
-        vec!["cardinality", "occurrences", "required"],
+        vec!["cardinality", "required"],
         "a refusal of a kind this ratchet does not account for"
     );
 }

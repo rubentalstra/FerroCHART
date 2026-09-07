@@ -55,6 +55,24 @@ pub(crate) fn form(name: &str) -> FormDefinition {
     derived(&corpus_dir().join(name)).unwrap_or_else(|| panic!("{name} reads and derives"))
 }
 
+/// A form whose `protocol` holds two alternatives a key can only separate by
+/// position.
+///
+/// The committed pack carries none: every tied group it holds states the same
+/// constraint twice, and the compiler folds those into one node before a key
+/// exists (issue #122). What survives is what openEHR AM Release-2.3.0
+/// `AOM1.4.html` sections 4.3.2 and 4.3.3 create, tied alternatives under a
+/// single-valued attribute that genuinely differ, and this fixture is that
+/// shape.
+pub(crate) fn tied_form() -> FormDefinition {
+    // The fixture lives beside the compiler that folds the rest, so the two
+    // crates read one file rather than two copies that can drift apart.
+    let xml =
+        include_str!("../../../ferrochart-compile/tests/fixtures/ferro_tied_alternatives.opt");
+    let template = adl14::from_xml(xml).expect("the fixture reads");
+    derive::form(&template).expect("the fixture derives")
+}
+
 /// Every group and field key of a form, in walk order.
 pub(crate) fn keys(form: &FormDefinition) -> Vec<NodeKey> {
     let mut found = Vec::new();

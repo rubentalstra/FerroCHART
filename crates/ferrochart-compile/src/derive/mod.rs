@@ -31,6 +31,7 @@
 //! form definition carries the facts and leaves every one of those to the
 //! overlay and the renderer.
 
+mod collapse;
 pub mod error;
 pub mod field;
 mod temporal;
@@ -69,10 +70,16 @@ const DATA_VALUE: &str = "DATA_VALUE";
 ///
 /// # Errors
 /// [`DeriveError`] when a node collects a Reference Model class this
-/// derivation does not model, constrains an attribute it does not model, or
-/// carries a constraint that cannot sit under its class. A constraint the
+/// derivation does not model, constrains an attribute it does not model,
+/// carries a constraint that cannot sit under its class, or declares sibling
+/// constraints no instance could be attributed to. A constraint the
 /// derivation does not understand is never absorbed into a permissive field.
 pub fn form(template: &ConstraintTemplate) -> Result<FormDefinition, DeriveError> {
+    // NOTE: no specification governs this: our own design. The collapse runs
+    // before any key exists, so a duplicated group cannot shift the sibling
+    // ordinal that section 6.2 of the architecture keys the overlay by.
+    let collapsed = collapse::tied_siblings(template)?;
+    let template = &collapsed;
     let deriver = Deriver {
         terms: Terms::new(template),
         default_language: LanguageTag::new(template.language().as_str()),

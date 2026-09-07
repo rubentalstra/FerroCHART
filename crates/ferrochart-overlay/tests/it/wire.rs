@@ -29,7 +29,7 @@ use ferrochart_form::text::Localized;
 use ferrochart_form::value::{Code, Prefill};
 use ferrochart_overlay::store::{Author, Overlay};
 
-use crate::support::{form, keys, tied_key};
+use crate::support::{form, keys, tied_form, tied_key};
 
 const TEMPLATE: &str = "aedes-indices-jm.opt";
 
@@ -159,8 +159,8 @@ fn the_overlay_wire_of_a_positionally_keyed_entry_is_unchanged() {
     // The anchor is the one stored record the document above cannot show: no
     // key of that template ties, and the anchor is what a replay reads to tell
     // an unchanged container from a reordered one.
-    let definition = form("clinical-context-jm.opt");
-    let key = tied_key(&definition).expect("the pack carries a same-id sibling group");
+    let definition = tied_form();
+    let key = tied_key(&definition).expect("the fixture carries a same-id sibling group");
     let mut author = Author::new(&definition);
     let mut layout = Layout::new();
     layout.label = text("Weight");

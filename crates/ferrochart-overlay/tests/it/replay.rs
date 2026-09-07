@@ -19,7 +19,7 @@ use ferrochart_overlay::store::{Author, Overlay};
 
 use crate::support::{
     drop_last_child, duplicate, form, key_where, keys, parent_key, put, rename, retype,
-    sibling_positions, swap, take, tied_key,
+    sibling_positions, swap, take, tied_form, tied_key,
 };
 
 fn authored(text: &str) -> Layout {
@@ -225,11 +225,11 @@ fn a_key_that_the_revision_made_ambiguous_is_reported_rather_than_guessed() {
 
 #[test]
 fn a_positional_entry_whose_container_changed_is_reported_as_reordered() {
-    // The pack's own same-id sibling group: two nodes told apart by nothing
-    // but position. Change what one of them holds and the position no longer
-    // says which node the layout belongs to.
-    let definition = form("clinical-context-jm.opt");
-    let key = tied_key(&definition).expect("the pack carries a same-id sibling group");
+    // A same-id sibling group: two nodes told apart by nothing but position.
+    // Change what one of them holds and the position no longer says which
+    // node the layout belongs to.
+    let definition = tied_form();
+    let key = tied_key(&definition).expect("the fixture carries a same-id sibling group");
     let overlay = one(&definition, &key);
     assert!(matches!(
         only_outcome(&overlay, &definition),
@@ -247,12 +247,12 @@ fn a_positional_entry_whose_container_changed_is_reported_as_reordered() {
 
 #[test]
 fn swapping_two_lookalike_siblings_is_reported_as_reordered() {
-    let pack = form("clinical-context-jm.opt");
-    let key = tied_key(&pack).expect("the pack carries a same-id sibling group");
+    let pack = tied_form();
+    let key = tied_key(&pack).expect("the fixture carries a same-id sibling group");
     let parent = parent_key(&key);
 
-    // Make the two lookalikes differ in what they hold, so a swap between
-    // them is a change a layout can see at all.
+    // Take a child off one lookalike as a revision would, so the swap below
+    // moves a layout between two nodes that hold different things.
     let mut definition = pack.clone();
     drop_last_child(&mut definition, &key);
     let overlay = one(&definition, &key);
