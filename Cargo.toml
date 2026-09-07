@@ -6,6 +6,7 @@ resolver = "3"
 members = [
   "crates/ferrochart-form",
   "crates/ferrochart-compile",
+  "crates/ferrochart-webtemplate",
   "crates/ferrochart-overlay",
   "crates/ferrochart-cdr",
   "crates/ferrochart-compose",
@@ -74,6 +75,7 @@ wiremock = "0.6.5"
 
 ferrochart-form = { path = "crates/ferrochart-form" }
 ferrochart-compile = { path = "crates/ferrochart-compile" }
+ferrochart-webtemplate = { path = "crates/ferrochart-webtemplate" }
 ferrochart-overlay = { path = "crates/ferrochart-overlay" }
 ferrochart-cdr = { path = "crates/ferrochart-cdr" }
 ferrochart-compose = { path = "crates/ferrochart-compose" }
