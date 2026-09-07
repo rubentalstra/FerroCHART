@@ -36,6 +36,18 @@ the build order.
   the interval shape of the class the value collects. The three attributes are
   no longer refused as unentered, and a band the derivation cannot represent
   is refused by name rather than dropped.
+- What "equivalent" means for the two ADL readers is defined in one place,
+  cited, with the six differences accepted as legitimate and a count for each
+  allowance it spends, and the matched pair is compared as a whole value so a
+  field the internal constraint model grows cannot be left out of the
+  comparison (#59). The published dual-dialect archetype library cannot supply
+  the ADL 1.4 half of that comparison: the twins are ADL 1.4 text, the ADL 1.4
+  reader takes an ITS-XML operational template, nothing in the pinned crates
+  turns one into the other, and every one of the 321 ADL 2 halves declares
+  itself `generated` from its 1.4 twin. What the library does prove is
+  asserted over all 321 pairs: for the 300 whose ADL 2 half the reader reads,
+  the internal model names the same concept, in the same language, over the
+  same Reference Model class as the published ADL 1.4 twin.
 - `docs/architecture.md` section 6.5 records the five things the replay's
   outcome classes left underdetermined, decided while implementing #19 and
   #20. The load-bearing one is that a `retyped` outcome is unreachable from
