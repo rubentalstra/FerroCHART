@@ -10,9 +10,9 @@
 #   1. specification pins  the four rows of the docs/architecture.md pin table
 #                          (openEHR RM, AM, ITS-REST, AQL) against
 #                          docs/VERSIONS.md.
-#   2. model crates        the openehr-* crates across docs/architecture.md,
-#                          docs/VERSIONS.md, and the root Cargo.toml
-#                          [workspace.dependencies] requirement.
+#   2. model crates        the openehr-* crates and fhir-types across
+#                          docs/architecture.md, docs/VERSIONS.md, and the root
+#                          Cargo.toml [workspace.dependencies] requirement.
 #   3. toolchain           rust-toolchain.toml channel, plus the root
 #                          Cargo.toml edition, rust-version and resolver.
 #   4. product version     CITATION.cff version against the docs/VERSIONS.md
@@ -133,7 +133,7 @@ fi
 
 echo "== model crate pins (docs/architecture.md <-> docs/VERSIONS.md <-> Cargo.toml)"
 if [ -f docs/architecture.md ] && [ -f docs/VERSIONS.md ]; then
-  for crate in openehr-base openehr-rm openehr-am openehr-adl openehr-its openehr-query; do
+  for crate in openehr-base openehr-rm openehr-am openehr-adl openehr-its openehr-query fhir-types; do
     arch="$(pin_of "$crate" docs/architecture.md)"
     matrix="$(pin_of "$crate" docs/VERSIONS.md)"
     if [ -z "$arch" ]; then

@@ -44,6 +44,16 @@ the build order.
   publishes has its own error variant, plus a catch-all, because the same
   section permits statuses beyond that set. Nothing absorbs an upstream
   failure into an empty value.
+- The FHIR model comes from the published `fhir-types` crate (Apache-2.0,
+  pinned at 0.1.84), which `ferrochart-term` now depends on (#95). It is
+  generated from the HL7 FHIR packages, so `ValueSet`, `CodeSystem`,
+  `ConceptMap`, `Parameters` and `OperationOutcome` are read from a generated
+  model the way the openEHR types already are, and no FHIR resource is
+  hand-written here. The crate also carries `$expand`, `$lookup` and
+  `$validate-code` as typed request and response shapes that convert to and
+  from `Parameters`, which is why the terminology engine of the same release
+  line is left alone: FerroCHART is a client of a terminology server rather
+  than one. `docs/architecture.md` section 7.3 records both decisions.
 
 ## [0.0.4] - 2026-09-07
 

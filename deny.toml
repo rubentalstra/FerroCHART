@@ -38,6 +38,7 @@ confidence-threshold = 0.9
 # The project's own crates are BUSL-1.1 (LICENSE), and so are three of the
 # pinned openEHR model crates. The names below are the workspace members of
 # the root Cargo.toml and the crates docs/VERSIONS.md pins; nothing else.
+# fhir-types, the FHIR model, is Apache-2.0 and needs no entry.
 exceptions = [
   { allow = ["BUSL-1.1"], crate = "ferrochart" },
   { allow = ["BUSL-1.1"], crate = "ferrochart-form" },
