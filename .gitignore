@@ -44,3 +44,6 @@ corpus/archetypes/adl2/**/*.adls
 corpus/archetypes/adl2/**/*.adl
 corpus/archetypes/adl2/_repo_lib.idx
 corpus/archetypes/adl2/readme.txt
+
+# Staged from assets/brand/ by scripts/site/assemble.sh, never committed.
+website/book/theme/

@@ -37,7 +37,17 @@ readonly BRAND_FILES=(
   favicon.svg
   ferrochart-icon.svg
   ferrochart-social.png
+  tokens.css
 )
+
+# mdBook takes its tab icon from theme/favicon.svg and theme/favicon.png and
+# offers no path setting, so the two are staged from assets/brand/ here rather
+# than committed as a second copy of the mark. website/book/theme/ is ignored
+# by git for that reason, and `mdbook build` on its own falls back to mdBook's
+# default icon.
+mkdir -p website/book/theme
+cp "$BRAND/favicon.svg" website/book/theme/favicon.svg
+cp "$BRAND/favicon-32.png" website/book/theme/favicon.png
 
 mdbook build website/book
 
@@ -48,6 +58,11 @@ for f in "${BRAND_FILES[@]}"; do
   cp "$BRAND/$f" "$OUT/$BRAND/$f"
 done
 cp -R website/book/book/. "$OUT/docs/"
+
+# A client that finds no icon link asks for /favicon.ico at the site root, and
+# the book under /docs/ links only its own theme icons, so the .ico is served
+# from both places out of the one file in assets/brand/.
+cp "$BRAND/favicon.ico" "$OUT/favicon.ico"
 
 # GitHub Pages serves /404.html for a miss anywhere on the site, so the book's
 # 404 page is promoted to the root. Its asset paths are absolute under /docs/

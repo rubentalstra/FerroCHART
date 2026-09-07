@@ -71,6 +71,40 @@ ground gives 3.19 and is not.
 | `ferrochart-social.svg`, `ferrochart-social.png` | 1200x630 social card |
 | `tokens.css` | the palette as CSS custom properties |
 
+### Where each file is used
+
+`scripts/site/assemble.sh` names the files the published site needs, one by
+one, so a missing file fails the assembly instead of publishing a page with a
+broken mark. Nothing outside this directory holds a copy: the landing page
+links `tokens.css` rather than restating its hex values, and the book's
+`theme/favicon.svg` and `theme/favicon.png` are staged from here at assembly
+time and are not committed.
+
+| File | Used by |
+|---|---|
+| `favicon.svg`, `favicon-32.png`, `favicon-16.png` | the landing page's icon links, and the book's tab icon |
+| `favicon.ico` | served at `/favicon.ico`, for a client that asks for it directly |
+| `apple-touch-icon.png` | the landing page, for a page saved to a home screen |
+| `ferrochart-icon.svg` | the landing page header |
+| `ferrochart-social.png` | the landing page's `og:image` |
+| `tokens.css` | linked by the landing page ahead of its own stylesheet |
+| `ferrochart-lockup-auto.svg` | the repository README |
+
+Five files are used by nothing here, deliberately:
+
+- `ferrochart-icon-dark.svg` and `ferrochart-lockup-light.svg`,
+  `ferrochart-lockup-dark.svg` exist for a surface that cannot run a
+  `prefers-color-scheme` query. The auto lockup covers both themes on any
+  surface that can, which is every one this project publishes, so the fixed
+  pair is for a third-party listing, a slide, or a raster export.
+- `ferrochart-icon-mono.svg` is for a surface that recolours the mark from the
+  surrounding text.
+- `ferrochart-social.svg` is the editable master of `ferrochart-social.png`;
+  the raster is what a social card fetcher reads.
+
+The GitHub repository social preview is an owner setting rather than a file in
+the tree, so `ferrochart-social.png` is uploaded there by hand.
+
 ## Intrinsic size
 
 Every icon declares `width` and `height` of **512** beside its
