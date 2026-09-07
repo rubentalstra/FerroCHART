@@ -14,7 +14,6 @@
   setting, never a `CNAME` file
 - [Sibling projects](sibling-projects.md): FerroEHR at `../ferroehr` is the
   reference CDR, FerroTERM at `../FerroTERM` the reference terminology server,
-  FerroCKM at `../FerroCKM` governs the templates this project compiles,
   FerroBRIDGE at `../FerroBRIDGE` is where this configuration came from, and
   FerroHEALTH at `../FerroHEALTH` carries the brand; all are read-only from
   here

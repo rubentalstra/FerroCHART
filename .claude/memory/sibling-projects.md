@@ -20,10 +20,6 @@ others are checked out beside it on the owner's machine:
   **reference terminology server** for expanding the value sets behind coded
   fields, and the project this repository's working configuration descends
   from.
-- **FerroCKM** at `../FerroCKM`: the Clinical Knowledge Manager. It governs the
-  archetypes and operational templates that FerroCHART compiles, so it is
-  **upstream of this project in the modelling chain**, not a runtime
-  dependency. A template arrives here as a file.
 - **FerroBRIDGE** at `../FerroBRIDGE`: the openEHR to FHIR and OMOP bridge.
   This repository's `.claude/` configuration was copied from it on 2026-09-06
   and adapted, so it is the closest reference for how a rule here is meant to
