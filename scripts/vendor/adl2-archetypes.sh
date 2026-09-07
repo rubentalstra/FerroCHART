@@ -62,14 +62,12 @@ echo "   ADL 2: $adls, ADL 1.4 twins: $adl"
 
 echo "== writing $OUT/PROVENANCE.md"
 python3 - "$OUT" "$REPO" "$COMMIT" "$SUBDIR" <<'PY'
-import datetime
 import glob
 import os
 import re
 import sys
 
 out, repo, commit, subdir = sys.argv[1:5]
-now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def licence_of(path):
@@ -109,10 +107,21 @@ lines = [
     "# The ADL 2 archetype pack: provenance",
     "",
     f"Fetched from <https://github.com/{repo}>, directory `{subdir}`, at commit",
-    f"`{commit}`, by `scripts/vendor/adl2-archetypes.sh` on {now}.",
+    f"`{commit}`, by `scripts/vendor/adl2-archetypes.sh`.",
+    "",
+    "The pin is the commit. This file states no fetch time on purpose: a",
+    "timestamp would make a committed record go dirty every time anyone runs",
+    "the script, which trains a reader to ignore the diff.",
     "",
     "Upstream describes the tree as archetypes exported from the openEHR",
     "Clinical Knowledge Manager on 2013-12-09.",
+    "",
+    "**Every ADL 2 half declares `generated`** (openEHR AM Release-2.3.0",
+    "`ADL2.html` section 7.5, the generated indicator), so the pack is one",
+    "authoring plus a conversion rather than two independent authorings. That",
+    "bounds what a comparison across the pair can prove: agreement shows the",
+    "conversion preserved something, not that two people modelled the same",
+    "concept the same way. Issue #59 measured the consequences.",
     "",
     f"- ADL 2 archetypes (`*.adls`): {len(adls)}",
     f"- ADL 1.4 twins (`*.adl`): {len(adl)}",
