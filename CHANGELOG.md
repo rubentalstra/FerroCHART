@@ -29,6 +29,9 @@ the build order.
   the key alone, because a field's key step says `ELEMENT` while the field
   collects a `DV_*` class. Section 11 states where the line between
   `ferrochart-form` and `ferrochart-overlay` falls and why (#72).
+- The book covers what the overlay carries, why its geometry is a column grid,
+  and what a replay reports, and says which releases are published and what
+  the compiler measurably does.
 - The citation rule says that `docs/architecture.md` is citable, because it is
   the design of record and permanent, while a plan document is not. The rule
   banned "an internal markdown file" while justifying the ban with plan
