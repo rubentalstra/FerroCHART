@@ -10,10 +10,18 @@
 //! A form definition is a projection of an operational template, so the
 //! compiler decides everything the specifications govern and nothing else.
 //! What is left is the half a person does by hand: field order, grouping,
-//! labels, help text, defaults, conditional visibility and widget choice
-//! ([`mod@layout`]). openEHR publishes no form artefact and defines the
-//! semantics of no place a template could carry that work, so all of it is
-//! FerroCHART's own design.
+//! labels, help text, defaults, conditional visibility, widget choice, and
+//! where an item sits on its section's column grid ([`mod@layout`]). openEHR
+//! publishes no form artefact and defines the semantics of no place a template
+//! could carry that work, so all of it is FerroCHART's own design.
+//!
+//! # The geometry
+//!
+//! A section declares a column count and an item carries a span, a break and a
+//! width hint in character units. Nothing stores a row or a column index, so
+//! the visual order of a form is the source order of the overlay and a
+//! renderer narrows the grid without the overlay losing anything
+//! ([`mod@layout`], `docs/architecture.md` section 6.3).
 //!
 //! The overlay is stored apart from the definition and is never merged into
 //! it. That is what makes a recompile survivable: the template is revised, the
@@ -43,6 +51,7 @@
 //! report is the product: no implementation surveyed for this project says
 //! what a recompile did to hand-authored layout.
 
+pub mod advice;
 pub mod entry;
 pub mod error;
 mod index;

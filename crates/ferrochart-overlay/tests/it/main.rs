@@ -13,6 +13,7 @@
 )]
 
 mod corpus;
+mod geometry;
 mod replay;
 mod report;
 mod store;

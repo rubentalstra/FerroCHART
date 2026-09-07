@@ -9,7 +9,7 @@
 use ferrochart_form::ids::LanguageTag;
 use ferrochart_form::text::Localized;
 use ferrochart_overlay::layout::{Layout, Section, SectionId, Visibility, WidgetName};
-use ferrochart_overlay::store::{Author, Overlay, Placement, TemplateIdForm};
+use ferrochart_overlay::store::{Author, FORMAT_VERSION, Overlay, Placement, TemplateIdForm};
 
 use crate::support::{form, key_where, keys, tied_key};
 
@@ -57,10 +57,29 @@ fn the_reader_refuses_a_document_written_in_another_format_version() {
     let definition = form("aedes-indices-jm.opt");
     let overlay = Author::new(&definition).finish();
     let mut document = document_of(&overlay);
-    document["format_version"] = serde_json::json!(2);
+    let ahead = FORMAT_VERSION + 1;
+    document["format_version"] = serde_json::json!(ahead);
     let refused = read(&document).unwrap_err();
     assert!(
-        refused.to_string().contains("format version 2"),
+        refused
+            .to_string()
+            .contains(&format!("format version {ahead}")),
+        "{refused}"
+    );
+}
+
+#[test]
+fn the_reader_refuses_the_version_that_stored_no_geometry() {
+    // A section written before the column grid states no column count, and
+    // reading it as though the person had chosen one column is a decision they
+    // never made.
+    let definition = form("aedes-indices-jm.opt");
+    let overlay = Author::new(&definition).finish();
+    let mut document = document_of(&overlay);
+    document["format_version"] = serde_json::json!(1);
+    let refused = read(&document).unwrap_err();
+    assert!(
+        refused.to_string().contains("format version 1"),
         "{refused}"
     );
 }
@@ -235,7 +254,9 @@ fn an_entry_carries_the_key_the_anchor_and_the_layout_and_nothing_else() {
             "help",
             "default",
             "visibility",
-            "widget"
+            "widget",
+            "geometry",
+            "hints"
         ]
     );
 }
