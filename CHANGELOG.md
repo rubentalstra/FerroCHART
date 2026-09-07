@@ -21,6 +21,8 @@ the build order.
 
 ## [Unreleased]
 
+## [0.0.4] - 2026-09-07
+
 ### Added
 
 - Every icon the site should carry, from the one authority. `/favicon.ico` is
@@ -355,7 +357,8 @@ the build order.
   The configuration is FerroBRIDGE's, adapted from the FHIR and OMOP oracles to
   the openEHR Reference Model, the Archetype Object Model, ITS-REST, and AQL.
 
-[Unreleased]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.3...HEAD
+[Unreleased]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.4...HEAD
+[0.0.4]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/rubentalstra/FerroCHART/releases/tag/v0.0.1
