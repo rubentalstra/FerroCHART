@@ -35,3 +35,6 @@
   the orchestrator in one checkout corrupted a commit on 2026-09-06
 - [Memory lives in the repo](memory-lives-in-repo.md): every learning is a
   tracked file in `.claude/memory/`, never a per-user note
+- [No fifth sibling product](no-fifth-sibling-product.md): the family is four
+  products; a fifth clinical-knowledge name was an idea only and is never
+  written in this repository

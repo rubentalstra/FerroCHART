@@ -29,6 +29,9 @@ const OBSERVATION: &str = include_str!("../fixtures/ferro_test_observation.opt")
 const XSD_ONLY: &str = include_str!("../fixtures/ferro_xsd_only.opt");
 const ADL2_OBSERVATION: &str = include_str!("../fixtures/ferro_test_observation.v1.0.0.adls");
 const ADL2_EXTRAS: &str = include_str!("../fixtures/ferro_adl2_extras.v1.0.0.adls");
+const ADL2_UNIT_BOUNDS: &str = include_str!("../fixtures/ferro_adl2_unit_bounds.v1.0.0.adls");
+const MAGNITUDE_LIST: &str = include_str!("../fixtures/ferro_quantity_magnitude_list.opt");
+const ADL2_INTERVAL_BAND: &str = include_str!("../fixtures/ferro_adl2_interval_band.v1.0.0.adls");
 const UNMODELLED_ATTRIBUTE: &str = include_str!("../fixtures/ferro_unmodelled_attribute.opt");
 const UNMODELLED_DATA_VALUE: &str = include_str!("../fixtures/ferro_unmodelled_data_value.opt");
 
@@ -44,6 +47,11 @@ fn from_adl2(source: &str) -> FormDefinition {
 
 fn refusal(xml: &str) -> DeriveError {
     let template = adl14::from_xml(xml).expect("the fixture reads");
+    derive::form(&template).expect_err("the fixture is refused")
+}
+
+fn refusal_adl2(source: &str) -> DeriveError {
+    let template = adl2::from_source(source, &[]).expect("the fixture reads");
     derive::form(&template).expect_err("the fixture is refused")
 }
 
@@ -930,4 +938,67 @@ fn a_printed_key_tells_apart_every_key_that_does_not_match() {
         collisions.len(),
         collisions.join("\n  ")
     );
+}
+
+#[test]
+fn a_magnitude_stated_as_an_enumeration_is_refused() {
+    // openEHR RM Release-1.1.0 `data_types.html` section 6.2.8 gives one
+    // permitted unit one magnitude interval, so a `QuantityUnitOption` has
+    // nowhere to carry an enumeration. Reading only the range would leave the
+    // field admitting every magnitude the unit allows, which the template
+    // refuses (#86). ADL 1.4 states the enumeration: `C_REAL` carries a `list`
+    // beside its single `range` (openEHR AM Release-2.3.0 `AOM1.4.html`
+    // section 6.2.5).
+    match refusal(MAGNITUDE_LIST) {
+        DeriveError::UnrepresentableUnitBound {
+            attribute,
+            units,
+            found,
+            ..
+        } => {
+            assert_eq!(attribute, "magnitude");
+            assert_eq!(units, "mL");
+            assert_eq!(found, "an enumeration of 3 values");
+        }
+        other => panic!("the refusal is {other:?}"),
+    }
+}
+
+#[test]
+fn a_magnitude_stated_as_several_ranges_is_refused() {
+    // AOM 2 types `C_REAL.constraint` as a list of intervals (openEHR AM
+    // Release-2.3.0 `AOM2.html` section 4.5.15), so an ADL 2 archetype states
+    // the same overconstraint as several ranges, and a stated single value is
+    // one point interval. `QuantityUnitOption` carries one range, so more than
+    // one is refused rather than trimmed to the first (#86).
+    match refusal_adl2(ADL2_UNIT_BOUNDS) {
+        DeriveError::UnrepresentableUnitBound {
+            attribute,
+            units,
+            found,
+            ..
+        } => {
+            assert_eq!(attribute, "magnitude");
+            assert_eq!(units, "mL");
+            assert_eq!(found, "3 separate ranges");
+        }
+        other => panic!("the refusal is {other:?}"),
+    }
+}
+
+#[test]
+fn a_reference_band_on_an_interval_end_is_refused() {
+    // Both ends of a `DV_INTERVAL` are `DV_ORDERED` (openEHR RM Release-1.1.0
+    // `data_types.html` section 6.2.2), so an end may state a band.
+    // `IntervalField` has nowhere to put one, and it is refused rather than
+    // dropped (#87).
+    match refusal_adl2(ADL2_INTERVAL_BAND) {
+        DeriveError::UnmodelledAttribute {
+            rm_type, attribute, ..
+        } => {
+            assert_eq!(rm_type, "DV_COUNT");
+            assert_eq!(attribute, "normal_range");
+        }
+        other => panic!("the refusal is {other:?}"),
+    }
 }

@@ -101,6 +101,29 @@ pub enum DeriveError {
         expected: &'static str,
     },
 
+    /// A quantity constrains a magnitude or a precision in a way one unit
+    /// option cannot carry.
+    ///
+    /// openEHR AM Release-2.3.0 `AOM1.4.html` sections 6.2.4 and 6.2.5 give
+    /// `C_INTEGER` and `C_REAL` both a list and a range, and a
+    /// `C_QUANTITY_ITEM` carries one magnitude interval and one precision.
+    /// Reading the first range and dropping the rest would make the field
+    /// admit or refuse values the template does not, so it is refused.
+    #[error(
+        "{path} constrains the {attribute} of unit {units:?} as {found}, \
+         which one permitted unit cannot carry"
+    )]
+    UnrepresentableUnitBound {
+        /// Where the node sits in the template.
+        path: String,
+        /// `magnitude` or `precision`.
+        attribute: &'static str,
+        /// The unit the constraint sits under.
+        units: String,
+        /// What the template states, described.
+        found: String,
+    },
+
     /// A reference range whose interval never says what it is an interval of.
     ///
     /// openEHR RM Release-1.1.0 `data_types.html` section 6.2.2 types both

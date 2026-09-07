@@ -10,16 +10,23 @@ review, and editing.
 It runs as its own server beside any openEHR CDR, and uses any FHIR
 terminology server to expand the value sets behind coded fields.
 
-## There is no binary yet
+## Nothing renders a form yet
 
-This documents a design and the code being built against it. The design of
-record is [`docs/architecture.md`][arch] in the repository, where every
-decision carries a citation to a primary source or an explicit note that no
-specification governs it.
+The compiler works. It reads both ADL generations, and 121 of the 123
+committed CKM templates derive a form definition, 2658 fields across 1789
+groups. The overlay replays hand-authored layout onto a recompiled form and
+reports what changed. Releases publish binaries for four Linux targets and a
+container image.
 
-What exists today: the architecture, the Cargo workspace, the vendored
-template corpus, and the gates. What each release adds is the
-[build order](evaluate/build-order.md).
+What the binary does today is read its configuration, bind, and answer a
+health probe. There is no renderer, so no clinician sees a form; nothing
+builds a COMPOSITION or commits one to a CDR; there is no authoring surface
+for the layout; and no round trip has been proven against a running CDR. What
+each release adds is the [build order](evaluate/build-order.md).
+
+The design of record is [`docs/architecture.md`][arch] in the repository,
+where every decision carries a citation to a primary source or an explicit
+note that no specification governs it.
 
 ## Why it exists
 
