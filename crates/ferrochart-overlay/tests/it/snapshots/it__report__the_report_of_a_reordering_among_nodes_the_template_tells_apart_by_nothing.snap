@@ -9,18 +9,18 @@ The template identifier names no release, so which revision this is depends on w
 
 Needs a decision (1)
   reordered Weight, as recorded
-      at /[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-OBSERVATION.body_weight.v2]/data[at0002]/events[at0026]/data[at0001]
+      at /[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Infant clinical context', #5]/items[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Infant measurements', #2]/items[openEHR-EHR-OBSERVATION.body_weight.v2, OBSERVATION]/data[at0002, HISTORY]/events[at0026, POINT_EVENT, #1]/data[at0001, ITEM_TREE, 'Simple']
       This layout was placed by position among 2 lookalike nodes, and they are not the ones it was placed against. Confirm where it goes.
 
 No layout yet (147)
-  Ad hoc heading (/[openEHR-EHR-SECTION.adhoc.v1])
-  Biological donation summary (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.donation_summary.v0])
-  Item tree (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.donation_summary.v0]/data[at0001])
-  Per donation event (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.donation_summary.v0]/data[at0001]/items[at0005])
-  Donation date (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.donation_summary.v0]/data[at0001]/items[at0005]/items[at0007])
-  Item tree (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.donation_summary.v0]/protocol[at0010])
-  Food and nutrition summary (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0])
-  Tree (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0]/data[at0001])
-  Milk supply (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0]/data[at0001]/items[at0021])
-  Item tree (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0]/protocol[at0012])
+  Ad hoc heading (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context'])
+  Biological donation summary (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.donation_summary.v0, EVALUATION, 'Blood donation summary', #6])
+  Item tree (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.donation_summary.v0, EVALUATION, 'Blood donation summary', #6]/data[at0001, ITEM_TREE])
+  Per donation event (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.donation_summary.v0, EVALUATION, 'Blood donation summary', #6]/data[at0001, ITEM_TREE]/items[at0005, CLUSTER])
+  Donation date (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.donation_summary.v0, EVALUATION, 'Blood donation summary', #6]/data[at0001, ITEM_TREE]/items[at0005, CLUSTER]/items[at0007, ELEMENT])
+  Item tree (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.donation_summary.v0, EVALUATION, 'Blood donation summary', #6]/protocol[at0010, ITEM_TREE])
+  Food and nutrition summary (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0, EVALUATION, #4])
+  Tree (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0, EVALUATION, #4]/data[at0001, ITEM_TREE])
+  Milk supply (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0, EVALUATION, #4]/data[at0001, ITEM_TREE]/items[at0021, ELEMENT])
+  Item tree (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0, EVALUATION, #4]/protocol[at0012, ITEM_TREE])
   and 137 more nodes

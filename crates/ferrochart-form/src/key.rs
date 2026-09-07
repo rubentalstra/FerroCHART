@@ -30,7 +30,6 @@ pub struct KeyStep {
     pub node_id: Option<LocalCode>,
     /// The archetype this node is the root of, where it is one.
     pub archetype_id: Option<ArchetypeId>,
-    /// The Reference Model type the node constrains.
     /// The Reference Model class of the node this step names.
     ///
     /// This is the class the node IS, which for a leaf is `ELEMENT` rather
@@ -49,13 +48,31 @@ pub struct KeyStep {
 }
 
 impl fmt::Display for KeyStep {
+    /// Writes the step so that two steps which do not match never read alike.
+    ///
+    /// The shape follows the AQL node predicate, which spells an identifier
+    /// and a name together as `[at0001, 'Systolic']` (openEHR QUERY
+    /// Release-1.1.0 section 3.6.3). Every part that decides a match is
+    /// printed, because a person reading a replay report is being asked to act
+    /// on the difference between two keys: the identifier, the Reference Model
+    /// class, the pinned name where the template states one, and the ordinal
+    /// where the step is not the first of its tied siblings.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "/{}", self.rm_attribute)?;
+        f.write_str("[")?;
         match (self.archetype_id.as_ref(), self.node_id.as_ref()) {
-            (Some(archetype), _) => write!(f, "[{archetype}]"),
-            (None, Some(node)) => write!(f, "[{node}]"),
-            (None, None) => Ok(()),
+            (Some(archetype), _) => write!(f, "{archetype}, ")?,
+            (None, Some(node)) => write!(f, "{node}, ")?,
+            (None, None) => {}
         }
+        write!(f, "{}", self.rm_type)?;
+        if let Some(name) = self.pinned_name.as_deref() {
+            write!(f, ", '{name}'")?;
+        }
+        if self.sibling_ordinal > 0 {
+            write!(f, ", #{}", self.sibling_ordinal)?;
+        }
+        f.write_str("]")
     }
 }
 
@@ -137,7 +154,12 @@ mod tests {
         let key = NodeKey::root()
             .child(step("data", Some("at0001"), "ITEM_TREE"))
             .child(step("items", Some("at0002"), "ELEMENT"));
-        assert_eq!(key.to_string(), "/data[at0001]/items[at0002]");
+        // Every part that decides a match is printed (#83), so a person
+        // acting on a replay report sees the difference they are asked about.
+        assert_eq!(
+            key.to_string(),
+            "/data[at0001, ITEM_TREE]/items[at0002, ELEMENT]"
+        );
     }
 
     #[test]
@@ -146,7 +168,27 @@ mod tests {
         root.archetype_id = Some(ArchetypeId::new("openEHR-EHR-OBSERVATION.ferro_test.v1"));
         assert_eq!(
             NodeKey::root().child(root).to_string(),
-            "/content[openEHR-EHR-OBSERVATION.ferro_test.v1]"
+            "/content[openEHR-EHR-OBSERVATION.ferro_test.v1, OBSERVATION]"
+        );
+    }
+
+    #[test]
+    fn a_pinned_name_and_an_ordinal_reach_the_printed_key() {
+        // The two parts the old format dropped. A name separates 41.0% of
+        // colliding siblings and an ordinal is all that separates the 7.0%
+        // nothing else can (docs/architecture.md section 6.2).
+        let mut named = step("items", Some("at0001"), "CLUSTER");
+        named.pinned_name = Some("Systolic".to_owned());
+        assert_eq!(
+            NodeKey::root().child(named.clone()).to_string(),
+            "/items[at0001, CLUSTER, 'Systolic']"
+        );
+
+        let mut second = named;
+        second.sibling_ordinal = 1;
+        assert_eq!(
+            NodeKey::root().child(second).to_string(),
+            "/items[at0001, CLUSTER, 'Systolic', #1]"
         );
     }
 

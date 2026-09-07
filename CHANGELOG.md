@@ -65,6 +65,14 @@ the build order.
   171 entries match and the replay reports 7 moved, 164 disappeared and 181
   appeared rather than rebinding layout onto nodes that merely look similar.
   Every entry is still accounted for and every key still held.
+- A printed node key carries every part that decides whether it matches (#83):
+  the identifier, the Reference Model class, the pinned name and, where the
+  step is not the first of its tied siblings, the ordinal. The shape follows
+  the AQL node predicate. Before this, 40 distinct keys printed alike across
+  two real CKM entries while none of them matched, so a replay report could
+  show a person the same string twice and ask them to decide between them. A
+  test over the whole corpus asserts that two keys printing alike are the same
+  key.
 - The layout overlay and its store (#19), in `ferrochart-overlay`. An overlay
   carries what no specification governs: field order, authored sections,
   labels, help text, defaults, conditional visibility and widget choice. It is
