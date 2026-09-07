@@ -10,7 +10,7 @@
 //! Anything a key cannot tell apart shows here as an entry needing a
 //! decision rather than as layout bound to the wrong node.
 
-use ferrochart_overlay::layout::Layout;
+use ferrochart_form::layout::Layout;
 use ferrochart_overlay::replay::replay;
 use ferrochart_overlay::store::{Author, Placement};
 

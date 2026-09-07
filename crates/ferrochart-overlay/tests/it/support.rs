@@ -18,7 +18,7 @@ use ferrochart_form::definition::FormDefinition;
 use ferrochart_form::group::{FormGroup, FormItem};
 use ferrochart_form::ids::RmTypeName;
 use ferrochart_form::key::{KeyStep, NodeKey};
-use ferrochart_overlay::layout::Layout;
+use ferrochart_form::layout::Layout;
 use ferrochart_overlay::store::{Author, Placement};
 
 /// The committed CKM operational template pack.

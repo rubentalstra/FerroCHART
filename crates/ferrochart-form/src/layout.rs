@@ -19,11 +19,12 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::num::{NonZeroU8, NonZeroU16};
 
-use ferrochart_form::key::NodeKey;
-use ferrochart_form::text::Localized;
-use ferrochart_form::value::Prefill;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+
+use crate::key::NodeKey;
+use crate::text::Localized;
+use crate::value::Prefill;
 
 /// What names one authored section.
 ///
@@ -565,10 +566,21 @@ impl Layout {
 
 #[cfg(test)]
 mod tests {
-    use ferrochart_form::ids::{RmAttributeName, RmTypeName};
-    use ferrochart_form::key::{KeyStep, NodeKey};
+    use super::{
+        CharacterWidth, ColumnCount, ColumnSpan, Condition, Geometry, Layout, Section, SectionId,
+        Visibility,
+    };
+    use crate::ids::{RmAttributeName, RmTypeName};
+    use crate::key::{KeyStep, NodeKey};
+    use crate::text::Localized;
 
-    use super::{Condition, Layout, Visibility};
+    fn columns(count: u8) -> ColumnCount {
+        ColumnCount::try_from(count).unwrap()
+    }
+
+    fn span(count: u8) -> ColumnSpan {
+        ColumnSpan::try_from(count).unwrap()
+    }
 
     fn key(attribute: &str) -> NodeKey {
         NodeKey::root().child(KeyStep {
@@ -610,5 +622,50 @@ mod tests {
             .map(ToString::to_string)
             .collect();
         assert_eq!(read, ["/a", "/b", "/c"]);
+    }
+
+    #[test]
+    fn a_section_that_declares_nothing_is_one_column() {
+        let section = Section::new(SectionId::new("counts"), Localized::empty());
+        assert_eq!(section.columns, ColumnCount::ONE);
+        assert_eq!(section.columns.get(), 1);
+        assert!(!section.columns.is_crowded());
+    }
+
+    #[test]
+    fn a_column_count_outside_one_to_twelve_is_not_representable() {
+        assert!(ColumnCount::try_from(0).is_err());
+        assert!(ColumnCount::try_from(13).is_err());
+        assert_eq!(columns(1), ColumnCount::ONE);
+        assert_eq!(columns(12).get(), 12);
+        let refused = ColumnCount::try_from(13).unwrap_err();
+        assert!(refused.to_string().contains("1 to 12 columns"), "{refused}");
+        assert!(ColumnSpan::try_from(0).is_err());
+        assert!(ColumnSpan::try_from(13).is_err());
+        assert!(CharacterWidth::try_from(0).is_err());
+    }
+
+    #[test]
+    fn an_item_that_asks_for_nothing_takes_its_sections_full_width() {
+        let geometry = Geometry::default();
+        assert!(geometry.is_empty());
+        assert_eq!(geometry.span, None);
+        assert_eq!(geometry.span_in(ColumnCount::ONE), ColumnSpan::ONE);
+        assert_eq!(geometry.span_in(columns(4)).get(), 4);
+    }
+
+    #[test]
+    fn a_stated_span_is_clamped_by_a_narrower_grid_and_nothing_stored_is_lost() {
+        let geometry = Geometry {
+            span: Some(span(6)),
+            ..Geometry::default()
+        };
+        assert_eq!(geometry.span_in(columns(12)).get(), 6);
+        assert_eq!(geometry.span_in(columns(3)).get(), 3);
+        assert_eq!(
+            geometry.span,
+            Some(span(6)),
+            "clamping is the renderer's, so nothing stored is discarded"
+        );
     }
 }

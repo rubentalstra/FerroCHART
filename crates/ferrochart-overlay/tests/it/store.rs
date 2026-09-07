@@ -7,8 +7,8 @@
 //! authored here is synthetic content invented for the test.
 
 use ferrochart_form::ids::LanguageTag;
+use ferrochart_form::layout::{Layout, Section, SectionId, Visibility, WidgetName};
 use ferrochart_form::text::Localized;
-use ferrochart_overlay::layout::{Layout, Section, SectionId, Visibility, WidgetName};
 use ferrochart_overlay::store::{Author, FORMAT_VERSION, Overlay, Placement, TemplateIdForm};
 
 use crate::support::{form, key_where, keys, tied_key};

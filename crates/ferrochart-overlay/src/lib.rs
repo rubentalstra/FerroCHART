@@ -11,17 +11,26 @@
 //! compiler decides everything the specifications govern and nothing else.
 //! What is left is the half a person does by hand: field order, grouping,
 //! labels, help text, defaults, conditional visibility, widget choice, and
-//! where an item sits on its section's column grid ([`mod@layout`]). openEHR
-//! publishes no form artefact and defines the semantics of no place a template
-//! could carry that work, so all of it is FerroCHART's own design.
+//! where an item sits on its section's column grid. openEHR publishes no form
+//! artefact and defines the semantics of no place a template could carry that
+//! work, so all of it is FerroCHART's own design.
 //!
-//! # The geometry
+//! # What this crate owns, and what it does not
 //!
-//! A section declares a column count and an item carries a span, a break and a
-//! width hint in character units. Nothing stores a row or a column index, so
-//! the visual order of a form is the source order of the overlay and a
-//! renderer narrows the grid without the overlay losing anything
-//! ([`mod@layout`], `docs/architecture.md` section 6.3).
+//! It owns the machinery: the stored document, the authoring session that keys
+//! an entry against one definition, the replay, and the report a template
+//! revision produces. All of it reads and writes files or compares two
+//! definitions.
+//!
+//! It owns none of the layout types. [`ferrochart_form::layout`] holds
+//! [`ferrochart_form::layout::Layout`], [`ferrochart_form::layout::Section`]
+//! and the column grid of `docs/architecture.md` section 6.3, because a
+//! renderer applies a layout and has no business with anything in the
+//! paragraph above. That keeps a renderer on `ferrochart-form` alone, which is
+//! what makes the form definition a contract a third party implements rather
+//! than a crate graph they adopt (`docs/architecture.md` section 11). Nothing
+//! here is re-exported: a caller that needs a layout type names the crate that
+//! defines it.
 //!
 //! The overlay is stored apart from the definition and is never merged into
 //! it. That is what makes a recompile survivable: the template is revised, the
@@ -55,6 +64,5 @@ pub mod advice;
 pub mod entry;
 pub mod error;
 mod index;
-pub mod layout;
 pub mod replay;
 pub mod store;
