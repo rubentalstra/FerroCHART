@@ -530,6 +530,14 @@ the classification is the feature:
 Nothing is discarded. An unmatched entry is retained against its old key so a
 later revision that restores the node restores its layout.
 
+Geometry is reported beside that classification rather than inside it. A span
+that no longer fits the section it sits in, and an entry whose section a person
+dropped, are carried per entry as advisories, because either fact can hold
+whatever the key resolved to and a class of its own would force a choice
+between the two for an entry that has both. A section declared wider than four
+columns is reported the same way, at the moment it is declared and again in
+every replay.
+
 ## 7. Terminology
 
 A coded field needs its permitted codes, and where they come from is decided

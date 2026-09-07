@@ -49,6 +49,22 @@ the build order.
   of the 4,447 nodes of the committed pack and replaying it comes back fully
   matched, and the 102 nodes in 4 templates that no key can tell apart are
   reported rather than guessed at.
+- The overlay's geometry (#69), a column grid that stores no coordinate. A
+  section declares a column count of 1 to 12, and an item carries a span, a
+  break-before flag and a width hint in character units. Nothing stores a row
+  or a column index: an item's place is the sibling order the overlay already
+  carries plus its span and break, so the visual order of a form equals its
+  source order by construction, which is what W3C WCAG 2.2 success criterion
+  1.3.2 asks for. A span wider than its section is refused naming both
+  numbers, a section wider than four columns is stored and advised against,
+  and a renderer clamps a span to a narrower grid rather than the overlay
+  dropping it, so one authored form serves a ward-round tablet and a desk. A
+  per-item hint map carries what the grid cannot express, uninterpreted and
+  outside the clean-replay guarantee. A replay reports what became of the
+  geometry beside what became of the key: a span that no longer fits the
+  section it lands in, and an entry whose section was dropped. The overlay
+  format version is 2, and version 1 is refused rather than read as a form
+  whose author chose one column.
 
 ## [0.0.3] - 2026-09-07
 
