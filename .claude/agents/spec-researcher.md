@@ -55,10 +55,14 @@ design fills a silence, and for this project those silences are large. Layout,
 field ordering, and everything a form author edits by hand are governed by no
 specification at all.
 
-The Better web template JSON and the flat composition format are de facto
-formats, not specifications. Where a question is really about one of them, say
-so, answer from the published implementations, and label the answer as
-compatibility evidence rather than a conformance requirement.
+The Better web template JSON is a compatibility target. No openEHR
+specification defines it, and `simplified_formats.html` §2.2 says as much by
+putting "Web Template itself as a resource" outside its scope. Where a question
+is really about the web template, say so, answer from the published
+implementations, and label the answer as compatibility evidence rather than a
+conformance requirement. The FLAT and structured formats are different:
+ITS-REST Release-1.1.0 `simplified_formats.html` is STABLE and specifies them,
+so answer from that document and cite its section.
 
 Method:
 
