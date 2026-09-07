@@ -36,7 +36,7 @@ fn templates() -> Vec<PathBuf> {
 }
 
 /// The form every committed template derives to.
-fn forms() -> Vec<(PathBuf, FormDefinition)> {
+pub(crate) fn forms() -> Vec<(PathBuf, FormDefinition)> {
     templates()
         .into_iter()
         .filter_map(|path| {
@@ -49,7 +49,7 @@ fn forms() -> Vec<(PathBuf, FormDefinition)> {
 }
 
 /// A session's worth of the values a form never carries.
-fn envelope() -> Envelope {
+pub(crate) fn envelope() -> Envelope {
     Envelope {
         language: "en".to_owned(),
         territory: "NL".to_owned(),
@@ -199,7 +199,10 @@ fn a_category_outside_the_openehr_group_is_refused() {
     // the one the Reference Model prose leaves out. A list of three would
     // refuse a document the specification permits, so the test pins both
     // directions.
-    let Some((_, form)) = forms().into_iter().next() else {
+    let Some((_, form)) = forms()
+        .into_iter()
+        .find(|(_, form)| build::composition(form, &filler::fill(form), &envelope()).is_ok())
+    else {
         return;
     };
 

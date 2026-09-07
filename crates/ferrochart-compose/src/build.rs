@@ -13,7 +13,7 @@
 
 use ferrochart_form::definition::FormDefinition;
 use ferrochart_form::field::FormField;
-use ferrochart_form::group::FormGroup;
+use ferrochart_form::group::{FormGroup, FormItem};
 use ferrochart_form::ids::LanguageTag;
 use ferrochart_form::key::NodeKey;
 use openehr_base::containers::NonEmptyVec;
@@ -32,7 +32,7 @@ use crate::datum;
 use crate::envelope::{Composer, Envelope, OPENEHR, RM_VERSION, code_phrase};
 use crate::error::BuildError;
 use crate::tree;
-use crate::values::{Entered, FormValues};
+use crate::values::{Datum, Entered, FormValues};
 
 /// The four codes the openEHR `null flavours` group carries.
 ///
@@ -75,7 +75,14 @@ pub fn composition(
 ) -> Result<Composition, BuildError> {
     let language = &definition.default_language;
     let root = &definition.root;
-    let category = category_of(envelope)?;
+    // Where the template constrains `category`, the form carries a field for
+    // it and what was entered there wins: the envelope's value is the
+    // configured default for a template that says nothing. All 10 of the
+    // COMPOSITION-rooted templates in the committed pack constrain it.
+    let category = match entered_category(root, values) {
+        Some((code, rubric)) => checked_category(&code, &rubric)?,
+        None => category_of(envelope)?,
+    };
 
     // A template rooted at COMPOSITION carries its own envelope nodes, so the
     // root group is the composition. 113 of the 123 committed templates root
@@ -135,19 +142,44 @@ fn event_context(envelope: &Envelope) -> Option<EventContext> {
 
 /// The `category` an envelope names, checked against the openEHR group.
 fn category_of(envelope: &Envelope) -> Result<DvCodedText, BuildError> {
-    if !CATEGORIES
-        .iter()
-        .any(|&(code, _)| code == envelope.category)
-    {
+    checked_category(&envelope.category, &envelope.category_rubric)
+}
+
+/// A `category` checked against the openEHR `composition category` group.
+fn checked_category(code: &str, rubric: &str) -> Result<DvCodedText, BuildError> {
+    if !CATEGORIES.iter().any(|&(known, _)| known == code) {
         return Err(BuildError::UnknownCategory {
-            code: envelope.category.clone(),
+            code: code.to_owned(),
         });
     }
-    Ok(coded(
-        OPENEHR,
-        &envelope.category,
-        &envelope.category_rubric,
-    ))
+    Ok(coded(OPENEHR, code, rubric))
+}
+
+/// The category the form carries, where it carries one and it was entered.
+pub(crate) fn category_field(root: &FormGroup) -> Option<&FormField> {
+    root.items.iter().find_map(|item| {
+        let FormItem::Field(ref field) = *item else {
+            return None;
+        };
+        field
+            .key
+            .terminal()
+            .is_some_and(|step| step.rm_attribute.as_str() == "category")
+            .then_some(&**field)
+    })
+}
+
+/// The code and rubric entered against the form's `category` field.
+fn entered_category(root: &FormGroup, values: &FormValues) -> Option<(String, String)> {
+    let field = category_field(root)?;
+    match *values.get(&field.key)? {
+        Entered::Value(Datum::Coded {
+            ref code,
+            ref rubric,
+            ..
+        }) => Some((code.clone(), rubric.clone())),
+        _ => None,
+    }
 }
 
 /// The `composer`, which is always sent.
