@@ -78,6 +78,47 @@ pub enum DeriveError {
         rows: usize,
     },
 
+    /// A reference-range attribute of a `DV_ORDERED` carries a value shape
+    /// the Reference Model does not give it.
+    ///
+    /// openEHR RM Release-1.1.0 `data_types.html` section 6.2.1 types
+    /// `normal_status` as a `CODE_PHRASE` and `normal_range` as a
+    /// `DV_INTERVAL`, and section 6.2.3 types `REFERENCE_RANGE.meaning` as a
+    /// `DV_TEXT`. Showing something else beside the value would report a band
+    /// the template never stated.
+    #[error(
+        "{path} states {attribute} as a {found} value, \
+         and the Reference Model types it as {expected}"
+    )]
+    MetadataShape {
+        /// Where the node sits in the template.
+        path: String,
+        /// The reference-range attribute the template states.
+        attribute: &'static str,
+        /// What the template states it as, by the field kind's own name.
+        found: &'static str,
+        /// What the Reference Model types it as.
+        expected: &'static str,
+    },
+
+    /// A reference range whose interval never says what it is an interval of.
+    ///
+    /// openEHR RM Release-1.1.0 `data_types.html` section 6.2.2 types both
+    /// ends of a `DV_INTERVAL` as the same `DV_ORDERED` descendant, and a
+    /// template that names neither the type parameter nor either end has not
+    /// said which. There is no band to show, and reporting the field without
+    /// it would hide a range the template does state.
+    #[error(
+        "{path} states {attribute} as an interval and never says what it is an interval of, \
+         so there is no range to show beside the value"
+    )]
+    UntypedMetadataRange {
+        /// Where the node sits in the template.
+        path: String,
+        /// The reference-range attribute the template states.
+        attribute: &'static str,
+    },
+
     /// The template root is not something a form can be rooted in.
     #[error("the template root at {path} constrains {rm_type}, which is not a form group")]
     RootIsNotAGroup {
