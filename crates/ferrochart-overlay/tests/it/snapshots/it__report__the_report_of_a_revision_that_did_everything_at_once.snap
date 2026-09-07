@@ -1,0 +1,28 @@
+---
+source: crates/ferrochart-overlay/tests/it/report.rs
+expression: "replay(&overlay, &revised).to_string()"
+---
+Layout replay for template "Aedes indices - JM"
+The template identifier names no release, so which revision this is depends on what the server held.
+8 authored entries: 4 kept, 3 needing a decision, 1 no longer in the form.
+1 node with no layout yet.
+
+Needs a decision (3)
+  retyped Breteau index (BI)
+      at /[openEHR-EHR-OBSERVATION.aedes_indices.v0]/data[at0001]/events[at0002]/data[at0003]/items[at0006]
+      The node collects DV_CODED_TEXT where it collected DV_PROPORTION, so this layout may no longer mean anything.
+  moved Container index (CI)
+      was /[openEHR-EHR-OBSERVATION.aedes_indices.v0]/data[at0001]/events[at0002]/data[at0003]/items[at0008]
+      now /[openEHR-EHR-OBSERVATION.aedes_indices.v0]/items[at0008]
+      One node elsewhere carries the same node id and class. Accept the move to take the layout there.
+  ambiguous ITEM_TREE
+      at /[openEHR-EHR-OBSERVATION.aedes_indices.v0]/protocol[at0005]
+      2 nodes carry this key and the template tells them apart by nothing. Choose the one this layout belongs to.
+
+No longer in the form (1), kept in case a later revision brings them back
+  /[openEHR-EHR-OBSERVATION.aedes_indices.v0]/data[at0001]/events[at0002]/data[at0003]/items[at0007]
+
+Kept, nothing to do (4)
+
+No layout yet (1)
+  Location category (/[openEHR-EHR-OBSERVATION.aedes_indices.v0]/data[at0001]/events[at0002]/data[at0003]/items[at0004])

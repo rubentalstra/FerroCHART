@@ -1,0 +1,26 @@
+---
+source: crates/ferrochart-overlay/tests/it/report.rs
+expression: "replay(&overlay, &revised).to_string()"
+---
+Layout replay for template "Clinical context - JM"
+The template identifier names no release, so which revision this is depends on what the server held.
+1 authored entry: 0 kept, 1 needing a decision, 0 no longer in the form.
+147 nodes with no layout yet.
+
+Needs a decision (1)
+  reordered Weight, as recorded
+      at /[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-OBSERVATION.body_weight.v2]/data[at0002]/events[at0026]/data[at0001]
+      This layout was placed by position among 2 lookalike nodes, and they are not the ones it was placed against. Confirm where it goes.
+
+No layout yet (147)
+  Ad hoc heading (/[openEHR-EHR-SECTION.adhoc.v1])
+  Biological donation summary (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.donation_summary.v0])
+  Item tree (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.donation_summary.v0]/data[at0001])
+  Per donation event (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.donation_summary.v0]/data[at0001]/items[at0005])
+  Donation date (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.donation_summary.v0]/data[at0001]/items[at0005]/items[at0007])
+  Item tree (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.donation_summary.v0]/protocol[at0010])
+  Food and nutrition summary (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0])
+  Tree (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0]/data[at0001])
+  Milk supply (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0]/data[at0001]/items[at0021])
+  Item tree (/[openEHR-EHR-SECTION.adhoc.v1]/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0]/protocol[at0012])
+  and 137 more nodes
