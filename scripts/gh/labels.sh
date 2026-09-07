@@ -58,7 +58,7 @@ label spec:AM          1d76db "The Archetype Object Model, ADL, and operational 
 label spec:ITS-REST    5319e7 "The openEHR ITS-REST wire into a CDR."
 label spec:AQL         b60205 "AQL: the read-back path that fills a form from stored data."
 label spec:terminology 0e8a16 "Value set expansion and code validation."
-label compat           bfd4f2 "The de facto web template and flat formats: compatibility, never conformance."
+label compat           bfd4f2 "The web template compatibility surface, and the FLAT and structured formats."
 label ux               fef2c0 "The form authoring and rendering surface."
 
 echo "== workflow and meta labels =="

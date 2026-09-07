@@ -53,9 +53,12 @@ that runs them.
 - **The openEHR ITS-REST specification** is the authority for every call
   FerroCHART makes into a CDR, including the status codes and headers it must
   handle, and **AQL** for every read-back query.
-- **The de facto formats are compatibility targets, not oracles.** A test that
-  pins web-template or flat-format output says so in its name and its comment,
-  so a later reader does not read it as a conformance assertion.
+- **A format test says which kind of test it is.** The web template is a
+  compatibility target, so a test pinning web-template output says so in its
+  name and its comment, and a later reader does not read it as a conformance
+  assertion. The FLAT and structured formats are specified by ITS-REST
+  Release-1.1.0 `simplified_formats.html`, so a test pinning either IS a
+  conformance assertion and names the section it pins.
 - **FerroEHR is the reference CDR and FerroTERM the reference terminology
   server** for end-to-end runs. Both are prior art and reference deployments,
   never the oracle: where a reference server and the specification disagree,

@@ -24,7 +24,8 @@ behaviour alone (`.claude/rules/spec-adherence.md`).
 | a call into an openEHR CDR, its status codes, headers, or error bodies | the openEHR ITS-REST specification |
 | a read-back query that fills a form from stored data | the AQL specification |
 | expanding or validating an external value set | the HL7 FHIR terminology service API |
-| the web template JSON or the flat composition format | no specification: the published implementations, cited as compatibility evidence |
+| the FLAT or structured JSON format: media types, field identifiers, level removal, the RM mapping | ITS-REST Release-1.1.0 `simplified_formats.html` (STABLE) |
+| the web template JSON | no specification: the published implementations, cited as compatibility evidence |
 
 Within a surface, the normative class definition outranks a remembered summary,
 and the surrounding prose gives it meaning. Read both where both exist. Where

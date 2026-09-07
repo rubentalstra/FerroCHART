@@ -55,6 +55,24 @@ the build order.
   line is left alone: FerroCHART is a client of a terminology server rather
   than one. `docs/architecture.md` section 7.3 records both decisions.
 
+### Changed
+
+- The hard rule about the non-canonical formats now names the two of them
+  separately, because openEHR only specified one (#104). ITS-REST
+  Release-1.1.0 publishes `simplified_formats.html`, "Simplified Formats for
+  openEHR Data", in the STABLE state, so that document is the authority for
+  the FLAT and structured formats: their media types (section 2.3), their
+  field identifiers (section 4.2), level removal (section 4.6), the `|other`
+  suffix (section 4.7), and the Reference Model mapping class by class
+  (section 5). The web template stays a compatibility target, on the same
+  document's word: section 2.2 puts "Web Template itself as a resource" under
+  what the specification does not cover. Where the Reference Model and
+  `simplified_formats.html` disagree, no specification settles it, so the two
+  divide by subject and a real contradiction is filed upstream.
+  `CLAUDE.md`, `.claude/rules/spec-adherence.md`, `.claude/rules/testing.md`,
+  the `spec-researcher` agent, the `/spec-lookup` skill, the contributor book
+  and the `compat` label all carry the corrected split.
+
 ## [0.0.4] - 2026-09-07
 
 ### Added

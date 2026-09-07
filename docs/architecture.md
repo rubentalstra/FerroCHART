@@ -808,13 +808,13 @@ document to guarantee it.
 
 **The web template is a compatibility target. FLAT and structured no longer
 are.** ITS-REST Release-1.1.0 publishes `simplified_formats.html`, "Simplified
-Formats for openEHR Data", in the STABLE state, with the field-identifier
-generation rules and the Reference Model mapping both normative. Its section
-2.2 puts "Web Template itself as a resource" under what the specification does
-not cover, so the web template keeps the compatibility-target framing and the
-`// NOTE:` that goes with it, and the other two lose it. The hard rule in
-`CLAUDE.md` and `.claude/rules/spec-adherence.md` still says all three are
-compatibility targets and is corrected by #104.
+Formats for openEHR Data", in the STABLE state, and it specifies the
+field-identifier generation rules (section 4.2) and the Reference Model mapping
+(section 5). Its section 2.2 puts "Web Template itself as a resource" under
+what the specification does not cover, so the web template keeps the
+compatibility-target framing and the `// NOTE:` that goes with it, and the
+other two lose it. The hard rule in `CLAUDE.md` and
+`.claude/rules/spec-adherence.md` carries the same split (#104).
 
 **Nothing in the client absorbs an upstream failure.** A refusal, a timeout or
 a partial write is a typed error carrying the upstream status and body.

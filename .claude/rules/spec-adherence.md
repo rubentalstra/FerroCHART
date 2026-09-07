@@ -10,7 +10,7 @@ paths: ["**/*.rs", "scripts/**", "docs/**"]
 The conformance authority for this project is the published specifications, not
 another implementation, not memory, not intuition. FerroCHART compiles an
 openEHR operational template into a form, and turns what a person types back
-into a COMPOSITION, so it answers to six sources:
+into a COMPOSITION, so it answers to seven sources:
 
 1. **The openEHR Reference Model**
    (<https://specifications.openehr.org/releases/RM/latest/>): every data type
@@ -33,6 +33,12 @@ into a COMPOSITION, so it answers to six sources:
    (<https://hl7.org/fhir/terminology-service.html>): the expand and
    validate-code operations, used for external value sets. FerroTERM is the
    reference server for this, never the authority for it.
+7. **Simplified Formats for openEHR Data**
+   (<https://specifications.openehr.org/releases/ITS-REST/Release-1.1.0/simplified_formats.html>),
+   a component document of the ITS-REST release above: the FLAT and structured
+   JSON formats. It covers the two media types, the field identifiers, level
+   removal, the `|other` suffix, and the mapping of each Reference Model class
+   into the formats. It does not cover the web template.
 
 The precise release of each, and which parts are vendored in-tree, are output
 of the research on issue #1. Once versions are pinned, the machine-readable
@@ -40,16 +46,51 @@ artifacts are vendored under `docs/specs/` or a codegen vendor directory with a
 `PROVENANCE.md` per tree (`vendored-inputs.md`), and this file gains the exact
 paths. Until then, read the published sources at the URLs above and cite them.
 
-## The de facto formats are not specifications
+## The web template and the Simplified Formats have different status
 
-The Better web template JSON and the flat composition format are the formats
-the openEHR tooling world already reads and writes, and FerroCHART is expected
-to interoperate with both. Neither is a published openEHR specification. Say so
-every time one is named: they are compatibility targets, established by
-observation of the published implementations, and where one disagrees with the
-Reference Model the Reference Model wins. A behaviour that exists only to match
-one of them carries a `// NOTE:` saying that, so a later reader does not mistake
-it for a conformance requirement.
+FerroCHART reads and writes two format families beside the canonical
+serialisations, and openEHR treats them differently. Get the status right
+before citing either, because it decides what wins in a disagreement.
+
+**The Simplified Formats are specified.** openEHR ITS-REST Release-1.1.0
+publishes `simplified_formats.html`, "Simplified Formats for openEHR Data", and
+its §1.2 puts the document in the STABLE state. §1.4 says that with the
+openEHR REST API "the available calls to be conformance tested are the same as
+for other openEHR serialisation formats (canonical JSON etc), with a different
+representation format indicated by setting the appropriate Content-Type HTTP
+header". §2.3 defines the two media types, `application/openehr.wt.flat+json`
+and `application/openehr.wt.structured+json`. The document then specifies the
+field identifiers (§4.2: node-id generation, path construction, instance
+indexing, attribute suffixes, and the underscore prefix for RM attributes not
+in the template), level removal (§4.6), the `|other` suffix for an open value
+set (§4.7), and the Reference Model mapping class by class (§5, COMPOSITION
+through ELEMENT and CLUSTER). **It is the authority for the FLAT and structured
+mappings.** Answer a question about either format from it, cite the section,
+and never settle one by observing what EHRbase or Better does.
+
+**The web template is a compatibility target.** No openEHR specification
+defines the document. `simplified_formats.html` §2.2 lists "Web Template itself
+as a resource" under what the specification does not cover, and §4.1 adds that
+"Specification of Web Template metadata is separate from the data serialization
+format described in this specification". ITS-REST registers the media type
+`application/openehr.wt+json` and an endpoint that delivers one
+(`definition.html`), and stops there. So the format is established by
+observation of the published implementations, **the Reference Model is the
+authority** where the two disagree, and a behaviour that exists only to match
+an implementation carries a `// NOTE:` saying that, so a later reader does not
+mistake it for a conformance requirement.
+
+**Where `simplified_formats.html` and the Reference Model disagree, the
+specification does not settle it.** The document positions itself as a
+serialisation of Reference Model data (§2.4: serialized instances "represent
+valid RM structures (e.g. COMPOSITION)"; §3.4.3 requires that "all clinical
+semantics from the original archetype and template constraints are
+preserved"), and it states no precedence rule for a contradiction. So the two
+divide by subject: the Reference Model decides what a value is, and
+`simplified_formats.html` decides how that value is spelled in FLAT or
+structured. A genuine contradiction between them is an upstream defect, filed
+as an `upstream-report` issue with both citations, never resolved silently in
+favour of whichever reading is convenient.
 
 ## Hard rules
 
@@ -85,7 +126,7 @@ it for a conformance requirement.
   and section in the commit or PR description. A deliberate deviation or gap
   gets a `// NOTE:` with the reference and the reason.
 - **Cite ONLY durable references.** In code, doc comments, and findings,
-  justify behaviour by citing one of the six sources above, official external
+  justify behaviour by citing one of the seven sources above, official external
   documentation (the Rust book and reference, a pinned crate's docs.rs page),
   or `docs/architecture.md`. The architecture is citable because it is the
   design of record and permanent, and because the decisions it holds are the
@@ -130,8 +171,8 @@ the CDR accepting it. Test the round trip, never one leg of it.
 
 The strongest temptation is to state a technical fact about openEHR from
 memory. Do not. Every claim about the Reference Model, the Archetype Object
-Model, ITS-REST, AQL, or a de facto format that appears in this repository is
-one the product statement in `CLAUDE.md` already makes, or one
-`docs/architecture.md` has established with a citation. Anything else is a
+Model, ITS-REST, AQL, the Simplified Formats, or the web template that appears
+in this repository is one the product statement in `CLAUDE.md` already makes,
+or one `docs/architecture.md` has established with a citation. Anything else is a
 question to answer with the specification in front of you, not a sentence in a
 file.
