@@ -23,6 +23,12 @@ the build order.
 
 ### Added
 
+- Every icon the site should carry, from the one authority. `/favicon.ico` is
+  served at the site root for a client that asks for it directly, the landing
+  page links the brand palette instead of restating its hex values, and the
+  book's tab icons are staged from `assets/brand/` at assembly time rather than
+  committed as a second copy. `assets/brand/README.md` records where each file
+  is used, and why five of them are deliberately used by nothing (#94).
 - A field carries the reference bands its template states beside the value
   (#52). openEHR RM Release-1.1.0 `data_types.html` section 6.2.1 gives every
   `DV_ORDERED` a `normal_status`, a `normal_range` and

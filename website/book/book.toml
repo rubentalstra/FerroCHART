@@ -13,8 +13,10 @@ build-dir = "book"
 
 [output.html]
 # The tab icon is a theme override: mdBook copies theme/favicon.svg and
-# theme/favicon.png into the build output and links them from every page. Both
-# come from assets/brand (assets/brand/README.md).
+# theme/favicon.png into the build output and links them from every page.
+# scripts/site/assemble.sh stages both from assets/brand/ before it builds, so
+# neither is committed and the brand directory stays the one authority
+# (assets/brand/README.md).
 #
 # The book is published under /docs/, with the landing page at the site root
 # (scripts/site/assemble.sh). site-url makes the book's asset, search index,
