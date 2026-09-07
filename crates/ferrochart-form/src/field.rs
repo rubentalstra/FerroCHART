@@ -42,6 +42,14 @@ pub struct FormField {
     /// The constraint on the node's Reference Model name, where the template
     /// leaves the name open.
     pub name_constraint: Option<NameConstraint>,
+    /// The reference bands shown beside the value, where the template states
+    /// any.
+    ///
+    /// `None` where it states none, and `None` on a field whose kind is a
+    /// [`ChoiceField`]: each alternative of a choice is a data value of its
+    /// own, so its bands sit on [`ChoiceAlternative::reference_ranges`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reference_ranges: Option<Box<ReferenceRanges>>,
     /// Whether the order of the field's repeats carries meaning.
     ///
     /// openEHR AM Release-2.3.0 `AOM1.4.html` section 4.3.5,
@@ -83,6 +91,87 @@ pub struct NameConstraint {
     pub rm_type: RmTypeName,
     /// What the name collects.
     pub kind: FieldKind,
+}
+
+/// The reference bands a template states beside a value, for a reader rather
+/// than for entry.
+///
+/// openEHR RM Release-1.1.0 `data_types.html` section 6.2.1 gives every
+/// `DV_ORDERED` an optional `normal_status`, `normal_range` and
+/// `other_reference_ranges`, and its `is_simple()` function is "True if this
+/// quantity has no reference ranges". None of the three is entered: a
+/// laboratory sends them with a result so a reader can tell the result from
+/// the band it is read against.
+///
+/// A renderer tells them from an entry field by where they sit. They are
+/// reachable only through [`FormField::reference_ranges`] and
+/// [`ChoiceAlternative::reference_ranges`], never through
+/// [`FormField::kind`] and never as an item of a group, and this type carries
+/// no [`NodeKey`], no [`Occurrences`] and no [`NullFlavour`], so nothing in
+/// it can be filled in or submitted. Reading a Reference Model class name
+/// decides nothing here.
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+pub struct ReferenceRanges {
+    /// The normal-status indicator, where the template constrains it.
+    ///
+    /// `DV_ORDERED.normal_status` is a `CODE_PHRASE`, "coded by ordinals in
+    /// series HHH, HH, H, (nothing), L, LL, LLL", which the invariant
+    /// `Normal_status_validity` draws from the openEHR `normal_status` code
+    /// set. It is a coded value, so it carries the value set of any coded
+    /// field.
+    pub normal_status: Option<CodedField>,
+    /// The normal range, where the template constrains it.
+    ///
+    /// `DV_ORDERED.normal_range` is a `DV_INTERVAL` over the class the value
+    /// itself collects, so it carries the same interval shape an entry field
+    /// of that class would (`data_types.html` section 6.2.2).
+    pub normal_range: Option<IntervalField>,
+    /// Every other reference range, in the order the template states them.
+    ///
+    /// `DV_ORDERED.other_reference_ranges` is "optional tagged other
+    /// reference ranges for this value in its particular measurement
+    /// context", typed `List<REFERENCE_RANGE>`, and a list has an order, so
+    /// template order is kept and nothing is sorted by meaning.
+    ///
+    /// Empty where the template states none. The invariant
+    /// `Other_reference_ranges_validity` reads
+    /// `other_reference_ranges /= Void implies not
+    /// other_reference_ranges.is_empty`, so an empty list is not a state the
+    /// Reference Model admits and an empty collection cannot be mistaken for
+    /// one; wrapping it in an [`Option<Vec<ReferenceRange>>`] would spell
+    /// absence twice.
+    pub other: Vec<ReferenceRange>,
+}
+
+impl ReferenceRanges {
+    /// Whether the template stated no band at all.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.normal_status.is_none() && self.normal_range.is_none() && self.other.is_empty()
+    }
+}
+
+/// One named band shown beside a value.
+///
+/// openEHR RM Release-1.1.0 `data_types.html` section 6.2.3 defines
+/// `REFERENCE_RANGE<T>` as "a named range to be associated with any
+/// `DV_ORDERED` datum", and gives it a `meaning` and a `range`. Both are
+/// mandatory in data and either may be left unconstrained by a template,
+/// which is what `None` records here.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ReferenceRange {
+    /// What the band means, where the template constrains it.
+    ///
+    /// `REFERENCE_RANGE.meaning` is a `DV_TEXT` "whose value indicates the
+    /// meaning of this range, e.g. normal, critical, therapeutic", so this is
+    /// a [`FieldKind::Text`], or a [`FieldKind::Coded`] where the template
+    /// states the meaning as the `DV_CODED_TEXT` subtype.
+    pub meaning: Option<FieldKind>,
+    /// The band itself, where the template constrains it.
+    ///
+    /// `REFERENCE_RANGE.range` is "the data range for this meaning", a
+    /// `DV_INTERVAL` over the class the value collects.
+    pub range: Option<IntervalField>,
 }
 
 /// The null-flavour affordance beside a field.
@@ -632,6 +721,10 @@ pub struct ChoiceAlternative {
     pub occurrences: Occurrences,
     /// What the alternative collects.
     pub kind: FieldKind,
+    /// The reference bands shown beside this alternative's value, where the
+    /// template states any.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reference_ranges: Option<Box<ReferenceRanges>>,
     /// The value the template prefills the alternative with.
     pub prefill: Option<Prefill>,
 }
@@ -668,7 +761,21 @@ pub fn null_flavour_options() -> Vec<NullFlavourOption> {
 
 #[cfg(test)]
 mod tests {
-    use super::{BooleanField, FieldKind, ProportionKind, null_flavour_options};
+    use super::{
+        BooleanField, FieldKind, ProportionKind, ReferenceRange, ReferenceRanges,
+        null_flavour_options,
+    };
+
+    #[test]
+    fn a_band_set_is_empty_only_while_the_template_states_no_band() {
+        let mut bands = ReferenceRanges::default();
+        assert!(bands.is_empty());
+        bands.other.push(ReferenceRange {
+            meaning: None,
+            range: None,
+        });
+        assert!(!bands.is_empty());
+    }
 
     #[test]
     fn the_four_null_flavours_are_the_ones_the_spec_names() {

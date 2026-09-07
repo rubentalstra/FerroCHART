@@ -12,9 +12,11 @@
 //! A form definition is a tree of groups rooted at
 //! [`definition::FormDefinition::root`]. A group holds items, an item is
 //! either a nested group or a field, and a field carries one
-//! [`field::FieldKind`], which is what a renderer chooses its control from.
-//! Content the operational template left undetermined is recorded on the group
-//! that would have held it and is never rendered.
+//! [`field::FieldKind`], which is what a renderer chooses its control from. A
+//! field also carries the reference bands the template states beside its
+//! value ([`field::ReferenceRanges`]), which a renderer shows and never
+//! collects. Content the operational template left undetermined is recorded on
+//! the group that would have held it and is never rendered.
 //!
 //! # What this crate owns, and what it does not
 //!
