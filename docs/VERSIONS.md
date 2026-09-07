@@ -38,19 +38,18 @@ never conflated in a citation.
 
 ## Corpora and machine-readable inputs
 
-A corpus is pinned by commit or immutable tag, never by a moving tag or a
-`latest` URL, and vendored by a committed `scripts/vendor/*.sh` with a
-`PROVENANCE.md` (`.claude/rules/vendored-inputs.md`). Nothing is vendored yet.
-
-The fixture templates FerroCHART compiles in its tests are a corpus like any
-other: they are pinned by commit, they carry provenance, and they are never
-hand-edited to make a test pass.
-
-## Corpora
-
 Each corpus is pinned by commit or by a per-artefact immutable identity, never
-by a moving reference, and fetched by a committed `scripts/vendor/*.sh` with a
-`PROVENANCE.md` beside it (`.claude/rules/vendored-inputs.md`).
+by a moving reference or a `latest` URL, and fetched by a committed
+`scripts/vendor/*.sh` with a `PROVENANCE.md` beside it
+(`.claude/rules/vendored-inputs.md`).
+
+The templates FerroCHART compiles in its tests are a corpus like any other:
+pinned, provenance-stamped, and never hand-edited to make a test pass.
+
+**No specification text is vendored.** `docs/specs/` does not exist, so every
+citation in this repository is read from the published source at the release
+this file pins. That is a deliberate state rather than an oversight, and it is
+what makes the pin table above load-bearing.
 
 | Item | Pin | Repeated in |
 |---|---|---|
@@ -104,8 +103,8 @@ other two are left is in `docs/architecture.md` section 7.3.
 
 ## Language and runtime
 
-No Cargo workspace exists yet. The toolchain pin below is live because
-`rust-toolchain.toml` is committed; the rest land with the workspace.
+The workspace is the root `Cargo.toml`, and `scripts/checks/versions.sh` reads
+it, so every row below is live.
 
 | Item | Pin | Repeated in |
 |---|---|---|

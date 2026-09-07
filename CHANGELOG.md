@@ -132,6 +132,15 @@ the build order.
   the `spec-researcher` agent, the `/spec-lookup` skill, the contributor book
   and the `compat` label all carry the corrected split.
 
+### Fixed
+
+- `docs/VERSIONS.md` said "Nothing is vendored yet" twelve lines above the
+  table of what is vendored, and carried two headings for one subject (#112).
+  It now has one section that says what is vendored, what is not, and that no
+  specification text is, which is the fact a reader of a citation needs. The
+  same file no longer claims there is no Cargo workspace, and
+  `.claude/rules/vendored-inputs.md` no longer says nothing is vendored.
+
 ## [0.0.4] - 2026-09-07
 
 ### Added

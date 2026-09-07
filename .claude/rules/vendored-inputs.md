@@ -8,9 +8,15 @@ paths: ["scripts/vendor/*.sh", "**/vendor/**", "docs/specs/**"]
 # Vendored inputs
 
 External material enters this repository one way only: a committed fetch
-script, vendored verbatim, stamped with provenance. Nothing is vendored yet,
-because the research on issue #1 has not pinned any version. The rule stands
-from the first vendored byte.
+script, vendored verbatim, stamped with provenance.
+
+Two corpora are vendored under this rule, both pinned in `docs/VERSIONS.md`:
+the openEHR CKM template pack under `corpus/templates/ckm`, committed for the
+exports that state a licence, and the ADL 2 archetype library, fetched and
+never committed because one of its 652 archetypes states a licence and the
+rest state none. No specification text is vendored: `docs/specs/` does not
+exist, so a citation is read from the published source at the pinned
+release.
 
 ## The rule
 
