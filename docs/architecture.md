@@ -512,20 +512,19 @@ stored key cannot be changed later without a migration.
 A replay against a recompiled definition classifies every overlay entry, and
 the classification is the feature:
 
-- **matched**, the key resolves to one node of the same RM type.
-- **disappeared**, the key resolves to nothing.
+- **matched**, the key resolves to one node that collects the class the entry
+  was authored against.
+- **disappeared**, the key resolves to nothing and nothing recognizable is
+  anywhere.
 - **moved**, the key resolves to nothing and exactly one node elsewhere
-  carries the same terminal node id and RM type. Reported as a suggestion for
-  a person to accept, never applied silently.
-- **ambiguous**, the key resolves to more than one node, which means the
-  five-part step tuple of 6.2 tied and the entry was positionally keyed.
-- **reordered**, the entry is positionally keyed and its container changed, so
-  the position it relies on is no longer trustworthy. Reported for a person to
-  confirm, never followed silently.
-- **retyped**, the key resolves to one node whose RM type changed, so the
-  layout may no longer be meaningful.
-- **new**, a node in the recompiled definition that no overlay entry
-  decorates.
+  carries the same terminal node id and type. Reported as a suggestion for a
+  person to accept, never applied silently.
+- **ambiguous**, the key resolves to more than one node.
+- **reordered**, the entry is positionally keyed and the siblings it was
+  anchored to are no longer the siblings it finds.
+- **retyped**, the key resolves to one node whose collected class changed.
+- **new**, a group or field of the recompiled definition that no entry matched
+  and that no move suggestion targets.
 
 Nothing is discarded. An unmatched entry is retained against its old key so a
 later revision that restores the node restores its layout.
@@ -537,6 +536,37 @@ whatever the key resolved to and a class of its own would force a choice
 between the two for an entry that has both. A section declared wider than four
 columns is reported the same way, at the moment it is declared and again in
 every replay.
+
+Five things the list above left underdetermined, decided while implementing it
+(issues #19 and #20). Each is our own design; no specification governs any of
+it.
+
+**An entry records the class its node collects, which the key does not carry.**
+RM Release-1.1.0 `data_structures.html` section 5.2.3 makes `ELEMENT` the leaf
+a `DATA_VALUE` attaches to, so a field's key step says `ELEMENT` while the
+field collects `DV_COUNT`. A revision that swaps that for `DV_CODED_TEXT`
+leaves every step of the key untouched. So **retyped is unreachable from the
+key alone**, and detecting it needs both the recorded collected class and a
+re-resolution that ignores the terminal step's type. Without that, the class
+listed above could never fire.
+
+**Reordering is judged against an anchor, because the new definition alone
+cannot answer it.** A positionally keyed entry stores a signature of each
+sibling it tied with, and a replay compares that list to the one it recomputes.
+The consequence is worth stating: two siblings identical to full subtree depth
+are interchangeable, so a swap between them is correctly not reported. There
+is nothing to report, because no authored layout can tell them apart.
+
+**A node the definition no longer determines reads as disappeared.** A form
+renders nothing for undetermined content, so an entry cannot decorate it, and a
+node that becomes undetermined has nothing left to carry layout.
+
+**A move suggestion's target is not also new.** Listing it twice would ask a
+person to resolve the same node under two headings.
+
+**A pinned name that changed while its node id did not lands in moved.** That
+is what the definition holds literally, and the report shows both keys, so the
+rename is visible to the person accepting it. It is not a class of its own.
 
 ## 7. Terminology
 
@@ -765,14 +795,28 @@ the manifest rather than by habit.
 
 | Crate | Role |
 |---|---|
-| `ferrochart-form` | The form definition type, the overlay type, and their serialisations. No I/O. |
+| `ferrochart-form` | The form definition type, the overlay's layout types, and their serialisations. No I/O. |
 | `ferrochart-compile` | Operational template to form definition. Owns the internal constraint model of section 3 and the derivation of section 5. |
-| `ferrochart-overlay` | Overlay storage, the key normalization of section 6.2, replay, and the differential report. |
+| `ferrochart-overlay` | Overlay storage, the key normalization of section 6.2, replay, and the differential report. Not the layout types themselves. |
 | `ferrochart-cdr` | The ITS-REST client of section 8. |
 | `ferrochart-term` | The terminology client of section 7. |
 | `ferrochart-server` | The HTTP surface: serves definitions, validates, builds and commits compositions. |
 | `ferrochart-renderer` | The Leptos client-side binary of section 10. Depends on `ferrochart-form` and nothing else from this tree. |
 | `ferrochart` | The binary. |
+
+**Where the line between the two overlay crates falls, and why.** A renderer
+has to apply a layout, so it needs the layout types. It has no business with
+the store, the authoring session, or the replay, which read and write files and
+compare two definitions. So the types live in `ferrochart-form` beside the
+definition they decorate, and the machinery lives in `ferrochart-overlay`. That
+keeps the renderer on one dependency from this tree, which is what makes the
+form definition a contract a third party can implement against rather than a
+crate graph they have to adopt.
+
+The implementation of issues #19 and #20 put both halves in
+`ferrochart-overlay`, so the types move to match this before the renderer is
+built (issue #72). The layout types already reference the definition's own
+`Prefill`, so the move removes a cross-crate dependency rather than adding one.
 
 The root manifest carries the workspace lints of `.claude/rules/reliability.md`
 at their stated tiers, `unsafe_code = "forbid"` among them, and the release
