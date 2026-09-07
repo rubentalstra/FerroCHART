@@ -23,6 +23,19 @@ the build order.
 
 ### Added
 
+- A field carries the reference bands its template states beside the value
+  (#52). openEHR RM Release-1.1.0 `data_types.html` section 6.2.1 gives every
+  `DV_ORDERED` a `normal_status`, a `normal_range` and
+  `other_reference_ranges`, none of them entered by a clinician, and the
+  derivation used to drop all three. They now sit in
+  `field::ReferenceRanges`, reachable only from a field or a choice
+  alternative and never from a field's kind or a group's items, so a renderer
+  shows them without reading a Reference Model class name to tell metadata
+  from an entry field. A band reuses the value shape of the class it is stated
+  over: a status carries the value set of a coded field, and a range carries
+  the interval shape of the class the value collects. The three attributes are
+  no longer refused as unentered, and a band the derivation cannot represent
+  is refused by name rather than dropped.
 - `docs/architecture.md` section 6.5 records the five things the replay's
   outcome classes left underdetermined, decided while implementing #19 and
   #20. The load-bearing one is that a `retyped` outcome is unreachable from
