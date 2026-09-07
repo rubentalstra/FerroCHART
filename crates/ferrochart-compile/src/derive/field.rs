@@ -12,7 +12,8 @@ use ferrochart_form::field::{
     BooleanField, ChoiceAlternative, CountField, DateField, DateTimeField, DurationField,
     FieldKind, IdentifierField, IntervalField, MultimediaField, OrdinalField, OrdinalOption,
     ParsableField, ProportionField, ProportionKind, QuantityField, QuantityUnitOption, RealField,
-    StateField, StateOption, StateTransitionOption, TextField, TimeField, UriField,
+    ReferenceRange, ReferenceRanges, StateField, StateOption, StateTransitionOption, TextField,
+    TimeField, UriField,
 };
 use ferrochart_form::ids::{RmTypeName, TerminologyName};
 use ferrochart_form::range::Range;
@@ -48,21 +49,27 @@ const HOUSEKEEPING: &[&str] = &[
 ///
 /// `mappings` holds `TERM_MAPPING` (openEHR RM Release-1.1.0
 /// `data_types.html` section 5.2.2), which the composition builder writes when
-/// a coded value carries a mapping. The three reference-range attributes come
-/// from `DV_ORDERED` (section 6.2.1) and are metadata shown beside a value
-/// rather than a value entered.
-// TODO(#52): carry the three reference-range attributes as display metadata
-// instead of dropping them.
-const NEVER_ENTERED: &[&str] = &[
-    "mappings",
-    "normal_range",
-    "normal_status",
-    "other_reference_ranges",
-];
+/// a coded value carries a mapping, and which a form neither collects nor
+/// shows.
+const NEVER_ENTERED: &[&str] = &["mappings"];
+
+/// The `DV_ORDERED` attributes a form shows beside a value rather than
+/// collecting.
+///
+/// openEHR RM Release-1.1.0 `data_types.html` section 6.2.1. A constraint on
+/// one shapes no field, so no arm of this module reads it as a value;
+/// [`reference_ranges`] carries all three as display metadata.
+const DISPLAY_METADATA: &[&str] = &["normal_status", "normal_range", "other_reference_ranges"];
 
 /// Whether a constraint on `attribute` shapes no field at all.
 pub(crate) fn is_never_entered(attribute: &str) -> bool {
     HOUSEKEEPING.contains(&attribute) || NEVER_ENTERED.contains(&attribute)
+}
+
+/// Whether a constraint on `attribute` is shown beside a value rather than
+/// entered.
+pub(crate) fn is_display_metadata(attribute: &str) -> bool {
+    DISPLAY_METADATA.contains(&attribute)
 }
 
 /// Whether `rm_type` is a data value rather than a structure that holds one.
@@ -163,6 +170,7 @@ impl<'n> Attributes<'n> {
         for attribute in stated {
             if allowed.contains(&attribute)
                 || is_never_entered(attribute)
+                || is_display_metadata(attribute)
                 || attribute == ATTRIBUTE_NAME
             {
                 continue;
@@ -1040,6 +1048,161 @@ fn interval_field(
     }))))
 }
 
+/// The reference bands one data value states beside itself.
+///
+/// openEHR RM Release-1.1.0 `data_types.html` section 6.2.1 gives every
+/// `DV_ORDERED` a `normal_status`, a `normal_range` and
+/// `other_reference_ranges`, and none of the three is entered, so each is read
+/// here as display metadata rather than as a field. A band reuses the value
+/// shape of the class it is stated over: `normal_status` is a coded value and
+/// resolves its rubrics as any coded field does, and a range is an interval
+/// over the class the value itself collects.
+///
+/// Returns `None` where the node states none of the three.
+///
+/// # Errors
+/// [`DeriveError`] when an attribute carries a value shape the Reference Model
+/// does not give it, when a range never says what it is an interval of, or
+/// when a `REFERENCE_RANGE` constrains an attribute other than its `meaning`
+/// and its `range`.
+pub(crate) fn reference_ranges(
+    terms: &Terms<'_>,
+    node: &ConstraintNode,
+    path: &str,
+) -> Result<Option<Box<ReferenceRanges>>, DeriveError> {
+    // NOTE: openEHR RM Release-1.1.0 `data_types.html` section 6.2.1 types
+    // `normal_status` and `normal_range` as `0..1`, so one child carries the
+    // whole constraint on either.
+    let normal_status = match sole_child(node, "normal_status") {
+        None => None,
+        Some(child) => Some(status_band(terms, child, path)?),
+    };
+    let normal_range = match sole_child(node, "normal_range") {
+        None => None,
+        Some(child) => Some(interval_band(terms, child, "normal_range", path)?),
+    };
+    // The Reference Model types `other_reference_ranges` as a `List`, so the
+    // order the template states them in is the order they are shown in.
+    let mut other = Vec::new();
+    for child in children_under(node, "other_reference_ranges") {
+        other.push(reference_range(terms, child, path)?);
+    }
+    let bands = ReferenceRanges {
+        normal_status,
+        normal_range,
+        other,
+    };
+    Ok((!bands.is_empty()).then(|| Box::new(bands)))
+}
+
+/// The refusal of a band the template states as something other than the
+/// Reference Model's type for it.
+fn metadata_shape(
+    kind: Option<&FieldKind>,
+    attribute: &'static str,
+    expected: &'static str,
+    path: &str,
+) -> DeriveError {
+    DeriveError::MetadataShape {
+        path: path.to_owned(),
+        attribute,
+        // An interval of no stated element type is the one shape
+        // `value_kind` leaves undetermined.
+        found: kind.map_or("interval", FieldKind::name),
+        expected,
+    }
+}
+
+/// A `normal_status`, whose value set is read as any coded field's is.
+fn status_band(
+    terms: &Terms<'_>,
+    node: &ConstraintNode,
+    path: &str,
+) -> Result<ferrochart_form::field::CodedField, DeriveError> {
+    match value_kind(terms, node, path)? {
+        Some(FieldKind::Coded(field)) => Ok(field),
+        other => Err(metadata_shape(
+            other.as_ref(),
+            "normal_status",
+            "a CODE_PHRASE",
+            path,
+        )),
+    }
+}
+
+/// One band, as the interval over the class the value collects.
+fn interval_band(
+    terms: &Terms<'_>,
+    node: &ConstraintNode,
+    attribute: &'static str,
+    path: &str,
+) -> Result<IntervalField, DeriveError> {
+    match value_kind(terms, node, path)? {
+        Some(FieldKind::Interval(field)) => Ok(*field),
+        None => Err(DeriveError::UntypedMetadataRange {
+            path: path.to_owned(),
+            attribute,
+        }),
+        Some(other) => Err(metadata_shape(
+            Some(&other),
+            attribute,
+            "a DV_INTERVAL over the class the value collects",
+            path,
+        )),
+    }
+}
+
+/// One `REFERENCE_RANGE`: what the band means, and the band itself.
+///
+/// openEHR RM Release-1.1.0 `data_types.html` section 6.2.3 gives it a
+/// `meaning` and a `range`, both mandatory in data. A template that
+/// constrains neither has stated a band and left both open, which is what an
+/// absent one records.
+fn reference_range(
+    terms: &Terms<'_>,
+    node: &ConstraintNode,
+    path: &str,
+) -> Result<ReferenceRange, DeriveError> {
+    if !matches!(*node.payload(), ConstraintPayload::Structure) {
+        return Err(mismatch(node, path));
+    }
+    for child in node.children() {
+        let attribute = child.identity().rm_attribute().as_str();
+        if attribute != "meaning" && attribute != "range" {
+            return Err(DeriveError::UnmodelledAttribute {
+                path: path.to_owned(),
+                rm_type: node.identity().rm_type().as_str().to_owned(),
+                attribute: attribute.to_owned(),
+            });
+        }
+    }
+    Ok(ReferenceRange {
+        meaning: match sole_child(node, "meaning") {
+            None => None,
+            Some(child) => Some(meaning_band(terms, child, path)?),
+        },
+        range: match sole_child(node, "range") {
+            None => None,
+            Some(child) => Some(interval_band(terms, child, "range", path)?),
+        },
+    })
+}
+
+/// What a `REFERENCE_RANGE.meaning` states the band means.
+fn meaning_band(
+    terms: &Terms<'_>,
+    node: &ConstraintNode,
+    path: &str,
+) -> Result<FieldKind, DeriveError> {
+    match value_kind(terms, node, path)? {
+        // openEHR RM Release-1.1.0 `data_types.html` section 5.2.4 makes
+        // `DV_CODED_TEXT` a `DV_TEXT`, so a coded meaning is the same
+        // attribute stated more narrowly.
+        Some(kind @ (FieldKind::Text(_) | FieldKind::Coded(_))) => Ok(kind),
+        other => Err(metadata_shape(other.as_ref(), "meaning", "a DV_TEXT", path)),
+    }
+}
+
 /// Whether the constraint admits exactly one value, so the template has
 /// already decided it and nothing is entered.
 ///
@@ -1065,20 +1228,27 @@ pub(crate) fn is_fixed(kind: &FieldKind) -> bool {
 }
 
 /// One alternative of a choice.
+///
+/// # Errors
+/// [`DeriveError`] when the alternative states a reference band this
+/// derivation cannot show beside it.
 pub(crate) fn alternative(
+    terms: &Terms<'_>,
     key: ferrochart_form::key::NodeKey,
     node: &ConstraintNode,
     kind: FieldKind,
     label: ferrochart_form::text::Localized,
-) -> ChoiceAlternative {
-    ChoiceAlternative {
+) -> Result<ChoiceAlternative, DeriveError> {
+    let bands = reference_ranges(terms, node, &key.to_string())?;
+    Ok(ChoiceAlternative {
         key,
         rm_type: RmTypeName::new(node.identity().rm_type().as_str()),
         label,
         occurrences: derive::occurrences_of(node.occurrences()),
         kind,
+        reference_ranges: bands,
         prefill: node.default_value().map(prefill),
-    }
+    })
 }
 
 /// Every `value` alternative of an `ELEMENT`, and the codes it draws on.

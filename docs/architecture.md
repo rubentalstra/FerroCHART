@@ -237,7 +237,7 @@ it.
 | `DV_PARSABLE` | 9.2.3 | `value`, `formalism` | two `C_STRING` | the same | A constrained `formalism` list gives a selector; `value` is a text area. |
 | `DV_URI` | 10.3.1 | `value` | `C_STRING` on `value` | `C_STRING` | `pattern` restricts the scheme. |
 | `DV_EHR_URI` | 10.3.2 | `value`, `ehr://` scheme only (10.4.1) | as `DV_URI` | as `DV_URI` | Rarely clinician-entered. |
-| `DV_ORDERED` | 6.2.1 | `normal_status`, `normal_range`, `other_reference_ranges` | inherited attributes under a `C_COMPLEX_OBJECT` | the same | Reference ranges are display metadata for the clinician rather than entry fields. |
+| `DV_ORDERED` | 6.2.1 | `normal_status`, `normal_range`, `other_reference_ranges` | inherited attributes under a `C_COMPLEX_OBJECT` | the same | Reference ranges are display metadata for the clinician rather than entry fields, so the field carries them beside its kind rather than as fields of their own. A status carries the value set of a coded field, and a range the interval shape of the class the value collects. |
 | `TERM_MAPPING` | 5.2.2 | `match`, `purpose`, `target` | `C_COMPLEX_OBJECT` | the same | Never clinician-entered. The composition builder writes it when a coded value carries a mapping. |
 
 ### 5.1 The structural rules

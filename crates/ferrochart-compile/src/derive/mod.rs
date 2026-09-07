@@ -373,6 +373,31 @@ impl Deriver<'_> {
         )
     }
 
+    /// The one field several `value` alternatives are presented as.
+    ///
+    /// openEHR AM Release-2.3.0 `AOM2.html` section 4.2.8.2 prescribes sibling
+    /// nodes for a value that may be a code or free text; presenting one field
+    /// for them is our own design.
+    fn choice(
+        &self,
+        alternatives: Vec<(&ConstraintNode, NodeKey, FieldKind)>,
+    ) -> Result<FieldKind, DeriveError> {
+        let mut collected = Vec::with_capacity(alternatives.len());
+        for (child, alternative_key, kind) in alternatives {
+            let (label, _help) = self.labels(child);
+            collected.push(field::alternative(
+                &self.terms,
+                alternative_key,
+                child,
+                kind,
+                label,
+            )?);
+        }
+        Ok(FieldKind::Choice(ChoiceField {
+            alternatives: collected,
+        }))
+    }
+
     /// An `ELEMENT`: one field, whose kind comes from what the template lets
     /// its `value` hold.
     fn element(
@@ -435,33 +460,26 @@ impl Deriver<'_> {
         }
 
         let (label, help) = self.labels(node);
-        let (rm_type, kind, prefill) = match <[_; 1]>::try_from(alternatives) {
-            Ok([(child, _, kind)]) => (
+        let (rm_type, kind, prefill, reference_ranges) = match <[_; 1]>::try_from(alternatives) {
+            Ok([(child, value_key, kind)]) => (
                 child.identity().rm_type().as_str().to_owned(),
                 kind,
                 node.default_value()
                     .or_else(|| child.default_value())
                     .map(field::prefill),
+                // openEHR RM Release-1.1.0 `data_types.html` section 6.2.1
+                // puts the reference bands on the data value, so they are
+                // read from the value node rather than from the `ELEMENT`.
+                field::reference_ranges(&self.terms, child, &value_key.to_string())?,
             ),
-            Err(alternatives) => {
-                // NOTE: openEHR AM Release-2.3.0 `AOM2.html` section 4.2.8.2
-                // prescribes sibling nodes for a value that may be a code or
-                // free text; presenting one field for them is our own design.
-                let choice = ChoiceField {
-                    alternatives: alternatives
-                        .into_iter()
-                        .map(|(child, alternative_key, kind)| {
-                            let (label, _help) = self.labels(child);
-                            field::alternative(alternative_key, child, kind, label)
-                        })
-                        .collect(),
-                };
-                (
-                    DATA_VALUE.to_owned(),
-                    FieldKind::Choice(choice),
-                    node.default_value().map(field::prefill),
-                )
-            }
+            Err(alternatives) => (
+                DATA_VALUE.to_owned(),
+                self.choice(alternatives)?,
+                node.default_value().map(field::prefill),
+                // Each alternative is a data value of its own, so each
+                // carries its own bands.
+                None,
+            ),
         };
 
         let occurrences = occurrences_of(node.occurrences());
@@ -479,6 +497,7 @@ impl Deriver<'_> {
                 is_fixed: field::is_fixed(&kind),
                 kind,
                 name_constraint,
+                reference_ranges,
                 is_ordered: cardinality.is_some_and(Cardinality::is_ordered),
                 is_unique: cardinality.is_some_and(Cardinality::is_unique),
                 // openEHR RM Release-1.1.0 `data_structures.html` section
@@ -525,6 +544,7 @@ impl Deriver<'_> {
                 is_fixed: field::is_fixed(&kind),
                 kind,
                 name_constraint: None,
+                reference_ranges: field::reference_ranges(&self.terms, node, &path)?,
                 is_ordered: cardinality.is_some_and(Cardinality::is_ordered),
                 is_unique: cardinality.is_some_and(Cardinality::is_unique),
                 // The null mechanism belongs to `ELEMENT`, so a value

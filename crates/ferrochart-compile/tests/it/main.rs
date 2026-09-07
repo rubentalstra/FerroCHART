@@ -18,5 +18,6 @@ mod adl2_corpus;
 mod corpus;
 mod derive;
 mod matched_pair;
+mod reference_ranges;
 mod snapshot;
 mod support;
