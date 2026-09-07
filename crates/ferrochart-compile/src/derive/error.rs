@@ -142,6 +142,30 @@ pub enum DeriveError {
         attribute: &'static str,
     },
 
+    /// Tied sibling constraints under a container attribute that state
+    /// different constraints.
+    ///
+    /// openEHR RM Release-1.1.0 `common.html` section 3.2.2 gives a non-root
+    /// node only its `archetype_node_id`, `LOCATABLE.name` is the only other
+    /// identity attribute and the members share it, and section 3.1.2.1 says
+    /// `uid` "will usually be empty". Nothing in an instance could say which
+    /// member it satisfies, so a field per member would build a document
+    /// whose nodes cannot be attributed to the constraint they answer.
+    #[error(
+        "{template}: {path} declares sibling constraints at {node} that differ on {difference}, \
+         and a COMPOSITION node carries no attribute that could say which one an instance satisfies"
+    )]
+    UnattributableSiblings {
+        /// The template that declares them.
+        template: String,
+        /// The container the tied constraints sit in.
+        path: String,
+        /// The step every tied member shares.
+        node: String,
+        /// The first fact the members state differently.
+        difference: String,
+    },
+
     /// The template root is not something a form can be rooted in.
     #[error("the template root at {path} constrains {rm_type}, which is not a form group")]
     RootIsNotAGroup {

@@ -16,7 +16,7 @@ use ferrochart_overlay::store::Author;
 
 use crate::support::{
     drop_last_child, duplicate, form, key_with_node_id, keys, parent_key, put, retype,
-    sibling_positions, swap, take, tied_key,
+    sibling_positions, swap, take, tied_form, tied_key,
 };
 
 fn authored(text: &str) -> Layout {
@@ -70,8 +70,8 @@ fn the_report_of_a_revision_that_did_everything_at_once() {
 
 #[test]
 fn the_report_of_a_reordering_among_nodes_the_template_tells_apart_by_nothing() {
-    let pack = form("clinical-context-jm.opt");
-    let key = tied_key(&pack).expect("the pack carries a same-id sibling group");
+    let pack = tied_form();
+    let key = tied_key(&pack).expect("the fixture carries a same-id sibling group");
     let parent = parent_key(&key);
 
     let mut definition = pack.clone();

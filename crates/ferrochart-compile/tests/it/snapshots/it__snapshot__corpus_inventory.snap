@@ -16,7 +16,7 @@ bpg-administration-jm.opt  groups=5 fields=6 count=1 date-time=1 text=4
 bpg-medication-screening-jm.opt  groups=6 fields=3 coded=1 text=2
 case-demographic-information-jm.opt  groups=43 fields=84 date-time=1 duration=2 quantity=6 text=75
 cause-of-death-jm.opt  groups=6 fields=4 text=4
-clinical-context-jm.opt  groups=98 fields=52 choice=2 coded=14 date-time=2 duration=3 quantity=9 text=22
+clinical-context-jm.opt  groups=92 fields=41 choice=2 coded=12 date-time=2 duration=3 quantity=6 text=16
 clinical-management-jm.opt  groups=33 fields=37 choice=2 coded=7 date-time=8 text=20
 clinical-notes-jm.opt  groups=3 fields=1 text=1
 clinical-screening-jm.opt  groups=24 fields=17 choice=3 coded=4 date-time=2 quantity=1 text=7
@@ -40,12 +40,12 @@ genomics-example-template.opt  groups=34 fields=139 boolean=2 choice=12 coded=3 
 health-issue-item-r2.opt  groups=3 fields=2 text=2
 home-environment-jm.opt  groups=6 fields=12 count=6 text=6
 imaging-examination-result-jm.opt  groups=6 fields=5 date-time=1 text=4
-imaging-examination-result.opt  groups=11 fields=41 coded=2 date-time=5 identifier=11 multimedia=3 text=17 uri=3
+imaging-examination-result.opt  groups=11 fields=33 coded=2 date-time=4 identifier=8 multimedia=2 text=15 uri=2
 immunoglobulin-test-finding-jm.opt  groups=1 fields=6 choice=2 text=4
 india-ink-stain-findings.opt  groups=2 fields=7 coded=2 text=5
-infant-clinical-context-jm.opt  groups=59 fields=37 choice=1 coded=9 duration=2 quantity=9 text=16
+infant-clinical-context-jm.opt  groups=53 fields=26 choice=1 coded=7 duration=2 quantity=6 text=10
 infant-measurements-jm.opt  groups=43 fields=13 coded=3 quantity=6 text=4
-infectious-disease-investigation-metadata-jm.opt  groups=18 fields=61 count=2 date-time=8 text=51
+infectious-disease-investigation-metadata-jm.opt  groups=16 fields=54 count=2 date-time=8 text=44
 inpatient-episode-details-jm.opt  groups=1 fields=3 date-time=2 text=1
 investigator-classification-initial-jm.opt  groups=4 fields=3 coded=1 text=2
 investigator-diagnosis-jm.opt  groups=7 fields=3 text=3

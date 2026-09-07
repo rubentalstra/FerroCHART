@@ -5,8 +5,8 @@ expression: json
 {
   "format_version": 2,
   "template": {
-    "id": "Clinical context - JM",
-    "id_form": "legacy_name"
+    "id": "openEHR-EHR-OBSERVATION.ferro_tied_alternatives.v1",
+    "id_form": "partial_hrid"
   },
   "sections": [],
   "entries": [
@@ -16,57 +16,17 @@ expression: json
           {
             "rm_attribute": "",
             "node_id": "at0000",
-            "archetype_id": "openEHR-EHR-SECTION.adhoc.v1",
-            "rm_type": "SECTION",
-            "pinned_name": "Clinical context",
-            "sibling_ordinal": 0
-          },
-          {
-            "rm_attribute": "items",
-            "node_id": "at0000",
-            "archetype_id": "openEHR-EHR-SECTION.adhoc.v1",
-            "rm_type": "SECTION",
-            "pinned_name": "Infant clinical context",
-            "sibling_ordinal": 5
-          },
-          {
-            "rm_attribute": "items",
-            "node_id": "at0000",
-            "archetype_id": "openEHR-EHR-SECTION.adhoc.v1",
-            "rm_type": "SECTION",
-            "pinned_name": "Infant measurements",
-            "sibling_ordinal": 2
-          },
-          {
-            "rm_attribute": "items",
-            "node_id": "at0000",
-            "archetype_id": "openEHR-EHR-OBSERVATION.body_weight.v2",
+            "archetype_id": "openEHR-EHR-OBSERVATION.ferro_tied_alternatives.v1",
             "rm_type": "OBSERVATION",
             "pinned_name": null,
             "sibling_ordinal": 0
           },
           {
-            "rm_attribute": "data",
-            "node_id": "at0002",
-            "archetype_id": null,
-            "rm_type": "HISTORY",
-            "pinned_name": null,
-            "sibling_ordinal": 0
-          },
-          {
-            "rm_attribute": "events",
-            "node_id": "at0026",
-            "archetype_id": null,
-            "rm_type": "POINT_EVENT",
-            "pinned_name": null,
-            "sibling_ordinal": 1
-          },
-          {
-            "rm_attribute": "data",
-            "node_id": "at0001",
+            "rm_attribute": "protocol",
+            "node_id": "at0005",
             "archetype_id": null,
             "rm_type": "ITEM_TREE",
-            "pinned_name": "Simple",
+            "pinned_name": null,
             "sibling_ordinal": 0
           }
         ],
@@ -75,8 +35,8 @@ expression: json
       "rm_type": "ITEM_TREE",
       "anchor": {
         "tied_siblings": [
-          "0/data[at0001, ITEM_TREE, 'Simple']:ITEM_TREE;1/items[at0004, ELEMENT]:DV_QUANTITY;1/items[at0024, ELEMENT, #1]:DV_TEXT;",
-          "0/data[at0001, ITEM_TREE, 'Simple', #1]:ITEM_TREE;1/items[at0004, ELEMENT]:DV_QUANTITY;1/items[at0024, ELEMENT, #1]:DV_TEXT;"
+          "0/protocol[at0005, ITEM_TREE]:ITEM_TREE;1/items[at0006, ELEMENT]:DV_TEXT;1/items[at0007, ELEMENT, #1]:DV_TEXT;1/items[at0008, ELEMENT, #2]:DV_TEXT;",
+          "0/protocol[at0005, ITEM_TREE, #1]:ITEM_TREE;1/items[at0006, ELEMENT]:DV_TEXT;"
         ]
       },
       "layout": {

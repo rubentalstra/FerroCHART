@@ -169,6 +169,21 @@ the build order.
   corpus has since grown past 400 templates, so the document now says so
   rather than repeating an arithmetic that cannot be right. Section 16 gains
   the two upstream-report candidates found since it was written (#111, #129).
+- An operational template can declare two sibling constraints sharing the node
+  id, the archetype id, the Reference Model type and the pinned name, which no
+  instance can tell apart, and a form offering a field per member built a
+  document its own template refuses (#122). AOM 1.4 permits the shape: it says
+  a node id distinguishes siblings but states no invariant that requires it,
+  and the ITS-XML schemas carry no identity constraint either. The compiler now
+  folds such a group before it computes a key. Members that state the same
+  constraint become one node, carrying the collective occurrences under a
+  container attribute, which is lossless because the members are the same
+  constraint. Members that differ under a container attribute are refused by
+  name, because no instance could say which one it satisfies; that refuses no
+  template of the committed pack. Folding before the key is what keeps the
+  layout overlay stable when a template is republished with the duplicate
+  gone. Over the pack, two more templates now build a document their own
+  template accepts, and the gate reports no occurrences failure at all.
 - A composition wrapped around a template rooted below COMPOSITION named the
   entry's archetype as its own, so the document claimed a COMPOSITION was an
   OBSERVATION archetype root. That was 113 of the 123 committed templates.

@@ -94,6 +94,21 @@ impl NodeIdentity {
     pub fn sibling_ordinal(&self) -> usize {
         self.sibling_ordinal
     }
+
+    /// Renumbers the node's position among its siblings.
+    pub(crate) fn set_sibling_ordinal(&mut self, ordinal: usize) {
+        self.sibling_ordinal = ordinal;
+    }
+
+    /// The five parts that separate this node from its siblings, without the
+    /// ordinal.
+    pub(crate) fn discriminates_like(&self, other: &Self) -> bool {
+        self.rm_attribute == other.rm_attribute
+            && self.node_id == other.node_id
+            && self.archetype_id == other.archetype_id
+            && self.rm_type == other.rm_type
+            && self.pinned_name == other.pinned_name
+    }
 }
 
 /// One node of the internal constraint model.
@@ -218,6 +233,17 @@ impl ConstraintNode {
         self.default_value = Some(value);
     }
 
+    /// What tells this node apart from its siblings, so a pass that rebuilds
+    /// the sibling order can renumber it.
+    pub(crate) fn identity_mut(&mut self) -> &mut NodeIdentity {
+        &mut self.identity
+    }
+
+    /// Restates how many times this node may repeat under its attribute.
+    pub(crate) fn set_occurrences(&mut self, occurrences: Multiplicity) {
+        self.occurrences = occurrences;
+    }
+
     /// The node's children, for a pass that decorates the built tree.
     pub(crate) fn children_mut(&mut self) -> &mut Vec<ConstraintNode> {
         &mut self.children
@@ -293,5 +319,10 @@ impl ConstraintTemplate {
     /// Every node in the template, the root first, in template order.
     pub fn walk(&self) -> impl Iterator<Item = &ConstraintNode> {
         self.root.walk()
+    }
+
+    /// The root node, for a pass that rewrites the tree before it is derived.
+    pub(crate) fn root_mut(&mut self) -> &mut ConstraintNode {
+        &mut self.root
     }
 }

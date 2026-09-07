@@ -2,25 +2,22 @@
 source: crates/ferrochart-overlay/tests/it/report.rs
 expression: "replay(&overlay, &revised).to_string()"
 ---
-Layout replay for template "Clinical context - JM"
+Layout replay for template "openEHR-EHR-OBSERVATION.ferro_tied_alternatives.v1"
 The template identifier names no release, so which revision this is depends on what the server held.
 1 authored entry: 0 kept, 1 needing a decision, 0 no longer in the form.
-147 nodes with no layout yet.
+8 nodes with no layout yet.
 
 Needs a decision (1)
   reordered Weight, as recorded
-      at /[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Infant clinical context', #5]/items[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Infant measurements', #2]/items[openEHR-EHR-OBSERVATION.body_weight.v2, OBSERVATION]/data[at0002, HISTORY]/events[at0026, POINT_EVENT, #1]/data[at0001, ITEM_TREE, 'Simple']
+      at /[openEHR-EHR-OBSERVATION.ferro_tied_alternatives.v1, OBSERVATION]/protocol[at0005, ITEM_TREE]
       This layout was placed by position among 2 lookalike nodes, and they are not the ones it was placed against. Confirm where it goes.
 
-No layout yet (147)
-  Ad hoc heading (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context'])
-  Biological donation summary (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.donation_summary.v0, EVALUATION, 'Blood donation summary', #6])
-  Item tree (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.donation_summary.v0, EVALUATION, 'Blood donation summary', #6]/data[at0001, ITEM_TREE])
-  Per donation event (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.donation_summary.v0, EVALUATION, 'Blood donation summary', #6]/data[at0001, ITEM_TREE]/items[at0005, CLUSTER])
-  Donation date (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.donation_summary.v0, EVALUATION, 'Blood donation summary', #6]/data[at0001, ITEM_TREE]/items[at0005, CLUSTER]/items[at0007, ELEMENT])
-  Item tree (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.donation_summary.v0, EVALUATION, 'Blood donation summary', #6]/protocol[at0010, ITEM_TREE])
-  Food and nutrition summary (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0, EVALUATION, #4])
-  Tree (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0, EVALUATION, #4]/data[at0001, ITEM_TREE])
-  Milk supply (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0, EVALUATION, #4]/data[at0001, ITEM_TREE]/items[at0021, ELEMENT])
-  Item tree (/[openEHR-EHR-SECTION.adhoc.v1, SECTION, 'Clinical context']/items[openEHR-EHR-EVALUATION.food_nutrition_summary.v0, EVALUATION, #4]/protocol[at0012, ITEM_TREE])
-  and 137 more nodes
+No layout yet (8)
+  Ferro tied alternatives (/[openEHR-EHR-OBSERVATION.ferro_tied_alternatives.v1, OBSERVATION])
+  History (/[openEHR-EHR-OBSERVATION.ferro_tied_alternatives.v1, OBSERVATION]/data[at0001, HISTORY])
+  Any event (/[openEHR-EHR-OBSERVATION.ferro_tied_alternatives.v1, OBSERVATION]/data[at0001, HISTORY]/events[at0002, POINT_EVENT])
+  Tree (/[openEHR-EHR-OBSERVATION.ferro_tied_alternatives.v1, OBSERVATION]/data[at0001, HISTORY]/events[at0002, POINT_EVENT]/data[at0003, ITEM_TREE])
+  A reading (/[openEHR-EHR-OBSERVATION.ferro_tied_alternatives.v1, OBSERVATION]/data[at0001, HISTORY]/events[at0002, POINT_EVENT]/data[at0003, ITEM_TREE]/items[at0004, ELEMENT])
+  Told apart by content (/[openEHR-EHR-OBSERVATION.ferro_tied_alternatives.v1, OBSERVATION]/protocol[at0005, ITEM_TREE]/items[at0006, ELEMENT])
+  Told apart by content (/[openEHR-EHR-OBSERVATION.ferro_tied_alternatives.v1, OBSERVATION]/protocol[at0005, ITEM_TREE, #1]/items[at0006, ELEMENT])
+  Only in the first (/[openEHR-EHR-OBSERVATION.ferro_tied_alternatives.v1, OBSERVATION]/protocol[at0005, ITEM_TREE, #1]/items[at0007, ELEMENT, #1])

@@ -11,7 +11,7 @@ use ferrochart_form::layout::{Layout, Section, SectionId, Visibility, WidgetName
 use ferrochart_form::text::Localized;
 use ferrochart_overlay::store::{Author, FORMAT_VERSION, Overlay, Placement, TemplateIdForm};
 
-use crate::support::{form, key_where, keys, tied_key};
+use crate::support::{form, key_where, keys, tied_form, tied_key};
 
 fn english() -> LanguageTag {
     LanguageTag::new("en")
@@ -100,11 +100,12 @@ fn an_entry_that_decorates_no_node_of_the_form_is_refused() {
 
 #[test]
 fn a_key_that_collides_with_a_same_id_sibling_is_reported_rather_than_resolved() {
-    // The pack carries the collision the measurement on issue #8 found: two
-    // siblings under one attribute with one node id, one archetype id, one
-    // Reference Model type and one pinned name.
-    let definition = form("clinical-context-jm.opt");
-    let key = tied_key(&definition).expect("the pack carries a same-id sibling group");
+    // Two siblings under one attribute with one node id, one archetype id,
+    // one Reference Model type and one pinned name, which is what openEHR AM
+    // Release-2.3.0 AOM1.4.html sections 4.3.2 and 4.3.3 create where the
+    // alternatives of a single-valued attribute differ.
+    let definition = tied_form();
+    let key = tied_key(&definition).expect("the fixture carries a same-id sibling group");
     let mut author = Author::new(&definition);
     let placement = author.set(&key, authored("Weight")).unwrap();
     assert_eq!(placement, Placement::Positional { tied: 2 });

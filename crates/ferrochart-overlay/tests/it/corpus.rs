@@ -58,13 +58,16 @@ fn every_entry_authored_over_the_pack_replays_against_the_form_it_was_keyed_to()
     }
     // A ratchet on the committed pack: the pack is pinned per template by its
     // `cid` in corpus/templates/ckm/PROVENANCE.md, so keying fewer nodes than
-    // this is a regression rather than a new baseline.
+    // this is a regression rather than a new baseline. The count fell by 51
+    // when the compiler started folding sibling constraints that state the
+    // same thing twice (issue #122): those nodes were duplicates of nodes
+    // still counted here, not nodes the key lost.
     assert!(forms >= 121, "only {forms} templates derived");
-    assert!(nodes >= 4447, "only {nodes} nodes keyed");
+    assert!(nodes >= 4396, "only {nodes} nodes keyed");
 }
 
 #[test]
-fn the_pack_carries_same_id_sibling_groups_and_every_one_of_them_is_reported() {
+fn no_key_of_the_pack_ties_and_the_compiler_and_the_store_agree_on_that() {
     let mut tied_nodes = 0_usize;
     let mut tied_forms = 0_usize;
     for path in templates() {
@@ -104,10 +107,15 @@ fn the_pack_carries_same_id_sibling_groups_and_every_one_of_them_is_reported() {
             tied_forms += 1;
         }
     }
-    // The collision the measurement on issue #8 found is in this pack too, so
-    // the ordinal and the anchor are load-bearing rather than theoretical.
-    assert!(
-        tied_forms >= 4 && tied_nodes >= 102,
+    // The collision the measurement on issue #8 found is gone from the derived
+    // forms: every tied group this pack holds states the same constraint
+    // twice, so the compiler folds it into one node before a key exists
+    // (issue #122). The ordinal and the anchor still carry the case openEHR AM
+    // Release-2.3.0 AOM1.4.html sections 4.3.2 and 4.3.3 create, and
+    // `support::tied_form` is the fixture that exercises it.
+    assert_eq!(
+        (tied_nodes, tied_forms),
+        (0, 0),
         "the pack carried {tied_nodes} colliding nodes in {tied_forms} templates"
     );
 }

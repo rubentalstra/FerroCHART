@@ -331,6 +331,53 @@ one optional field, `{1..1}` is one mandatory field, and `{0}` means the
 template removed the node so it is never rendered. `is_ordered` true on a
 container means display order is significant.
 
+**Sibling constraints an instance cannot tell apart are folded before a form
+is derived.** AOM 1.4 section 4.2.3.1 says a node id "guarantees sibling node
+unique identification" and section 4.3.6 says it is "used to dis-tinguish
+sibling nodes", but AOM 1.4 states no invariant and no validity condition that
+requires it: `ARCHETYPE.node_ids_valid()` (section 3.2.1) checks terminology
+membership only, `C_OBJECT` and `C_MULTIPLE_ATTRIBUTE` carry no invariant
+block, and the ITS-XML schemas carry no `xs:unique`, `xs:key` or `xs:keyref`.
+ADL 2 does forbid it, in AOM 2 section 4.5.4.3 rule VCOSU. The committed pack
+carries 21 such groups in 4 templates, and every one of them states the same
+constraint twice. Three rules follow:
+
+1. **Under a single-valued attribute the members are alternatives**, because
+   AOM 1.4 section 4.3.2 names the children of a singular attribute
+   "alternatives" and section 4.3.3 says "the meaning of the inherited
+   children attribute is that they are alternatives", with `Members_valid`
+   capping each member's occurrences at one. Members that state the same
+   constraint fold into one item, and an instance satisfying any member is
+   valid. Members that differ are two things the template offers, so both
+   survive and the key separates them by position, which section 6.2 marks
+   and a replay reports. The committed pack carries none of that case.
+2. **Under a container attribute, identical members fold into one node
+   carrying the collective occurrences**: the sum of the members' lower
+   bounds, and the minimum of the sum of their upper bounds and the
+   containing attribute's cardinality upper bound. That arithmetic is AOM 2
+   section 4.5.4.3 rule VSONCO, the only definition of collective sibling
+   occurrences openEHR publishes; AOM 1.4 defines none, so reading it across
+   generations is analogy. The fold is lossless because the members state the
+   same constraint, so one node with the summed bound admits exactly what the
+   pair did.
+3. **Under a container attribute, members that differ are refused.** RM
+   `common.html` section 3.2.2 gives a non-root node only its
+   `archetype_node_id`, `LOCATABLE.name` is the only other identity attribute
+   and the members share it, and section 3.1.2.1 says `uid` "will usually be
+   empty". Nothing in an instance could say which member it satisfies, so a
+   field per member could build a document whose nodes cannot be attributed
+   to the constraint they answer. This refuses no template in the committed
+   pack. It reaches only nodes the template gives an `archetype_node_id`: a
+   `REFERENCE_RANGE` (`data_types.html` section 6.2.3) is not a `LOCATABLE`
+   and carries no node id, so its members are told apart by their own content.
+
+The imaging case that found this is a tool defect rather than a modelling
+decision. `openEHR-EHR-OBSERVATION.imaging_exam.v1` declares `CLUSTER[at0042]`
+with eight `use_node` internal references to eight distinct targets, and the
+operational template carries sixteen children because the generator expanded
+each one twice, against OPT 2 section 3.3 ("replaced by an inline copy"). The
+source archetype is correct.
+
 **Defaults and assumed values are different, and only one reaches the data.**
 AOM 1.4 section 4.2.3.2: "The notion of assumed values is distinct from that
 of 'default values'. The latter is a local requirement, and as such is stated
@@ -584,12 +631,22 @@ and is exactly as stable as the rest of the template. Running the two together
 would discard the strongest discriminator the corpus has.
 
 **Where the whole tuple still ties, the step carries a sibling ordinal and the
-entry is marked as positionally keyed.** This is 7.0% of collisions, and the
-congenital syphilis form is the shape: two `ITEM_TREE` children under one
-`events[at0026]/data`, both named "Simple", identical in every other respect.
-A positional key is the one a reordering silently breaks, so the replay
-reports every positionally keyed entry whenever its container changed, rather
-than trusting the position.
+entry is marked as positionally keyed.** A positional key is the one a
+reordering silently breaks, so the replay reports every positionally keyed
+entry whenever its container changed, rather than trusting the position.
+
+**The fold of section 5.1 runs before any key is computed, and that ordering
+is load-bearing.** A duplicated group shifts the ordinal of every sibling
+after it, so a key that carried an ordinal over a group the generator
+duplicated would change wholesale the day CKM republishes the template with
+the defect fixed, and the replay would report a reordering that never
+happened. Folding first, then renumbering each child by its position among
+the siblings under its own attribute, gives the key the template would have
+produced without the duplicate. What is left for the ordinal is the case rule
+1 of section 5.1 leaves standing: alternatives under a single-valued attribute
+that genuinely differ. The committed pack now derives no positionally keyed
+entry at all, so the measurement of 7.0% above is the shape of the raw
+templates rather than of the forms derived from them.
 
 ### 6.3 Geometry: a column grid, and no stored coordinate
 
@@ -1239,6 +1296,7 @@ Each release is green before the next starts.
 | Unknown members | Preserved verbatim through a round trip | A third party's metadata must survive this tool | Dropping what is not modelled |
 | Layout storage | A separate overlay keyed by computable path | No specification governs a form artefact; every surveyed alternative loses the work or pollutes the shared model | Template annotations; layout on the definition; layout in the rendered artefact |
 | Overlay key | A step chain carrying attribute, `node_id`, archetype id, RM type and pinned name, with a sibling ordinal only where those tie | Measured over 102 operational templates: an id-only path collides in 14 of them, and name, RM type and archetype id are the only discriminators for 41.0%, 29.5% and 17.8% of the 427 colliding groups | An id-only key; a key omitting the name, which loses the largest discriminator; keying by position everywhere |
+| Tied sibling constraints | Fold identical members into one node before a key exists, with collective occurrences under a container; refuse differing members under a container | AOM 1.4 permits the shape and defines no way to match an instance against it, and RM `common.html` section 3.2.2 gives an instance node no attribute that could separate the members; measured over the pack, all 21 groups in 4 templates state the same constraint twice | Refusing the template, which loses a template CKM publishes; keeping a field per member and refusing the document at the gate, which puts an error a clinician cannot act on in front of them |
 | Revision handling | Recompile, replay, and report per entry | No specification promises path stability across revisions, and specialisation provably changes codes | Migrating layout silently; discarding unmatched entries |
 | Coded field resolution | Local first, a server call only for what the template does not carry | Measured over 102 templates: 97.6% of 843 coded fields get their membership from the template, and an enumerated external code carries no rubric there | Expanding everything over the network; treating membership and display as one question |
 | Value set identity in FHIR | A minted URL under the deployer's domain, encoding the archetype id, with the archetype version as `version` | No openEHR specification defines a canonical URI for a local value set, and FHIR requires a `url`; the archetype id is globally unique | A `urn:` form, which does not resolve; a URL under `specifications.openehr.org`, which is another publisher's namespace |

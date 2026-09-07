@@ -767,25 +767,25 @@ fn the_pack_derives_the_field_kinds_it_carries() {
     let expected: BTreeMap<&str, usize> = [
         ("boolean", 24),
         ("choice", 126),
-        ("coded", 506),
+        ("coded", 502),
         ("count", 115),
         ("date", 10),
-        ("date-time", 202),
+        ("date-time", 201),
         ("duration", 30),
-        ("identifier", 67),
-        ("multimedia", 7),
+        ("identifier", 64),
+        ("multimedia", 6),
         ("ordinal", 1),
         ("parsable", 5),
         ("proportion", 24),
-        ("quantity", 111),
-        ("text", 1394),
-        ("uri", 36),
+        ("quantity", 105),
+        ("text", 1373),
+        ("uri", 35),
     ]
     .into_iter()
     .collect();
     assert_eq!(kinds, expected);
-    assert_eq!(fields, 2658);
-    assert_eq!(groups, 1789);
+    assert_eq!(fields, 2621);
+    assert_eq!(groups, 1775);
 }
 
 #[test]
@@ -811,7 +811,7 @@ fn an_open_slot_is_recorded_and_never_rendered() {
             }
         }
     }
-    assert_eq!(slots, 1195);
+    assert_eq!(slots, 1190);
 }
 
 #[test]
@@ -897,9 +897,12 @@ fn a_key_is_positional_exactly_where_a_sibling_ties() {
             }
         }
     }
-    assert_eq!(positional, 102, "the tie count over the committed pack");
-    // Every tie in this pack is between siblings that carry a node id and
-    // differ in nothing else, which is why the old proxy found none of them.
+    // Nothing in this pack is positionally keyed any more: every tied group
+    // it carries states the same constraint twice, so the collapse of #122
+    // folds it away before a key exists. The ordinal survives for the case
+    // AOM1.4.html sections 4.3.2 and 4.3.3 create, where tied alternatives
+    // under a single-valued attribute genuinely differ.
+    assert_eq!(positional, 0, "the tie count over the committed pack");
     assert_eq!(positional_without_code, 0);
 }
 
