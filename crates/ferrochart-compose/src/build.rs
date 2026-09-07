@@ -101,12 +101,34 @@ pub fn composition(
         event_context(envelope)
     };
 
+    // A template rooted at COMPOSITION is its own archetype root. One rooted
+    // below it is wrapped in a document FerroCHART supplies, and that document
+    // needs an archetype of its own.
+    let archetype = if rooted_at_composition {
+        root.archetype_id
+            .as_ref()
+            .map_or_else(String::new, |id| id.as_str().to_owned())
+    } else {
+        envelope
+            .composition_archetype
+            .clone()
+            .ok_or_else(|| BuildError::Invariant {
+                key: root.key.clone(),
+                invariant: "COMPOSITION.Is_archetype_root",
+                detail: format!(
+                    "this template roots at {}, so the composition around it needs an \
+                     archetype the configuration has not named",
+                    root.rm_type.as_str()
+                ),
+            })?
+    };
+
     Ok(Composition {
         name: name_of(root, language),
-        archetype_node_id: node_id_of(&root.key, root),
+        archetype_node_id: archetype.clone(),
         uid: None,
         links: None,
-        archetype_details: Some(archetyped(root, definition)),
+        archetype_details: Some(archetyped(&archetype, definition)),
         feeder_audit: None,
         language: envelope.language_code(),
         territory: envelope.territory_code(),
@@ -224,13 +246,10 @@ pub(crate) fn nested_archetyped(group: &FormGroup) -> Option<Archetyped> {
 ///
 /// `Archetyped_valid: is_archetype_root xor archetype_details = Void`, and the
 /// root of a template is always an archetype root.
-fn archetyped(group: &FormGroup, definition: &FormDefinition) -> Archetyped {
+fn archetyped(archetype: &str, definition: &FormDefinition) -> Archetyped {
     Archetyped {
         archetype_id: ArchetypeId {
-            value: group
-                .archetype_id
-                .as_ref()
-                .map_or_else(String::new, |id| id.as_str().to_owned()),
+            value: archetype.to_owned(),
         },
         // `common.html` section 3.2.3: "Normally, a template would only be
         // used at the top of a top-level structure", so the template id is

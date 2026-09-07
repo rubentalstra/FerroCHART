@@ -99,6 +99,21 @@ pub struct Envelope {
     /// `EVENT_CONTEXT.setting`, 1..1 whenever a context is written, as a code
     /// in the openEHR `setting` group.
     pub setting: Option<Setting>,
+    /// The COMPOSITION archetype that wraps a template rooted below one.
+    ///
+    /// 113 of the 123 committed templates root at an ENTRY or a SECTION, so
+    /// FerroCHART has to supply the document around them. `ehr.html` section
+    /// 5.4.1 makes `Is_archetype_root` an invariant of COMPOSITION and
+    /// `common.html` section 3.2.2 requires a root's `archetype_node_id` to be
+    /// "the stringified form of the `archetype_id`", so that wrapper needs an
+    /// archetype of its own and the entry's will not do: a document that named
+    /// the entry's archetype would claim a COMPOSITION is an OBSERVATION.
+    ///
+    /// No specification says which archetype a deployment should wrap a
+    /// standalone entry in: our own design, and configuration decides it the
+    /// way it decides the territory. A build refuses rather than inventing
+    /// one.
+    pub composition_archetype: Option<String>,
 }
 
 /// Who composed the document.

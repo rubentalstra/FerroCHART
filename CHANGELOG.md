@@ -162,6 +162,15 @@ the build order.
 
 ### Fixed
 
+- A composition wrapped around a template rooted below COMPOSITION named the
+  entry's archetype as its own, so the document claimed a COMPOSITION was an
+  OBSERVATION archetype root. That was 113 of the 123 committed templates.
+  `ehr.html` section 5.4.1 makes `Is_archetype_root` an invariant of
+  COMPOSITION and `common.html` section 3.2.2 requires a root's
+  `archetype_node_id` to be the stringified archetype id, so the wrapper needs
+  an archetype of its own. Configuration names it, the way it names the
+  territory, and a build with none refuses rather than inventing one. Found by
+  the commit gate of #24.
 - A COMPOSITION FerroCHART built put no `ARCHETYPED` on any node below its
   root, so every ENTRY it wrote violated `Is_archetype_root`
   (openEHR RM Release-1.1.0 `ehr.html` section 8.3.1, with
