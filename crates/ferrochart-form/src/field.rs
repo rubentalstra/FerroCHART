@@ -24,6 +24,12 @@ pub struct FormField {
     /// What names the field.
     pub key: NodeKey,
     /// The Reference Model class the field collects.
+    ///
+    /// A field derived from an `ELEMENT` collects the class of the data value
+    /// the element holds, so this is `DV_QUANTITY` where the node itself is an
+    /// `ELEMENT` (openEHR RM Release-1.1.0 `data_structures.html` section
+    /// 5.2.3). The `rm_type` of a [`crate::key::KeyStep`] is the other
+    /// notion, the class the node IS, and the two differ on every such field.
     pub rm_type: RmTypeName,
     /// The text the field is labelled with.
     pub label: Localized,

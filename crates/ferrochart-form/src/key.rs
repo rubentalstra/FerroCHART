@@ -31,6 +31,12 @@ pub struct KeyStep {
     /// The archetype this node is the root of, where it is one.
     pub archetype_id: Option<ArchetypeId>,
     /// The Reference Model type the node constrains.
+    /// The Reference Model class of the node this step names.
+    ///
+    /// This is the class the node IS, which for a leaf is `ELEMENT` rather
+    /// than the data value it holds. A field's own `rm_type` is the class it
+    /// COLLECTS, so the two differ on every field derived from an `ELEMENT`
+    /// (openEHR RM Release-1.1.0 `data_structures.html` section 5.2.3).
     pub rm_type: RmTypeName,
     /// The name the template pins on the node, where it states one.
     ///

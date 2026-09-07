@@ -860,3 +860,36 @@ fn a_form_round_trips_through_its_serialisation() {
         json
     );
 }
+
+#[test]
+fn a_key_is_positional_exactly_where_a_sibling_ties() {
+    // The flag used to mean "this step carries no identifying code", which is
+    // true of every bare attribute step and disjoint from an actual tie (#67).
+    // It now means what architecture section 6.2 decided.
+    let mut positional = 0_usize;
+    let mut positional_without_code = 0_usize;
+    for path in templates() {
+        let xml = fs::read_to_string(&path).expect("a committed corpus file is UTF-8");
+        let Ok(template) = adl14::from_xml(&xml) else {
+            continue;
+        };
+        let form = derive::form(&template).expect("every template derives");
+        let keys = form
+            .groups()
+            .map(|group| &group.key)
+            .chain(form.fields().map(|field| &field.key));
+        for key in keys {
+            if key.is_positional {
+                positional += 1;
+                let last = key.steps.last().expect("a key has a step");
+                if last.node_id.is_none() && last.archetype_id.is_none() {
+                    positional_without_code += 1;
+                }
+            }
+        }
+    }
+    assert_eq!(positional, 102, "the tie count over the committed pack");
+    // Every tie in this pack is between siblings that carry a node id and
+    // differ in nothing else, which is why the old proxy found none of them.
+    assert_eq!(positional_without_code, 0);
+}
