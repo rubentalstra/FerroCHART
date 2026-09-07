@@ -150,6 +150,19 @@ the Clippy book.
   dependency for what the pinned set already provides, and verify the version
   against crates.io or docs.rs at the moment of adding. CI builds run
   `--locked`. A `cargo deny` gate is added when the Rust CI lanes are stood up.
+- **A dependency's cargo feature is additive across the whole workspace, so a
+  new dependency is checked for what it ENABLES and not only for what it
+  exports.** Features unify across a build graph, so a feature any crate turns
+  on at any depth is on for every crate here, and that reaches this project's
+  own published wire: under `serde_json/arbitrary_precision` a number arrives
+  at serde's content buffer as a map, and the internally tagged enums of the
+  form definition stopped deserializing with no line changed in this tree.
+  Read the resolved feature set of every serialization crate a new dependency
+  touches before adopting it. Enforcement: `scripts/checks/serde-json-features.sh`
+  (its own CI lane) fails on a refused or unreviewed `serde_json` feature, and
+  each published document carries a round trip plus a golden wire snapshot
+  (`ferrochart-form` and `ferrochart-overlay`) that fails on the effect rather
+  than on the cause.
 - **Comment style is machine-enforced** (`comments.md`, RFC 505 plus RFC 1574):
   line comments only, `// TODO(#NNNN):` with a mandatory issue reference,
   `// NOTE:` as a citation plus one sentence (at most 3 lines), plain `//` runs

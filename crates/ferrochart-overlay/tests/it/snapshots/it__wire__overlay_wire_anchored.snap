@@ -1,0 +1,103 @@
+---
+source: crates/ferrochart-overlay/tests/it/wire.rs
+expression: json
+---
+{
+  "format_version": 2,
+  "template": {
+    "id": "Clinical context - JM",
+    "id_form": "legacy_name"
+  },
+  "sections": [],
+  "entries": [
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-SECTION.adhoc.v1",
+            "rm_type": "SECTION",
+            "pinned_name": "Clinical context",
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-SECTION.adhoc.v1",
+            "rm_type": "SECTION",
+            "pinned_name": "Infant clinical context",
+            "sibling_ordinal": 5
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-SECTION.adhoc.v1",
+            "rm_type": "SECTION",
+            "pinned_name": "Infant measurements",
+            "sibling_ordinal": 2
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-OBSERVATION.body_weight.v2",
+            "rm_type": "OBSERVATION",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0002",
+            "archetype_id": null,
+            "rm_type": "HISTORY",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "events",
+            "node_id": "at0026",
+            "archetype_id": null,
+            "rm_type": "POINT_EVENT",
+            "pinned_name": null,
+            "sibling_ordinal": 1
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": "Simple",
+            "sibling_ordinal": 0
+          }
+        ],
+        "is_positional": true
+      },
+      "rm_type": "ITEM_TREE",
+      "anchor": {
+        "tied_siblings": [
+          "0/data[at0001, ITEM_TREE, 'Simple']:ITEM_TREE;1/items[at0004, ELEMENT]:DV_QUANTITY;1/items[at0024, ELEMENT, #1]:DV_TEXT;",
+          "0/data[at0001, ITEM_TREE, 'Simple', #1]:ITEM_TREE;1/items[at0004, ELEMENT]:DV_QUANTITY;1/items[at0024, ELEMENT, #1]:DV_TEXT;"
+        ]
+      },
+      "layout": {
+        "order": null,
+        "section": null,
+        "label": {
+          "en": "Weight"
+        },
+        "help": {},
+        "default": null,
+        "visibility": {
+          "visibility": "always"
+        },
+        "widget": null,
+        "geometry": {
+          "span": null,
+          "break_before": false,
+          "width": null
+        },
+        "hints": {}
+      }
+    }
+  ]
+}

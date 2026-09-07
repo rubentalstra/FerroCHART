@@ -12,8 +12,22 @@ use crate::ids::{LanguageTag, TemplateId};
 /// The version of the form definition format this crate defines.
 ///
 /// A consumer reads it from [`FormDefinition::format_version`] and refuses a
-/// document it does not know. The number changes only when a document that
-/// parsed under the old version would parse differently under the new one.
+/// document it does not know.
+///
+/// # What the number covers
+///
+/// No specification governs this: our own design. It covers the bytes a
+/// consumer parses: the member names, the tag and variant names of every
+/// tagged enum, the shape of every value, and which members a document is
+/// guaranteed to carry. A change to any of those in a document that could
+/// already have been written is a bump, whether or not this crate still reads
+/// the old bytes, because the consumer that breaks is a renderer somebody else
+/// wrote.
+///
+/// Two changes are not a bump, because a consumer written against the old
+/// bytes still reads what it read before: a new member a reader may ignore,
+/// and a new variant of an enum this crate already marks `#[non_exhaustive]`.
+/// Neither may change the meaning of a member that is already there.
 pub const FORMAT_VERSION: u32 = 1;
 
 /// A form, derived from one operational template.
