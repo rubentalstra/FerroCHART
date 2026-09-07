@@ -196,10 +196,34 @@ fn composer(composer: &Composer) -> PartyProxy {
     }
 }
 
-/// The `ARCHETYPED` a root node carries.
+/// The `ARCHETYPED` a node below the document root carries, where it is an
+/// archetype root itself.
 ///
-/// `Archetyped_valid: is_archetype_root xor archetype_details = Void`, so this
-/// is present at a root and absent everywhere else.
+/// `common.html` section 3.1.2: `Archetyped_valid: is_archetype_root xor
+/// archetype_details = Void`. Every node the template composed from an
+/// archetype of its own is an archetype root, so it carries the details, and
+/// `ehr.html` section 8.3.1 makes that explicit for an ENTRY with
+/// `Is_archetype_root: is_archetype_root`. A node identified by its own
+/// at-code is not a root and carries nothing.
+///
+/// The template id is absent here. `common.html` section 3.2.3: "Normally, a
+/// template would only be used at the top of a top-level structure", so it is
+/// written once, at the composition root, by [`archetyped`].
+pub(crate) fn nested_archetyped(group: &FormGroup) -> Option<Archetyped> {
+    let archetype = group.archetype_id.as_ref()?;
+    Some(Archetyped {
+        archetype_id: ArchetypeId {
+            value: archetype.as_str().to_owned(),
+        },
+        template_id: None,
+        rm_version: RM_VERSION.to_owned(),
+    })
+}
+
+/// The `ARCHETYPED` the document root carries.
+///
+/// `Archetyped_valid: is_archetype_root xor archetype_details = Void`, and the
+/// root of a template is always an archetype root.
 fn archetyped(group: &FormGroup, definition: &FormDefinition) -> Archetyped {
     Archetyped {
         archetype_id: ArchetypeId {

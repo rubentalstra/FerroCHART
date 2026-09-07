@@ -25,6 +25,12 @@
 //! of `docs/architecture.md` section 6.3 among them. A renderer applies a
 //! layout, so the types are here beside the definition they decorate.
 //!
+//! It also owns the validation report a renderer reads
+//! ([`mod@validation`]), because `docs/architecture.md` section 12 puts a
+//! validation result keyed by node path on the seam to a renderer, and a
+//! report keyed by [`key::NodeKey`] is one a renderer resolves against the
+//! definition it is already holding.
+//!
 //! It owns none of the machinery around them. Overlay storage, the key
 //! normalization, the authoring session, the replay and the report read and
 //! write files and compare two definitions, none of which a renderer does, and
@@ -50,4 +56,5 @@ pub mod layout;
 pub mod occurrences;
 pub mod range;
 pub mod text;
+pub mod validation;
 pub mod value;

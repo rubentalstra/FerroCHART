@@ -996,15 +996,74 @@ CDRs.
 The design this forces:
 
 1. **FerroCHART validates the composition against the operational template
-   before it posts.** `openehr_its::rm_instance::validate_composition` returns
-   messages carrying a path, a message and a kind, keyed by the same path
-   string the compiler emitted, which is a field-level error with no adapter
-   in between.
+   before it posts.** `openehr_its::rm_instance` runs the Reference Model
+   invariant and openEHR terminology passes over the whole document, and
+   `openehr_its::flat::validation` runs the archetype-conformance pass over
+   the node the template describes. Each returns messages carrying a path, a
+   message and a kind.
 2. **A CDR rejecting a composition FerroCHART built and validated is a
    FerroCHART bug**, per the hard rule in `CLAUDE.md`. The CDR's error body is
    diagnostic material for that bug.
 3. **Mapping a vendor error body onto a field is best-effort, vendor-specific,
    and carries a `// NOTE:`** saying so.
+
+### 9.1 Three path languages meet here, so there is an adapter
+
+This section previously said the validator's messages are "keyed by the same
+path string the compiler emitted, which is a field-level error with no adapter
+in between". Measured against the committed pack while implementing #24, that
+is not so, and the correction is recorded here rather than left standing.
+Three path languages are in play:
+
+| Producer | Predicate | Example |
+|---|---|---|
+| The compiler's `NodeKey` | attribute, node id, archetype id, RM type, pinned name, sibling ordinal | `/items[at0004, ELEMENT, 'Systolic']` |
+| The archetype-conformance pass | attribute, one identifier, optional pinned name | `/items[at0004,'Systolic']/value` |
+| The instance passes | attribute, position in the document | `/content[0]/data` |
+
+They differ in three ways beyond spelling. A `NodeKey` starts at the template
+root and carries the Reference Model type and the sibling ordinal, neither of
+which appears in a path. An `aqlPath` descends past an `ELEMENT` into the
+attribute holding its value, which names no item of the form. And an instance
+path's predicate is a position, which names no template node at all.
+
+**So `ferrochart-validate` owns the adapter.** It normalizes an instance path
+into an archetype path by reading each reached node's `archetype_node_id` out
+of the document, which openEHR RM Release-1.1.0 `common.html` section 3.2.2
+fixes as the archetype identifier at a root and the node's own code below it,
+then resolves the result against an index built from the form definition,
+walking up to the nearest item where the exact path names none. A path that
+resolves to two items resolves to neither, because the identifier alone does
+not separate the colliding siblings section 6.2 measured.
+
+**The renderer's side of the claim does hold**, and it is the half that
+matters: what crosses the seam of section 12 is a
+`ferrochart_form::validation::ValidationReport` keyed by `NodeKey`, which a
+renderer resolves against the form definition it is already holding. The
+report type lives in `ferrochart-form` for that reason, so a renderer still
+links one crate of this tree.
+
+**What does not resolve is reported unplaced, never dropped.** A Reference
+Model invariant on the envelope the template never describes, and a
+cardinality violation reported on an attribute, both keep the path they were
+found at and are shown beside the form.
+
+### 9.2 Where the gate lives
+
+`ferrochart-cdr` links `ferrochart-form` and nothing else of this tree, and
+`scripts/checks/crate-closure.sh` fails the build if that changes, so the
+client cannot hold a validator. `ferrochart-validate` makes the mirror promise
+and cannot hold a client, which is deliberate: a validator that can post is a
+validator that can be talked into posting.
+
+**So the gate is `ferrochart_server::commit`**, which section 11 already names
+as the crate that "serves definitions, validates, builds and commits
+compositions". `Commit::create` and `Commit::update` are the only paths in
+this workspace from a clinician's entries to a CDR write, and both build,
+judge and only then request. The ordering is tested by construction:
+`crates/ferrochart-server/tests/it/gate.rs` points the client at a port
+nothing listens on, so a refusal proves the gate ran first and a transport
+failure would prove it did not.
 
 ## 10. The renderer
 
@@ -1044,6 +1103,7 @@ the manifest rather than by habit.
 | `ferrochart-webtemplate` | The web template compatibility surface of section 4: reading one into a form definition, and writing one out. Links `ferrochart-form` and nothing else of this tree. |
 | `ferrochart-overlay` | Overlay storage, the key normalization of section 6.2, replay, and the differential report. Not the layout types themselves. |
 | `ferrochart-cdr` | The ITS-REST client of section 8. |
+| `ferrochart-validate` | The pre-post gate of section 9: it judges a COMPOSITION against its operational template and keys every failure onto the form definition. It links `ferrochart-form` and nothing else, so it can never post what it judged. |
 | `ferrochart-term` | The terminology client of section 7. |
 | `ferrochart-server` | The HTTP surface: serves definitions, validates, builds and commits compositions. |
 | `ferrochart-renderer` | The Leptos client-side binary of section 10. Depends on `ferrochart-form` and nothing else from this tree. |
@@ -1069,7 +1129,8 @@ type names `ferrochart-form`.
 `scripts/checks/crate-closure.sh` reads the resolved dependency graph and fails
 when `ferrochart-form` links any other crate of this tree, when
 `ferrochart-renderer`, `ferrochart-cdr`, `ferrochart-compose` or
-`ferrochart-webtemplate` links anything but `ferrochart-form`, or when
+`ferrochart-validate` or `ferrochart-webtemplate` links anything but
+`ferrochart-form`, or when
 `ferrochart-term` links anything but `ferrochart-compile` and
 `ferrochart-form`. It walks the transitive normal and
 build closure, so a first-party crate arriving through an intermediate is
@@ -1173,6 +1234,8 @@ Each release is green before the next starts.
 | Terminology expansion cache | Per template, language and request, dropped per template on recompile | No specification governs caching, and FHIR R4 publishes no cache-validity mechanism for these operations, so an expiry would be a guess | A time-to-live; a cache keyed by canonical URL alone, which would serve one language's text for another |
 | An openEHR `terminology_id` to a FHIR system URI | A table of the names the corpus states, paired with the URIs FHIR R4 `terminologies-systems.html` section 4.3.0 publishes, overridable per deployment | No specification maps one onto the other, and ICD-10 has no single URI at all | Guessing a URI from the name, which would ask about the wrong code system |
 | Field-level errors | Validated locally before the post, and owned by FerroCHART | The ITS-REST error body is optional, conditional, and carries no path | Rendering the CDR's error body |
+| Validation paths | An adapter in `ferrochart-validate` normalizes the validator's two path languages onto the form definition's keys | Measured over the committed pack: the archetype path omits the Reference Model type and the sibling ordinal and descends past the `ELEMENT`, and an instance path's predicate is a position | Section 9's original claim that the paths already match |
+| Where the gate lives | `ferrochart_server::commit`, the one path from entries to a CDR write | `ferrochart-cdr` and `ferrochart-validate` each promise a closure that forbids holding the other | A gate inside the client; a validator that can post |
 | Compile site | The server | The owner's decision, and `openehr-its` has no WASM-capable feature set | Compiling in the browser |
 | Renderer | Leptos client-side, Trunk, the FerroTERM recipe | Proven in the family, and the boundary and bundle guards come with it | A JavaScript front end; server-rendered HTML |
 | Acceptance | A vendored per-datatype grid plus a round trip and a replay test | The openEHR conformance component is DEVELOPMENT and ITS-REST conformance reads "tbd." | Certifying against a published suite |

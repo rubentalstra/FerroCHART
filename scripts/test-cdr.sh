@@ -91,4 +91,10 @@ fi
 
 echo "test-cdr: running the wire tests against ${FERROCHART_TEST_CDR_URL}"
 # One thread: the cases share one CDR and one uploaded template.
-cargo nextest run --locked -p ferrochart-cdr --run-ignored all --test-threads 1
+#
+# ferrochart-server carries the gate of docs/architecture.md section 9, whose
+# live cases commit a COMPOSITION FerroCHART built and validated. A CDR
+# refusing one of those is a FerroCHART defect, so they run here beside the
+# client's own wire tests.
+cargo nextest run --locked -p ferrochart-cdr -p ferrochart-server \
+  --run-ignored all --test-threads 1

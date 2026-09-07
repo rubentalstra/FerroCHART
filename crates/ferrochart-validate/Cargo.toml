@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BUSL-1.1
 
 [package]
-name = "ferrochart-server"
-description = "The FerroCHART HTTP surface: compiles, validates, builds and commits"
+name = "ferrochart-validate"
+description = "Validates a COMPOSITION against its operational template before any request"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -14,22 +14,16 @@ homepage.workspace = true
 publish.workspace = true
 
 [dependencies]
-axum.workspace = true
-ferrochart-cdr.workspace = true
-ferrochart-compose.workspace = true
 ferrochart-form.workspace = true
-ferrochart-validate.workspace = true
+openehr-its.workspace = true
 openehr-rm.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
-tokio.workspace = true
-tracing.workspace = true
 
 [dev-dependencies]
 ferrochart-compile.workspace = true
-openehr-base.workspace = true
-tokio = { workspace = true, features = ["rt", "macros", "time"] }
-url.workspace = true
+ferrochart-compose.workspace = true
 
 [lints]
 workspace = true

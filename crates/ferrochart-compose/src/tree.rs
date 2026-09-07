@@ -35,7 +35,8 @@ use openehr_rm::v1_2::data_structures::representation::element::Element;
 use openehr_rm::v1_2::data_structures::representation::item::Item;
 
 use crate::build::{
-    check_null_flavour, coded, entered_for, field_name_of, name_of, node_id_of, null_flavour_rubric,
+    check_null_flavour, coded, entered_for, field_name_of, name_of, nested_archetyped, node_id_of,
+    null_flavour_rubric,
 };
 use crate::datum;
 use crate::envelope::{ACTIVE, Envelope, OPENEHR, Subject};
@@ -171,7 +172,7 @@ fn section(
         archetype_node_id: node_id_of(&group.key, group),
         uid: None,
         links: None,
-        archetype_details: None,
+        archetype_details: nested_archetyped(group),
         feeder_audit: None,
         items: NonEmptyVec::try_from(items).ok(),
     })
@@ -200,7 +201,7 @@ fn observation(
         archetype_node_id: node_id_of(&group.key, group),
         uid: None,
         links: None,
-        archetype_details: None,
+        archetype_details: nested_archetyped(group),
         feeder_audit: None,
         language: envelope.language_code(),
         encoding: envelope.encoding_code(),
@@ -235,7 +236,7 @@ fn evaluation(
         archetype_node_id: node_id_of(&group.key, group),
         uid: None,
         links: None,
-        archetype_details: None,
+        archetype_details: nested_archetyped(group),
         feeder_audit: None,
         language: envelope.language_code(),
         encoding: envelope.encoding_code(),
@@ -269,7 +270,7 @@ fn admin_entry(
         archetype_node_id: node_id_of(&group.key, group),
         uid: None,
         links: None,
-        archetype_details: None,
+        archetype_details: nested_archetyped(group),
         feeder_audit: None,
         language: envelope.language_code(),
         encoding: envelope.encoding_code(),
@@ -311,7 +312,7 @@ fn instruction(
         archetype_node_id: node_id_of(&group.key, group),
         uid: None,
         links: None,
-        archetype_details: None,
+        archetype_details: nested_archetyped(group),
         feeder_audit: None,
         language: envelope.language_code(),
         encoding: envelope.encoding_code(),
@@ -349,7 +350,7 @@ fn activity(
         archetype_node_id: node_id_of(&group.key, group),
         uid: None,
         links: None,
-        archetype_details: None,
+        archetype_details: nested_archetyped(group),
         feeder_audit: None,
         timing: None,
         // The form definition does not carry the constraint, so the widest
@@ -385,7 +386,7 @@ fn action(
         archetype_node_id: node_id_of(&group.key, group),
         uid: None,
         links: None,
-        archetype_details: None,
+        archetype_details: nested_archetyped(group),
         feeder_audit: None,
         language: envelope.language_code(),
         encoding: envelope.encoding_code(),
@@ -481,7 +482,7 @@ fn history_under(
         archetype_node_id: node_id_of(&node.key, node),
         uid: None,
         links: None,
-        archetype_details: None,
+        archetype_details: nested_archetyped(node),
         feeder_audit: None,
         // 1..1, and no template constrains it: the session supplies it.
         origin: datum::date_time(&envelope.now),
@@ -523,7 +524,7 @@ fn event(
         archetype_node_id: node_id_of(&group.key, group),
         uid: None,
         links: None,
-        archetype_details: None,
+        archetype_details: nested_archetyped(group),
         feeder_audit: None,
         // 1..1, from the session.
         time: datum::date_time(&envelope.now),
@@ -557,7 +558,7 @@ fn items_under(
         archetype_node_id: node_id_of(&node.key, node),
         uid: None,
         links: None,
-        archetype_details: None,
+        archetype_details: nested_archetyped(node),
         feeder_audit: None,
         items: Some(items),
     }))
@@ -625,7 +626,7 @@ fn cluster(
         archetype_node_id: node_id_of(&group.key, group),
         uid: None,
         links: None,
-        archetype_details: None,
+        archetype_details: nested_archetyped(group),
         feeder_audit: None,
         items,
     }))
@@ -685,6 +686,9 @@ fn elements_of(
                 .map_or_else(String::new, |code| code.as_str().to_owned()),
             uid: None,
             links: None,
+            // The element's `archetype_node_id` above is its own at-code, so
+            // it is not an archetype root and `Archetyped_valid` forbids it
+            // details (`common.html` section 3.1.2).
             archetype_details: None,
             feeder_audit: None,
             null_flavour,

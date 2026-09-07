@@ -4,10 +4,16 @@
 //! The HTTP surface. It serves form definitions, validates entered values
 //! against the operational template, builds COMPOSITIONs and commits them.
 //!
-//! Only the runtime surface exists so far: the configuration, the listener,
-//! the health probe and an orderly shutdown. The routes that do the work
-//! arrive with the compiler and the client.
+//! The runtime surface is the configuration, the listener, the health probe
+//! and an orderly shutdown. The routes that serve a form definition arrive
+//! with the renderer.
+//!
+//! [`mod@commit`] is here already, and it is not a route: it is the gate of
+//! `docs/architecture.md` section 9. It is the only path in this workspace
+//! from a clinician's entries to a CDR write, and it validates the
+//! COMPOSITION against its operational template before it makes any request.
 
+pub mod commit;
 mod config;
 mod health;
 
