@@ -30,6 +30,15 @@ the build order.
   beside it, from a 4-field form to a 303-field one. A test also derives twenty
   templates twice and compares the bytes, so the format's determinism claim is
   checked rather than trusted.
+- The ADL 2 reader runs over the published archetype library (#49): 322
+  archetypes parse, 306 flatten into an operational template, and 301 read.
+  The 5 the reader refuses are mandatory unfilled slots, which is the
+  adjudication on #13; the 16 it never sees are refused by the upstream
+  flattener because a differential path in a specialised child does not
+  resolve in its parent, in a 2013 export that predates the AOM 2 validity
+  rules. The two families are counted apart, because they belong to different
+  owners. CI fetches the library and sets `FERROCHART_REQUIRE_ADL2`, so a
+  fetch that stops working is a red build rather than a skipped suite.
 - A fetch script for the ADL 2 archetype library (#49), pinned to a commit of
   `openEHR/adl-archetypes`. It brings 322 ADL 2 archetypes and 330 ADL 1.4
   twins, 321 of them the same archetype in both dialects, which is the first

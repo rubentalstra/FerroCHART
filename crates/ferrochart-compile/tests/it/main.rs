@@ -14,6 +14,7 @@
 
 mod adl14;
 mod adl2;
+mod adl2_corpus;
 mod corpus;
 mod derive;
 mod matched_pair;

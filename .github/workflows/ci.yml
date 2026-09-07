@@ -279,7 +279,15 @@ jobs:
       - uses: taiki-e/install-action@0758d235715de2f3551eacc980d9ae8fce9342c3 # v2.87.3
         with:
           tool: cargo-nextest
+      # The ADL 2 archetype library is fetched rather than committed, because
+      # its files state no licence (corpus/archetypes/adl2/PROVENANCE.md).
+      # FERROCHART_REQUIRE_ADL2 below turns its absence into a failure, so a
+      # fetch that stops working is a red build rather than a silently skipped
+      # suite.
+      - run: scripts/vendor/adl2-archetypes.sh
       - run: cargo nextest run --workspace --locked --no-tests=pass
+        env:
+          FERROCHART_REQUIRE_ADL2: "1"
       # nextest does not run doctests, so they get their own compile.
       - run: cargo test --doc --workspace --locked
 
