@@ -81,7 +81,7 @@
 //! bare archetype-id expression in both.
 
 use std::cell::RefCell;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use ferrochart_compile::model::ids::{
     ArchetypeId, CodeKind, LanguageTag, LocalCode, RmAttributeName, RmTypeName, TemplateId,
@@ -174,7 +174,7 @@ pub(crate) fn normalized_pair(
 }
 
 /// The codes one half's compared model refers to, per archetype.
-type Mentions = BTreeMap<ArchetypeId, Vec<LocalCode>>;
+type Mentions = BTreeMap<ArchetypeId, BTreeSet<LocalCode>>;
 
 /// One half of the pair, with the lookups the rewrite needs.
 struct Side<'a> {
@@ -231,52 +231,55 @@ impl<'a> Side<'a> {
 
     /// The terminology content the tree refers to, keyed by concept rather
     /// than by code.
-    ///
-    /// The rebuild is driven by the codes the tree mentions, because that is
-    /// what the two generations can be held to: a definition neither side's
-    /// nodes reach is not a constraint the form derivation ever sees.
     fn terminologies(&self) -> BTreeMap<ArchetypeId, Terminology> {
         let mut built = BTreeMap::new();
-        for (scope, codes) in &*self.mentions.borrow() {
-            let scope = scope.clone();
-            let mut codes = codes.clone();
-            codes.sort();
-            codes.dedup();
+        for (scope, mentioned) in &*self.mentions.borrow() {
             let mut terminology = Terminology::new();
-            for code in &codes {
-                if code.kind() == CodeKind::Other {
-                    continue;
-                }
-                let key = self.concept(&scope, code);
-                if let Some(term) = self.term(&scope, code) {
-                    terminology.insert_definition(self.language.clone(), key.clone(), term.clone());
-                }
-                self.copy_bindings(&scope, code, &key, &mut terminology);
+            if let Some(source) = self.template.terminology(scope) {
+                self.copy(scope, source, mentioned, &mut terminology);
             }
-            built.insert(scope, terminology);
+            built.insert(scope.clone(), terminology);
         }
         built
     }
 
-    fn copy_bindings(
+    /// Copies every entry of `source` the compared model refers to, with each
+    /// code rewritten to the concept it names.
+    fn copy(
         &self,
         scope: &ArchetypeId,
-        code: &LocalCode,
-        key: &LocalCode,
+        source: &Terminology,
+        mentioned: &BTreeSet<LocalCode>,
         into: &mut Terminology,
     ) {
-        let Some(source) = self.template.terminology(scope) else {
-            return;
-        };
-        for target in source.bindings(code).into_iter().flatten() {
-            into.insert_binding(key.clone(), clone_term(target.1));
+        // NOTE: No specification governs this: our own design. Every table is
+        // read through the enumerators and filtered to the codes the tree
+        // reaches, because the two generations define different code sets.
+        let wanted = |code: &LocalCode| mentioned.contains(code) && code.kind() != CodeKind::Other;
+        for (code, term) in source.definitions(&self.language) {
+            if wanted(code) {
+                into.insert_definition(
+                    self.language.clone(),
+                    self.concept(scope, code),
+                    term.clone(),
+                );
+            }
         }
-        for target in source.constraint_bindings(code).into_iter().flatten() {
-            into.insert_constraint_binding(key.clone(), clone_term(target.1));
+        for (code, target) in source.all_bindings() {
+            if wanted(code) {
+                into.insert_binding(self.concept(scope, code), clone_term(target));
+            }
         }
-        if let Some(members) = source.value_set(code) {
-            let members = members.iter().map(|m| self.concept(scope, m)).collect();
-            into.insert_value_set(key.clone(), members);
+        for (code, target) in source.all_constraint_bindings() {
+            if wanted(code) {
+                into.insert_constraint_binding(self.concept(scope, code), clone_term(target));
+            }
+        }
+        for (code, members) in source.value_sets() {
+            if wanted(code) {
+                let members = members.iter().map(|m| self.concept(scope, m)).collect();
+                into.insert_value_set(self.concept(scope, code), members);
+            }
         }
     }
 }

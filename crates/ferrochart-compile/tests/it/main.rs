@@ -21,3 +21,4 @@ mod matched_pair;
 mod reference_ranges;
 mod snapshot;
 mod support;
+mod terminology;

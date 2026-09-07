@@ -21,6 +21,18 @@ the build order.
 
 ## [Unreleased]
 
+### Added
+
+- The terminology of an archetype can be enumerated, where it could only be
+  asked about a code the caller already held (#91). `Terminology::definitions`
+  returns the rubrics one language states, `all_bindings` and
+  `all_constraint_bindings` return every binding as a code and one target, and
+  `value_sets` returns every enumerated value set with its members. All four
+  borrow the terminology and come back in code order, so a caller that wants
+  one code still pays for one lookup. The terminology client needs this to
+  emit an archetype's value sets as FHIR `CodeSystem` and `ValueSet`
+  resources, which a lookup-only interface cannot do.
+
 ## [0.0.4] - 2026-09-07
 
 ### Added

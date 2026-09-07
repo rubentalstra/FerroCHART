@@ -1,0 +1,68 @@
+-- SPDX-FileCopyrightText: Ruben Talstra
+-- SPDX-License-Identifier: BUSL-1.1
+-- Synthetic content invented for this test. No patient data.
+archetype (adl_version=2.0.5; rm_release=1.0.2)
+    openEHR-EHR-OBSERVATION.ferro_terminology.v1.0.0
+
+language
+    original_language = <[ISO_639-1::en]>
+    translations = <
+        ["nl"] = <
+            language = <[ISO_639-1::nl]>
+            author = <["name"] = <"Synthetic translator">>
+        >
+    >
+
+description
+    lifecycle_state = <"published">
+
+definition
+    OBSERVATION[id1] occurrences matches {1..1} matches {
+        data matches {
+            ITEM_TREE[id2] occurrences matches {1..1} matches {
+                items matches {
+                    ELEMENT[id3] occurrences matches {0..1} matches {
+                        value matches {
+                            DV_CODED_TEXT[id4] occurrences matches {1..1} matches {
+                                defining_code matches {[ac1]}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+terminology
+    term_definitions = <
+        ["en"] = <
+            ["id1"] = < text = <"Ferro terminology observation"> description = <"A synthetic observation invented for this test."> >
+            ["id2"] = < text = <"Tree"> description = <"The item tree."> >
+            ["id3"] = < text = <"Posture"> description = <"A synthetic posture."> >
+            ["id4"] = < text = <"Posture value"> description = <"The posture code."> >
+            ["at1"] = < text = <"Sitting"> description = <"Seated."> >
+            ["at2"] = < text = <"Standing"> description = <"Upright."> >
+            ["ac1"] = < text = <"Posture choice"> description = <"The permitted postures."> >
+        >
+        ["nl"] = <
+            ["id1"] = < text = <"Ferro terminologie observatie"> description = <"Een synthetische observatie voor deze test."> >
+            ["id2"] = < text = <"Boom"> description = <"De itemboom."> >
+            ["id3"] = < text = <"Houding"> description = <"Een synthetische houding."> >
+            ["id4"] = < text = <"Houdingswaarde"> description = <"De houdingscode."> >
+            ["at1"] = < text = <"Zittend"> description = <"Gezeten."> >
+            ["at2"] = < text = <"Staand"> description = <"Rechtop."> >
+            ["ac1"] = < text = <"Houdingskeuze"> description = <"De toegestane houdingen."> >
+        >
+    >
+    term_bindings = <
+        ["ferro_test"] = <
+            ["at1"] = <"terminology://ferro.example/code/sitting">
+            ["ac1"] = <"terminology://ferro.example/valueset/synthetic-postures">
+        >
+    >
+    value_sets = <
+        ["ac1"] = <
+            id = <"ac1">
+            members = <"at2", "at1">
+        >
+    >

@@ -180,6 +180,46 @@ impl Terminology {
         self.value_sets.get(code).map(Vec::as_slice)
     }
 
+    /// Every code `language` states a rubric for, paired with that rubric,
+    /// in code order.
+    ///
+    /// The pairs borrow the terminology, so enumerating clones nothing and a
+    /// caller after one code still pays for one lookup.
+    pub fn definitions<'t>(
+        &'t self,
+        language: &LanguageTag,
+    ) -> impl Iterator<Item = (&'t LocalCode, &'t TermDefinition)> + use<'t> {
+        self.definitions
+            .get(language)
+            .into_iter()
+            .flat_map(BTreeMap::iter)
+    }
+
+    /// Every binding the terminology states, as a code and one target, in
+    /// code order and then terminology order.
+    ///
+    /// A code that binds into several terminologies comes back once per
+    /// target, and each target names its own terminology.
+    pub fn all_bindings(&self) -> impl Iterator<Item = (&LocalCode, &ExternalTerm)> {
+        flatten_targets(&self.bindings)
+    }
+
+    /// Every constraint binding the terminology states, as a value-set code
+    /// and one target, in code order and then terminology order.
+    pub fn all_constraint_bindings(&self) -> impl Iterator<Item = (&LocalCode, &ExternalTerm)> {
+        flatten_targets(&self.constraint_bindings)
+    }
+
+    /// Every value set the archetype enumerates, paired with its members, in
+    /// code order.
+    ///
+    /// The members keep the order the archetype states them in.
+    pub fn value_sets(&self) -> impl Iterator<Item = (&LocalCode, &[LocalCode])> {
+        self.value_sets
+            .iter()
+            .map(|(code, members)| (code, members.as_slice()))
+    }
+
     /// Whether the terminology states nothing at all.
     #[must_use]
     pub fn is_empty(&self) -> bool {
@@ -188,4 +228,14 @@ impl Terminology {
             && self.constraint_bindings.is_empty()
             && self.value_sets.is_empty()
     }
+}
+
+/// Flattens a binding table into a code and one target per step, keeping the
+/// order of both keys.
+fn flatten_targets(
+    table: &BTreeMap<LocalCode, BTreeMap<TerminologyName, ExternalTerm>>,
+) -> impl Iterator<Item = (&LocalCode, &ExternalTerm)> {
+    table
+        .iter()
+        .flat_map(|(code, targets)| targets.values().map(move |target| (code, target)))
 }
