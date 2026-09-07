@@ -1511,6 +1511,126 @@
               </children>
             </attributes>
           </children>
+          <children xsi:type="C_COMPLEX_OBJECT">
+            <rm_type_name>ELEMENT</rm_type_name>
+            <occurrences>
+              <lower_included>true</lower_included>
+              <upper_included>true</upper_included>
+              <lower_unbounded>false</lower_unbounded>
+              <upper_unbounded>false</upper_unbounded>
+              <lower>0</lower>
+              <upper>1</upper>
+            </occurrences>
+            <node_id>at0035</node_id>
+            <attributes xsi:type="C_SINGLE_ATTRIBUTE">
+              <rm_attribute_name>value</rm_attribute_name>
+              <existence>
+                <lower_included>true</lower_included>
+                <upper_included>true</upper_included>
+                <lower_unbounded>false</lower_unbounded>
+                <upper_unbounded>false</upper_unbounded>
+                <lower>1</lower>
+                <upper>1</upper>
+              </existence>
+              <children xsi:type="C_DV_ORDINAL">
+                <rm_type_name>DV_ORDINAL</rm_type_name>
+                <occurrences>
+                  <lower_included>true</lower_included>
+                  <upper_included>true</upper_included>
+                  <lower_unbounded>false</lower_unbounded>
+                  <upper_unbounded>false</upper_unbounded>
+                  <lower>1</lower>
+                  <upper>1</upper>
+                </occurrences>
+                <node_id/>
+                <list>
+                  <value>0</value>
+                  <symbol>
+                    <value/>
+                    <defining_code>
+                      <terminology_id>
+                        <value>local</value>
+                      </terminology_id>
+                      <code_string>at0036</code_string>
+                    </defining_code>
+                  </symbol>
+                </list>
+                <list>
+                  <value>1</value>
+                  <symbol>
+                    <value/>
+                    <defining_code>
+                      <terminology_id>
+                        <value>local</value>
+                      </terminology_id>
+                      <code_string>at0037</code_string>
+                    </defining_code>
+                  </symbol>
+                </list>
+                <list>
+                  <value>2</value>
+                  <symbol>
+                    <value/>
+                    <defining_code>
+                      <terminology_id>
+                        <value>local</value>
+                      </terminology_id>
+                      <code_string>at0038</code_string>
+                    </defining_code>
+                  </symbol>
+                </list>
+              </children>
+            </attributes>
+          </children>
+          <children xsi:type="C_COMPLEX_OBJECT">
+            <rm_type_name>ELEMENT</rm_type_name>
+            <occurrences>
+              <lower_included>true</lower_included>
+              <upper_included>true</upper_included>
+              <lower_unbounded>false</lower_unbounded>
+              <upper_unbounded>false</upper_unbounded>
+              <lower>0</lower>
+              <upper>1</upper>
+            </occurrences>
+            <node_id>at0039</node_id>
+            <attributes xsi:type="C_SINGLE_ATTRIBUTE">
+              <rm_attribute_name>value</rm_attribute_name>
+              <existence>
+                <lower_included>true</lower_included>
+                <upper_included>true</upper_included>
+                <lower_unbounded>false</lower_unbounded>
+                <upper_unbounded>false</upper_unbounded>
+                <lower>1</lower>
+                <upper>1</upper>
+              </existence>
+              <children xsi:type="C_DV_STATE">
+                <rm_type_name>DV_STATE</rm_type_name>
+                <occurrences>
+                  <lower_included>true</lower_included>
+                  <upper_included>true</upper_included>
+                  <lower_unbounded>false</lower_unbounded>
+                  <upper_unbounded>false</upper_unbounded>
+                  <lower>1</lower>
+                  <upper>1</upper>
+                </occurrences>
+                <node_id/>
+                <value>
+                  <states xsi:type="NON_TERMINAL_STATE">
+                    <name>planned</name>
+                    <transitions>
+                      <event>start</event>
+                      <next_state xsi:type="TERMINAL_STATE">
+                        <name>completed</name>
+                      </next_state>
+                    </transitions>
+                  </states>
+                  <states xsi:type="TERMINAL_STATE">
+                    <name>completed</name>
+                  </states>
+                </value>
+              </children>
+            </attributes>
+          </children>
           <cardinality>
             <is_ordered>true</is_ordered>
             <is_unique>false</is_unique>
@@ -1637,6 +1757,26 @@
     <term_definitions code="at0034">
       <items id="text">Pressure</items>
       <items id="description">A synthetic pressure in two units.</items>
+    </term_definitions>
+    <term_definitions code="at0035">
+      <items id="text">Ordinal grade</items>
+      <items id="description">A DV_ORDINAL, which RM data_types.html section 6.2.4 pairs a symbol with an integer.</items>
+    </term_definitions>
+    <term_definitions code="at0036">
+      <items id="text">None</items>
+      <items id="description">No grade.</items>
+    </term_definitions>
+    <term_definitions code="at0037">
+      <items id="text">Mild</items>
+      <items id="description">A mild grade.</items>
+    </term_definitions>
+    <term_definitions code="at0038">
+      <items id="text">Severe</items>
+      <items id="description">A severe grade.</items>
+    </term_definitions>
+    <term_definitions code="at0039">
+      <items id="text">Workflow state</items>
+      <items id="description">A DV_STATE, whose state machine no openEHR specification defines: only Template.xsd does.</items>
     </term_definitions>
   </definition>
 </template>

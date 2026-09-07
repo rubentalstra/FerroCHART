@@ -29,7 +29,10 @@ use crate::support::{corpus_dir, templates};
 
 /// The templates whose whole document is snapshotted.
 ///
-/// The grid fixture carries every field kind the derivation produces. The
+/// The grid fixture carries every field kind the derivation produces from an
+/// ADL 1.4 template. `DV_SCALE` is the one exception, because
+/// `OpenehrProfile.xsd` declares no `C_DV_SCALE`, so only the ADL 2 reader
+/// reaches it and `ferro_adl2_extras.v1.0.0.adls` covers it instead. The
 /// clinical three are real CKM templates an order of magnitude apart in size,
 /// so a change that only shows at scale is caught beside one that shows in a
 /// small form.

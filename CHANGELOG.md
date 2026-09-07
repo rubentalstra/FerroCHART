@@ -149,6 +149,12 @@ the build order.
   specification text is, which is the fact a reader of a citation needs. The
   same file no longer claims there is no Cargo workspace, and
   `.claude/rules/vendored-inputs.md` no longer says nothing is vendored.
+- The datatype grid fixture carries the two field kinds it claimed to and did
+  not (#114). `ferro_datatype_grid.opt` now states a `DV_ORDINAL` with three
+  graded symbols and a `DV_STATE` with a two-state machine, so the derivation
+  of both is snapshotted rather than asserted by a comment. `DV_SCALE` stays
+  the exception the comment now names: `OpenehrProfile.xsd` declares no
+  `C_DV_SCALE`, so only the ADL 2 reader reaches it.
 
 ## [0.0.4] - 2026-09-07
 
