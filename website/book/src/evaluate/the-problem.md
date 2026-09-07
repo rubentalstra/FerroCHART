@@ -44,3 +44,9 @@ what matched, what disappeared, what moved, what became ambiguous and what
 changed type. Nothing is discarded, and nothing is silently rebound.
 
 That report is the product.
+
+It is built. A layout authored on all 4,447 nodes of the 121 templates this
+repository vendors replays with everything matched and nothing lost, and the
+same corpus carries the collision the key was designed for: 102 nodes across
+four templates where siblings share a node id and differ in nothing a key can
+see, one of them two identically named branches under a single event.

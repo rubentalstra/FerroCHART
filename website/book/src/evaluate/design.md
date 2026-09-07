@@ -35,6 +35,44 @@ found 427 sibling groups sharing one node id under one attribute, across 14 of
 them. The pinned name is the only discriminator for 41.0% of those, the RM type
 for 29.5%, the archetype id for 17.8%, and nothing at all for 7.0%.
 
+Real openEHR tooling agrees. Nine of the 123 CKM templates FerroCHART vendors
+carry a vendor layout section, and every one of its 42 entries is keyed by a
+path carrying archetype ids, three of them by a name predicate too. A shipped
+product keying layout to nodes reached the same conclusion from the other
+direction.
+
+## The overlay says what a person authored, and no more
+
+Order, section, label, help text, default value, conditional visibility, the
+widget asked for, and geometry. Nothing else, and nothing that belongs to the
+template.
+
+Geometry is a column grid. A section declares how many columns it has, an item
+carries a span, an optional break, and an optional width in character units.
+Nothing stores a row or a column index: placement comes from the order the
+overlay already carries, plus the span, plus the break. That makes what a
+reader sees and what a screen reader announces the same thing by construction,
+which is what WCAG 2.2 asks for and what a stored coordinate breaks.
+
+The reason it is a grid rather than free positioning is evidence rather than
+taste. Of 31 form products surveyed, 25 store a device-independent layout, and
+of the six that store coordinates, one is a design tool, two are deprecated,
+two document the cost in their own documentation, and one has been redesigned
+twice to escape it. Clinicians meet a form on a computer on wheels and on a
+tablet in the same shift, so an authored form has to survive both.
+
+## A recompile reports what happened to that work
+
+Replay the overlay against the recompiled definition and every entry comes back
+classified: matched, moved, disappeared, ambiguous, reordered, retyped, or a
+node with no layout yet. A move is a suggestion a person accepts, never applied
+silently. Nothing is discarded, so a revision that restores a node restores its
+layout.
+
+The report reads as prose rather than a diff: how many entries were kept, how
+many need a decision, and for each of those what changed and what to do about
+it.
+
 ## The compiler runs on the server
 
 The server compiles the template and serves the form definition. The renderer
