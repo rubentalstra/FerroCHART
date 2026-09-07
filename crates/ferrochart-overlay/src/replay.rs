@@ -26,6 +26,7 @@ use ferrochart_form::ids::{LanguageTag, RmTypeName, TemplateId};
 use ferrochart_form::key::{KeyStep, NodeKey};
 use ferrochart_form::text::Localized;
 
+use crate::entry::OverlayEntry;
 use crate::index::{Index, Target, TargetKind};
 use crate::store::{Overlay, TemplateIdForm};
 
@@ -63,14 +64,18 @@ pub enum Outcome {
         /// The nodes the key now names, in key order.
         candidates: Vec<NodeKey>,
     },
-    /// The key names one node whose Reference Model type changed, so the
-    /// layout may no longer mean anything.
+    /// The key names one node, and what it collects changed, so the layout
+    /// may no longer mean anything.
+    ///
+    /// A widget chosen for a number says nothing about a coded field, so a
+    /// class change is reported whether it shows in the key or only in what
+    /// the node collects.
     Retyped {
         /// The node, as the recompiled definition keys it.
         at: NodeKey,
-        /// The class the entry was authored against.
+        /// The class the layout was authored against.
         was: RmTypeName,
-        /// The class the node now carries.
+        /// The class the node collects now.
         now: RmTypeName,
     },
     /// The key names nothing, and exactly one node elsewhere carries the same
@@ -299,11 +304,25 @@ impl ReplayReport {
     }
 
     /// The text of one label, in the form's own language.
+    ///
+    /// A node the recompiled definition no longer holds has no label to read,
+    /// and its key is what a person has left to recognize it by.
     fn read(&self, label: &Localized, key: &NodeKey) -> String {
         label
             .get(&self.language)
             .or_else(|| label.languages().next().and_then(|tag| label.get(tag)))
             .map_or_else(|| key.to_string(), ToOwned::to_owned)
+    }
+
+    /// One listed node: its label and its key, or its key alone where there is
+    /// no label to read.
+    fn named(&self, label: &Localized, key: &NodeKey) -> String {
+        let text = self.read(label, key);
+        let path = key.to_string();
+        if text == path {
+            return path;
+        }
+        format!("{text} ({path})")
     }
 }
 
@@ -327,12 +346,16 @@ impl fmt::Display for ReplayReport {
         }
         writeln!(
             f,
-            "{} of {} authored entries still fit the form, {} need a decision, \
-             and {} nodes have no layout yet.",
+            "{}: {} kept, {} needing a decision, {} no longer in the form.",
+            plural(summary.entries(), "authored entry", "authored entries"),
             summary.matched,
-            summary.entries(),
             summary.needing_decision(),
-            summary.appeared
+            summary.disappeared
+        )?;
+        writeln!(
+            f,
+            "{} with no layout yet.",
+            plural(summary.appeared, "node", "nodes")
         )?;
         self.decisions(f)?;
         self.gone(f)?;
@@ -374,6 +397,7 @@ impl ReplayReport {
                     )?;
                 }
                 Outcome::Ambiguous { ref candidates } => {
+                    writeln!(f, "      at {}", entry.key)?;
                     writeln!(
                         f,
                         "      {} nodes carry this key and the template tells them apart \
@@ -431,12 +455,7 @@ impl ReplayReport {
             gone.len()
         )?;
         for entry in gone.iter().take(LISTED) {
-            writeln!(
-                f,
-                "  {} ({})",
-                self.read(&entry.label, &entry.key),
-                entry.key
-            )?;
+            writeln!(f, "  {}", self.named(&entry.label, &entry.key))?;
         }
         remainder(f, gone.len(), "entries")
     }
@@ -459,10 +478,18 @@ impl ReplayReport {
         }
         writeln!(f, "\nNo layout yet ({})", self.appeared.len())?;
         for node in self.appeared.iter().take(LISTED) {
-            writeln!(f, "  {} ({})", self.read(&node.label, &node.key), node.key)?;
+            writeln!(f, "  {}", self.named(&node.label, &node.key))?;
         }
         remainder(f, self.appeared.len(), "nodes")
     }
+}
+
+/// A count with the noun that agrees with it.
+fn plural(count: usize, one: &str, many: &str) -> String {
+    if count == 1 {
+        return format!("1 {one}");
+    }
+    format!("{count} {many}")
 }
 
 /// The tail of a list the report only counted.
@@ -485,7 +512,7 @@ pub fn replay(overlay: &Overlay, definition: &FormDefinition) -> ReplayReport {
     let mut entries = Vec::with_capacity(overlay.entries().len());
     let mut decorated: BTreeSet<Vec<KeyStep>> = BTreeSet::new();
     for entry in overlay.entries() {
-        let outcome = classify(&index, &entry.key, entry.anchor.as_ref());
+        let outcome = classify(&index, entry);
         match outcome {
             Outcome::Matched { ref at } | Outcome::Retyped { ref at, .. } => {
                 decorated.insert(at.steps.clone());
@@ -521,19 +548,17 @@ pub fn replay(overlay: &Overlay, definition: &FormDefinition) -> ReplayReport {
     }
 }
 
-/// What became of one key.
-fn classify(
-    index: &Index<'_>,
-    key: &NodeKey,
-    anchor: Option<&crate::entry::PositionalAnchor>,
-) -> Outcome {
+/// What became of one entry.
+fn classify(index: &Index<'_>, entry: &OverlayEntry) -> Outcome {
+    let key = &entry.key;
     let candidates = index.resolve(key);
-    if let Some(anchor) = anchor {
+    if let Some(anchor) = entry.anchor.as_ref() {
         let siblings: Vec<String> = candidates.iter().map(Target::signature).collect();
+        let reordered = || Outcome::Reordered {
+            candidates: keys(&candidates),
+        };
         if siblings != anchor.tied_siblings {
-            return Outcome::Reordered {
-                candidates: keys(&candidates),
-            };
+            return reordered();
         }
         // NOTE: no specification governs this: our own design. The siblings
         // are the ones the person saw, so the ordinal still names the node it
@@ -541,35 +566,38 @@ fn classify(
         return candidates
             .iter()
             .find(|target| target.key().steps == key.steps)
-            .map_or(
-                Outcome::Reordered {
-                    candidates: keys(&candidates),
-                },
-                |target| Outcome::Matched {
-                    at: target.key().clone(),
-                },
-            );
+            .map_or_else(reordered, |target| resolved(&entry.rm_type, *target));
     }
     match candidates.as_slice() {
-        [] => unresolved(index, key),
-        [only] => Outcome::Matched {
-            at: only.key().clone(),
-        },
+        [] => unresolved(index, entry),
+        [only] => resolved(&entry.rm_type, *only),
         several => Outcome::Ambiguous {
             candidates: keys(several),
         },
     }
 }
 
-/// What became of a key that names no node with its own class.
-fn unresolved(index: &Index<'_>, key: &NodeKey) -> Outcome {
-    let retyped = index.resolve_retyped(key);
-    if let [only] = retyped.as_slice()
-        && let Some(step) = key.terminal()
-    {
+/// What became of an entry whose key names exactly one node.
+fn resolved(was: &RmTypeName, target: Target<'_>) -> Outcome {
+    if *was == *target.rm_type() {
+        return Outcome::Matched {
+            at: target.key().clone(),
+        };
+    }
+    Outcome::Retyped {
+        at: target.key().clone(),
+        was: was.clone(),
+        now: target.rm_type().clone(),
+    }
+}
+
+/// What became of an entry whose key names no node at all.
+fn unresolved(index: &Index<'_>, entry: &OverlayEntry) -> Outcome {
+    let retyped = index.resolve_retyped(&entry.key);
+    if let [only] = retyped.as_slice() {
         return Outcome::Retyped {
             at: only.key().clone(),
-            was: step.rm_type.clone(),
+            was: entry.rm_type.clone(),
             now: only.rm_type().clone(),
         };
     }
@@ -578,7 +606,7 @@ fn unresolved(index: &Index<'_>, key: &NodeKey) -> Outcome {
             candidates: keys(&retyped),
         };
     }
-    let moved = index.resolve_moved(key);
+    let moved = index.resolve_moved(&entry.key);
     if let [only] = moved.as_slice() {
         return Outcome::Moved {
             to: only.key().clone(),

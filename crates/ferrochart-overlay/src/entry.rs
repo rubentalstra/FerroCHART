@@ -3,6 +3,7 @@
 
 //! One decorated node: the key that names it, and what a person authored.
 
+use ferrochart_form::ids::RmTypeName;
 use ferrochart_form::key::NodeKey;
 use serde::{Deserialize, Serialize};
 
@@ -40,6 +41,17 @@ pub struct OverlayEntry {
     /// its ordinal, which is measured against the definition rather than
     /// guessed from the shape of the key.
     pub key: NodeKey,
+    /// The Reference Model class the node collected when the layout was
+    /// authored.
+    ///
+    /// The key cannot carry this. openEHR RM Release-1.1.0
+    /// `data_structures.html` section 5.2.3 makes `ELEMENT` the leaf a
+    /// `DATA_VALUE` is attached to, so the field a person lays out collects
+    /// the value's class while its key step carries `ELEMENT`. A revision that
+    /// changes the value's class leaves the key alone, and a widget chosen for
+    /// a number means nothing on a coded field, so the class the layout was
+    /// authored against is recorded and the replay compares it.
+    pub rm_type: RmTypeName,
     /// The siblings the key's position was measured against, where the key is
     /// positional.
     ///

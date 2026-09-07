@@ -21,6 +21,35 @@ the build order.
 
 ## [Unreleased]
 
+### Added
+
+- The layout overlay and its store (#19), in `ferrochart-overlay`. An overlay
+  carries what no specification governs: field order, authored sections,
+  labels, help text, defaults, conditional visibility and widget choice. It is
+  stored apart from the compiled definition and keyed by the node key of
+  `docs/architecture.md` section 6.2, whose every step carries the Reference
+  Model attribute, the node id, the archetype id, the Reference Model type and
+  the pinned name, with a sibling ordinal only where all five tie. The store
+  normalizes a key against the definition rather than trusting it: an entry
+  that decorates no node of the form is refused, and an entry whose key names
+  several nodes is reported as positionally keyed instead of being resolved
+  silently. It records which form the template identifier takes, because
+  openEHR ITS-REST Release-1.1.0 `definition.html` resolves a partial
+  identifier to the latest major version, and none of the 123 committed CKM
+  templates pins a release in its own identifier. The serialisation is
+  byte-deterministic and round-trips.
+- The replay and the differential report (#20). A replay against a recompiled
+  definition classifies every entry as matched, disappeared, moved, ambiguous,
+  reordered or retyped, and names every node of the form that carries no
+  layout yet. Nothing is discarded and nothing is rebound: an unmatched entry
+  is retained against its old key so a later revision that restores the node
+  restores its layout, and a move is a suggestion a person accepts. The report
+  prints as text a form author can read, saying which entries survived, which
+  need a decision and what changed about each. Authoring a layout on every one
+  of the 4,447 nodes of the committed pack and replaying it comes back fully
+  matched, and the 102 nodes in 4 templates that no key can tell apart are
+  reported rather than guessed at.
+
 ## [0.0.3] - 2026-09-07
 
 ### Added

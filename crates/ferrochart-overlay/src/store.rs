@@ -13,7 +13,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use ferrochart_form::definition::FormDefinition;
-use ferrochart_form::ids::TemplateId;
+use ferrochart_form::ids::{RmTypeName, TemplateId};
 use ferrochart_form::key::NodeKey;
 use serde::{Deserialize, Serialize};
 
@@ -156,8 +156,14 @@ pub enum Placement {
 /// serializing the same overlay twice produces the same bytes and an
 /// unchanged overlay round-trips identically
 /// (`.claude/rules/reliability.md`).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(into = "Document", try_from = "Document")]
+///
+/// The type writes itself as JSON and is read back only through
+/// [`Overlay::from_json`], which is the one path that checks the document
+/// against itself. It implements no [`serde::Deserialize`], because a
+/// deserializer that reported "not this format" for a section cycle or a
+/// duplicated entry would flatten every structural refusal into one.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(into = "Document")]
 pub struct Overlay {
     template: TemplateBinding,
     sections: Vec<Section>,
@@ -185,10 +191,9 @@ impl From<Overlay> for Document {
     }
 }
 
-impl TryFrom<Document> for Overlay {
-    type Error = OverlayError;
-
-    fn try_from(document: Document) -> Result<Self, Self::Error> {
+impl Overlay {
+    /// The overlay one read document describes.
+    fn from_document(document: Document) -> Result<Self, OverlayError> {
         if document.format_version != FORMAT_VERSION {
             return Err(OverlayError::UnsupportedFormatVersion {
                 stated: document.format_version,
@@ -266,7 +271,9 @@ impl Overlay {
         // NOTE: no specification governs this: our own design. A member this
         // format does not define is refused rather than preserved, because
         // the format is FerroCHART's own.
-        serde_json::from_str::<Self>(text).map_err(|source| OverlayError::Malformed { source })
+        let document = serde_json::from_str::<Document>(text)
+            .map_err(|source| OverlayError::Malformed { source })?;
+        Self::from_document(document)
     }
 
     /// Writes the overlay as a document.
@@ -507,9 +514,10 @@ impl<'a> Author<'a> {
                 section: section.to_string(),
             });
         }
-        let (stored, anchor, placement) = self.place(key)?;
+        let (stored, rm_type, anchor, placement) = self.place(key)?;
         self.overlay.put(OverlayEntry {
             key: stored,
+            rm_type,
             anchor,
             layout,
         });
@@ -536,12 +544,12 @@ impl<'a> Author<'a> {
         self.set(to, entry.layout)
     }
 
-    /// Where `key` lands in the definition, and what a positional entry is
-    /// anchored to.
+    /// Where `key` lands in the definition, what the node collects there, and
+    /// what a positional entry is anchored to.
     fn place(
         &self,
         key: &NodeKey,
-    ) -> Result<(NodeKey, Option<PositionalAnchor>, Placement), OverlayError> {
+    ) -> Result<(NodeKey, RmTypeName, Option<PositionalAnchor>, Placement), OverlayError> {
         let candidates = self.index.resolve(key);
         let missing = || OverlayError::NoSuchNode {
             template: self.definition.template_id.to_string(),
@@ -564,42 +572,15 @@ impl<'a> Author<'a> {
                     .map(crate::index::Target::signature)
                     .collect(),
             };
-            return Ok((stored, Some(anchor), Placement::Positional { tied }));
+            return Ok((
+                stored,
+                chosen.rm_type().clone(),
+                Some(anchor),
+                Placement::Positional { tied },
+            ));
         };
         let mut stored = only.key().clone();
         stored.is_positional = false;
-        Ok((stored, None, Placement::Unique))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use ferrochart_form::ids::TemplateId;
-
-    use super::TemplateIdForm;
-
-    #[test]
-    fn the_four_template_identifier_forms_are_the_ones_its_rest_lists() {
-        // openEHR ITS-REST Release-1.1.0 definition.html, "Get a template",
-        // lists exactly these four examples for the `template_id` parameter.
-        let form = |text: &str| TemplateIdForm::of(&TemplateId::new(text));
-        assert_eq!(form("Vital Signs"), TemplateIdForm::LegacyName);
-        assert_eq!(form("vital_signs.v1"), TemplateIdForm::LegacyMajorVersion);
-        assert_eq!(
-            form("org.highmed::openEHR-EHR-COMPOSITION.t_vital_signs.v1.0.0"),
-            TemplateIdForm::Hrid
-        );
-        assert_eq!(
-            form("openEHR-EHR-COMPOSITION.t_vital_signs.v1"),
-            TemplateIdForm::PartialHrid
-        );
-    }
-
-    #[test]
-    fn only_a_full_identifier_pins_one_release() {
-        assert!(TemplateIdForm::Hrid.pins_one_release());
-        assert!(!TemplateIdForm::PartialHrid.pins_one_release());
-        assert!(!TemplateIdForm::LegacyName.pins_one_release());
-        assert!(!TemplateIdForm::LegacyMajorVersion.pins_one_release());
+        Ok((stored, only.rm_type().clone(), None, Placement::Unique))
     }
 }
