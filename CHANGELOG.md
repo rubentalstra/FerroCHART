@@ -32,6 +32,18 @@ the build order.
   one code still pays for one lookup. The terminology client needs this to
   emit an archetype's value sets as FHIR `CodeSystem` and `ValueSet`
   resources, which a lookup-only interface cannot do.
+- The openEHR ITS-REST client (#22), in `ferrochart-cdr`. It creates, reads
+  and updates a COMPOSITION, uploads and retrieves a template in both ADL
+  generations, and creates the EHR a first run needs. Every identifier the
+  wire carries is its own type, because the three composition operations spell
+  `uid_based_id` alike and accept different forms of it: the read takes either
+  a versioned object uid or a full version uid, and the update takes the
+  object uid only. `If-Match` is sent quoted and unweakened on every update,
+  `Prefer` is always explicit, and a 412 is a concurrent-edit outcome the form
+  surfaces rather than a retry. Every status openEHR ITS-REST Release-1.1.0
+  publishes has its own error variant, plus a catch-all, because the same
+  section permits statuses beyond that set. Nothing absorbs an upstream
+  failure into an empty value.
 
 ## [0.0.4] - 2026-09-07
 

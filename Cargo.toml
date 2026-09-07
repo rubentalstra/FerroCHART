@@ -36,6 +36,14 @@ openehr-adl = "0.0.61"
 openehr-its = "0.0.61"
 openehr-query = "0.0.61"
 
+# The ITS-REST client (docs/architecture.md section 8, issue #22). rustls
+# rather than the platform TLS stack, and no default features, which is the
+# pin the family already uses. `http` carries StatusCode so a status is
+# compared as a type rather than as a number (.claude/rules/rust-style.md).
+reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls"] }
+http = "1.5.0"
+url = "2.5.8"
+
 # The server surface (docs/architecture.md section 11, issue #41).
 axum = { version = "0.8.9", default-features = false, features = ["http1", "json", "tokio"] }
 tokio = { version = "1.53.1", default-features = false, features = ["rt-multi-thread", "macros", "net", "signal"] }
@@ -46,6 +54,11 @@ tracing-subscriber = { version = "0.3.23", default-features = false, features = 
 # Test-only. `.claude/rules/testing.md` names insta as the snapshot tool, and
 # `cargo insta review` as how a change to one is read before it is accepted.
 insta = { version = "1.48.0", features = ["json"] }
+
+# Test-only. `.claude/rules/testing.md` names wiremock as the HTTP mock for
+# both upstreams, so a status, a header and a body are asserted against a real
+# socket rather than against a hand-rolled stub of our own client.
+wiremock = "0.6.5"
 
 ferrochart-form = { path = "crates/ferrochart-form" }
 ferrochart-compile = { path = "crates/ferrochart-compile" }

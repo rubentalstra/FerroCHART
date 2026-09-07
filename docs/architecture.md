@@ -724,15 +724,29 @@ replay layout onto a definition nobody chose to move to.
 
 **Compositions.** `POST /v1/ehr/{ehr_id}/composition` creates,
 `PUT /v1/ehr/{ehr_id}/composition/{uid_based_id}` updates, and
-`GET /v1/ehr/{ehr_id}/composition/{uid_based_id}` reads, where the id accepts
-either a versioned object uid for the latest version or a full version uid.
+`GET /v1/ehr/{ehr_id}/composition/{uid_based_id}` reads. **The three spell
+`uid_based_id` alike and mean different things.** The read accepts either form,
+a versioned object uid for the latest version or a full version uid for one
+version; the update accepts a versioned object uid only, "can take only a form
+of an HIER_OBJECT_ID identifier taken from VERSIONED_OBJECT.uid.value"; and the
+delete accepts a full version uid only. Three path parameters sharing one name
+and differing in admissible form is exactly the swapped-argument class the
+newtype rule exists for, so each is its own type in the client.
 
 **`If-Match` is required on update.** The client sends the preceding version
 uid in quotes without the `W/` prefix, and the specification's own example is
 `If-Match: "8849182c-82ad-4088-a07f-48ead4180515::openEHRSys.example.com::2"`.
 A 412 is a concurrent-edit outcome the form surfaces to the clinician, never a
-blind retry. Response ETags are weak from Release-1.1.0 and were unprefixed
-before it, so the client strips both `W/` and the quotes before comparing.
+blind retry: the specification legislates only what the server does on a failed
+precondition and prescribes no client recovery, so the recovery is our own
+design. Response ETags are weak from Release-1.1.0 and were unprefixed before
+it, so the client strips both `W/` and the quotes before comparing. **The
+quotes are required and an unquoted ETag is refused**, because Release-1.1.0
+also permits an ETag that is "an opaque quoted string" rather than an
+identifier: a client that guessed would carry whatever the header held into the
+next `If-Match`, which is a write against the wrong version. Where the ETag
+names no version the client reads the identifier out of the response body
+instead, since the header is only a `SHOULD`.
 
 **`Prefer` is always explicit**, because the specification warns that a server
 may be configured to change the default. FerroCHART sends
@@ -741,9 +755,20 @@ needs for the next `If-Match` and nothing more, and
 `return=representation` only when it has to re-render from the server's
 canonicalisation.
 
-**The canonical serialisations are the wire.** FLAT, structured and the web
-template are compatibility targets rather than specifications, and are named
-as such wherever they appear.
+**The canonical serialisations are the wire.** A service must support at least
+one of canonical XML and canonical JSON, and canonical JSON is what FerroCHART
+sends and asks for: its fidelity to the Reference Model needs no mapping
+document to guarantee it.
+
+**The web template is a compatibility target. FLAT and structured no longer
+are.** ITS-REST Release-1.1.0 publishes `simplified_formats.html`, "Simplified
+Formats for openEHR Data", in the STABLE state, with the field-identifier
+generation rules and the Reference Model mapping both normative. Its section
+2.2 puts "Web Template itself as a resource" under what the specification does
+not cover, so the web template keeps the compatibility-target framing and the
+`// NOTE:` that goes with it, and the other two lose it. The hard rule in
+`CLAUDE.md` and `.claude/rules/spec-adherence.md` still says all three are
+compatibility targets and is corrected by #104.
 
 **Nothing in the client absorbs an upstream failure.** A refusal, a timeout or
 a partial write is a typed error carrying the upstream status and body.

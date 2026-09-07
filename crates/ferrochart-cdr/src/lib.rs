@@ -5,3 +5,11 @@
 //!
 //! It speaks to any conformant CDR. Nothing here is specific to one
 //! implementation.
+
+pub mod client;
+pub mod composition;
+pub mod ehr;
+pub mod error;
+pub mod header;
+pub mod ids;
+pub mod template;

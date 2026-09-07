@@ -50,6 +50,7 @@ fi
 promises=(
   "ferrochart-form|"
   "ferrochart-renderer|ferrochart-form"
+  "ferrochart-cdr|ferrochart-form"
 )
 
 metadata="$(cargo metadata --locked --format-version 1 --all-features)"
