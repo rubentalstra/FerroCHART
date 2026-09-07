@@ -166,13 +166,13 @@ Each state below was read from the API rather than remembered.
 
 | Setting | State |
 |---|---|
-| `main` ruleset: requires a pull request, signed commits, and the `conclusion` status check with the strict up-to-date policy; deletions and non-fast-forward pushes blocked | **open, and the one that matters**: `GET /rulesets` returns `[]`, so `main` takes a direct push and requires no check |
+| `main` ruleset: requires a pull request, signed commits, and the `conclusion` status check with the strict up-to-date policy; deletions and non-fast-forward pushes blocked | done 2026-09-07, copied from FerroTERM's and diffed against it. A `release-tags` ruleset requires a signature on `refs/tags/v*` alongside it |
 | Code scanning in advanced setup, with the CodeQL default setup off so `codeql.yml` is the analysis path | done, verified 2026-09-06: `code-scanning/default-setup` reports `not-configured` |
 | Secret scanning with push protection, Dependabot alerts, and Dependabot security updates | done, verified 2026-09-06 |
-| Artifact attestations, for the release lane when it lands | open |
-| The `ferrochart` GHCR package is public and linked to this repository | open: the first image push creates the package, private by default. The image lane verifies its own output the way a consumer would, so a private package fails that step and the release stops before publishing |
+| Artifact attestations, for the release lane when it lands | done: `gh attestation verify --signer-workflow …/release-build.yml` exits 0 against the published `v0.0.2` binaries |
+| The `ferrochart` GHCR package is public and linked to this repository | done: the package is public with 15 versions, and the `v0.0.2` image lane's own consumer verification passed |
 | The `SONAR_TOKEN` secret and the SonarCloud project `rubentalstra_FerroCHART`, with Automatic Analysis off (`.claude/rules/ai-code-review.md`) | done 2026-09-06: `sonar.yml` is green and now imports Rust coverage |
-| Pages publishes from GitHub Actions and serves `ferrochart.eu` with HTTPS enforced; the apex A records point at the four GitHub Pages addresses, `www` is a CNAME to `rubentalstra.github.io`, and the domain is verified for the account | open: the domain was registered on 2026-09-06 at Vimexx and still points at the registrar's nameservers |
+| Pages publishes from GitHub Actions and serves `ferrochart.eu` with HTTPS enforced; the apex A records point at the four GitHub Pages addresses, `www` is a CNAME to `rubentalstra.github.io`, and the domain is verified for the account | done 2026-09-07. The certificate does not provision on verification alone: clearing the custom domain and setting it again started it, and `https_enforced` took immediately after |
 | The label bootstrap (`scripts/gh/labels.sh`) | done: the type, priority, `spec:*`, `compat`, `ux`, `research` and `upstream-report` labels all exist |
 | The "FerroCHART Roadmap" Project (v2), and the `project` token scope on the working clone (`.claude/rules/project-board.md`) | open: every `scripts/gh/project.sh` call fails until it exists |
 | Registration at bestpractices.dev, with the returned badge added to the README | open |
