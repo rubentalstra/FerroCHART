@@ -59,10 +59,10 @@ Bootstrap the labels once with `scripts/gh/labels.sh`.
 - **Domain or area:** `spec:RM` (the openEHR Reference Model), `spec:AM` (the
   Archetype Object Model, ADL, and operational templates), `spec:ITS-REST` (the
   CDR wire), `spec:AQL` (the read-back queries), `spec:terminology` (value set
-  expansion and code validation), `compat` (the web template and flat formats),
-  `ux` (the form authoring and rendering surface), `research` (a design-phase
-  investigation). Add more as the
-  project grows; keep the set small and meaningful.
+  expansion and code validation), `compat` (the web template surface and the
+  FLAT and structured formats), `ux` (the form authoring and rendering
+  surface), `research` (a design-phase investigation). Add more as the project
+  grows; keep the set small and meaningful.
 - **Outbound:** `upstream-report` for a report of a defect, contradiction, or
   silence in a published specification. The issue IS the report: it opens with
   a plain summary, then what the specification says (with citations), what this

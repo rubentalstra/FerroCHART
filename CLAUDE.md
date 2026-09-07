@@ -179,10 +179,17 @@ AI attribution). Delegate with a tight spec and verify the result.
   reviewing any spec-facing behaviour, and cite it (spec, page or section) for
   conformance-relevant decisions. Full policy:
   `.claude/rules/spec-adherence.md`.
-- **The web template and flat formats are compatibility targets, not
-  specifications.** Say so every time one is named. Where one disagrees with
-  the Reference Model, the Reference Model wins, and a behaviour that exists
-  only to match one carries a `// NOTE:` saying that.
+- **The web template is a compatibility target.** No openEHR specification
+  defines it: ITS-REST Release-1.1.0 `simplified_formats.html` §2.2 puts "Web
+  Template itself as a resource" under what it does not cover. Say so every
+  time the format is named, let the Reference Model win a disagreement, and
+  give a behaviour that exists only to match the published implementations a
+  `// NOTE:` saying so.
+- **The Simplified Formats are specified.** ITS-REST Release-1.1.0
+  `simplified_formats.html` is STABLE (§1.2) and is the authority for the FLAT
+  and structured formats: their media types (§2.3), their field identifiers
+  (§4.2), and their Reference Model mapping (§5). Cite it, never an
+  implementation.
 - **A form never admits what the template refuses.** The form definition is a
   projection of the operational template. A CDR rejecting a COMPOSITION that
   FerroCHART built and validated is always our bug.

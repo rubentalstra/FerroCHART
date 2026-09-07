@@ -35,11 +35,17 @@ the build order.
   that still reads back and no longer means the same thing to a consumer
   written against the old bytes is a diff a person reads and accepts; and
   `scripts/checks/serde-json-features.sh` compares the resolved `serde_json`
-  feature set against the reviewed one and fails on a refused or an unreviewed
+  feature set against the reviewed one, failing on a refused or an unreviewed
   feature and naming what turned it on, which is the cause the two tests can
   only report the effect of. The form definition's `FORMAT_VERSION` now says
   what the number covers, so a byte change is a decision rather than an
   accident.
+- Every chapter that asks for a table of contents is checked to have one
+  (#98). `scripts/checks/book-toc.sh` reads the rendered pages, and the docs
+  lane runs it after the site is assembled, because mdBook reports a
+  preprocessor that ran and produced nothing as a warning at most and would
+  otherwise publish a chapter with a missing table of contents and a green
+  build.
 - The terminology of an archetype can be enumerated, where it could only be
   asked about a code the caller already held (#91). `Terminology::definitions`
   returns the rubrics one language states, `all_bindings` and
@@ -71,6 +77,24 @@ the build order.
   from `Parameters`, which is why the terminology engine of the same release
   line is left alone: FerroCHART is a client of a terminology server rather
   than one. `docs/architecture.md` section 7.3 records both decisions.
+
+### Changed
+
+- The hard rule about the non-canonical formats now names the two of them
+  separately, because openEHR only specified one (#104). ITS-REST
+  Release-1.1.0 publishes `simplified_formats.html`, "Simplified Formats for
+  openEHR Data", in the STABLE state, so that document is the authority for
+  the FLAT and structured formats: their media types (section 2.3), their
+  field identifiers (section 4.2), level removal (section 4.6), the `|other`
+  suffix (section 4.7), and the Reference Model mapping class by class
+  (section 5). The web template stays a compatibility target, on the same
+  document's word: section 2.2 puts "Web Template itself as a resource" under
+  what the specification does not cover. Where the Reference Model and
+  `simplified_formats.html` disagree, no specification settles it, so the two
+  divide by subject and a real contradiction is filed upstream.
+  `CLAUDE.md`, `.claude/rules/spec-adherence.md`, `.claude/rules/testing.md`,
+  the `spec-researcher` agent, the `/spec-lookup` skill, the contributor book
+  and the `compat` label all carry the corrected split.
 
 ## [0.0.4] - 2026-09-07
 

@@ -10,9 +10,12 @@ and the HL7 FHIR terminology service API. Never memory, and never another
 implementation's behaviour. A conformance-relevant decision cites its
 specification and section.
 
-The Better web template and the flat composition formats are compatibility
-targets rather than specifications, and every mention of them says so. Where
-one disagrees with the Reference Model, the Reference Model wins.
+The Better web template is a compatibility target. No openEHR specification
+defines it, every mention of it says so, and the Reference Model wins where the
+two disagree. The FLAT and structured formats are specified: openEHR ITS-REST
+Release-1.1.0 publishes `simplified_formats.html` in the STABLE state, and it
+is the authority for their media types, their field identifiers, and their
+Reference Model mapping.
 
 ## A form never admits what the template refuses
 
