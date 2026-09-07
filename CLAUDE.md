@@ -186,10 +186,13 @@ AI attribution). Delegate with a tight spec and verify the result.
 - **A form never admits what the template refuses.** The form definition is a
   projection of the operational template. A CDR rejecting a COMPOSITION that
   FerroCHART built and validated is always our bug.
-- **Cite only durable references:** the openEHR specifications, or official
+- **Cite only durable references:** the openEHR specifications, official
   external documentation (the Rust book and reference, the docs.rs page of a
-  pinned crate). Never cite an internal markdown file as a design authority;
-  internal plan documents are deleted in the PR that implements them. Where no
+  pinned crate), or `docs/architecture.md`, which is the design of record and
+  permanent. A plan document is not citable: it is deleted in the pull request
+  that implements it, so a citation to one rots on the day it is honoured.
+  Every citation to the architecture is paired with the label below, because
+  the architecture decides only what no specification governs. Where no
   specification governs a decision (layout, storage mechanics, the process
   model, infrastructure), flag it: "no specification governs this: our own
   design". Layout is the largest such area, and it is most of the product.
