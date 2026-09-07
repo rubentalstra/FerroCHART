@@ -79,6 +79,22 @@ the build order.
   format version is 2, and version 1 is refused rather than read as a form
   whose author chose one column.
 
+### Changed
+
+- The overlay's layout types moved from `ferrochart-overlay` to
+  `ferrochart-form`, where `docs/architecture.md` section 11 puts them (#72).
+  `Layout`, `Section`, `Visibility`, `Condition`, `WidgetName` and the column
+  grid now live beside the definition they decorate, because a renderer applies
+  a layout and has no business with the store, the authoring session or the
+  replay, which read and write files and compare two definitions. The stored
+  document is unchanged, byte for byte. `ferrochart-overlay` keeps the store,
+  the key normalization, the replay and the report, and re-exports nothing it
+  does not own, so a caller that needs a layout type names `ferrochart-form`.
+  `scripts/checks/crate-closure.sh` is the new CI lane that holds the boundary:
+  it walks the resolved dependency closure and fails when `ferrochart-form`
+  links any other crate of this tree, or when `ferrochart-renderer` links
+  anything but `ferrochart-form`.
+
 ## [0.0.3] - 2026-09-07
 
 ### Added
