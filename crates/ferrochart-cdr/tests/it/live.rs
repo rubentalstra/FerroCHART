@@ -173,12 +173,10 @@ async fn a_real_cdr_takes_a_template_and_gives_it_back() {
     // The round trip the compiler depends on: FerroCHART can take a template
     // from a CDR as well as from a file on disk.
     let client = client();
-    let uploaded = client.upload_template(Generation::Adl14, TEMPLATE).await;
-    match uploaded {
-        Ok(_) => {}
-        // These cases share one CDR, so a template already uploaded by an
-        // earlier run is not a new fact about the client.
-        Err(CdrError::Conflict { .. }) => {}
+    // These cases share one CDR, so a template an earlier run already uploaded
+    // is not a new fact about the client, and a conflict passes as a success.
+    match client.upload_template(Generation::Adl14, TEMPLATE).await {
+        Ok(_) | Err(CdrError::Conflict { .. }) => {}
         Err(other) => panic!("the CDR would not take the template: {other:?}"),
     }
 
