@@ -9,20 +9,20 @@ The template identifier names no release, so which revision this is depends on w
 
 Needs a decision (3)
   retyped Breteau index (BI)
-      at /[openEHR-EHR-OBSERVATION.aedes_indices.v0]/data[at0001]/events[at0002]/data[at0003]/items[at0006]
+      at /[openEHR-EHR-OBSERVATION.aedes_indices.v0, OBSERVATION]/data[at0001, HISTORY]/events[at0002, EVENT]/data[at0003, ITEM_TREE]/items[at0006, DV_CODED_TEXT, #3]
       The node collects DV_CODED_TEXT where it collected DV_PROPORTION, so this layout may no longer mean anything.
   moved Container index (CI)
-      was /[openEHR-EHR-OBSERVATION.aedes_indices.v0]/data[at0001]/events[at0002]/data[at0003]/items[at0008]
-      now /[openEHR-EHR-OBSERVATION.aedes_indices.v0]/items[at0008]
+      was /[openEHR-EHR-OBSERVATION.aedes_indices.v0, OBSERVATION]/data[at0001, HISTORY]/events[at0002, EVENT]/data[at0003, ITEM_TREE]/items[at0008, ELEMENT, #2]
+      now /[openEHR-EHR-OBSERVATION.aedes_indices.v0, OBSERVATION]/items[at0008, ELEMENT]
       One node elsewhere carries the same node id and class. Accept the move to take the layout there.
   ambiguous ITEM_TREE
-      at /[openEHR-EHR-OBSERVATION.aedes_indices.v0]/protocol[at0005]
+      at /[openEHR-EHR-OBSERVATION.aedes_indices.v0, OBSERVATION]/protocol[at0005, ITEM_TREE]
       2 nodes carry this key and the template tells them apart by nothing. Choose the one this layout belongs to.
 
 No longer in the form (1), kept in case a later revision brings them back
-  /[openEHR-EHR-OBSERVATION.aedes_indices.v0]/data[at0001]/events[at0002]/data[at0003]/items[at0007]
+  /[openEHR-EHR-OBSERVATION.aedes_indices.v0, OBSERVATION]/data[at0001, HISTORY]/events[at0002, EVENT]/data[at0003, ITEM_TREE]/items[at0007, ELEMENT, 'Premises index (PI)', #1]
 
 Kept, nothing to do (4)
 
 No layout yet (1)
-  Location category (/[openEHR-EHR-OBSERVATION.aedes_indices.v0]/data[at0001]/events[at0002]/data[at0003]/items[at0004])
+  Location category (/[openEHR-EHR-OBSERVATION.aedes_indices.v0, OBSERVATION]/data[at0001, HISTORY]/events[at0002, EVENT]/data[at0003, ITEM_TREE]/items[at0004, ELEMENT, 'Location type'])

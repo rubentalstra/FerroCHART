@@ -173,14 +173,17 @@ fn replaying_against_the_form_it_was_authored_on_changes_nothing() {
 }
 
 #[test]
-fn two_keys_that_print_the_same_do_not_always_match() {
-    // Not a property worth having: it pins the defect on #83 so the fix has a
-    // test that fails first. 40 distinct key strings occur in both forms and
-    // none of them matches, because a printed key omits the pinned name and
-    // the RM type, which section 6.2 measured as the discriminators for 41.0%
-    // and 29.5% of colliding siblings.
+fn a_key_that_prints_the_same_is_a_key_that_matches() {
+    // Before #83 a printed key omitted the pinned name and the RM type, so 40
+    // distinct key strings occurred in both forms while none of them matched
+    // and the report could show a person the same string twice. A printed key
+    // now carries every part that decides a match, so the two counts agree.
     let one: BTreeSet<String> = keys(&form(ONE)).iter().map(ToString::to_string).collect();
     let other: BTreeSet<String> = keys(&form(OTHER)).iter().map(ToString::to_string).collect();
-    assert_eq!(one.intersection(&other).count(), 40);
-    assert_eq!(overlay_on_every_node(ONE).entries().len(), 171);
+    let shared = one.intersection(&other).count();
+
+    let overlay = overlay_on_every_node(ONE);
+    let matched = replay(&overlay, &form(OTHER)).summary().matched;
+    assert_eq!(shared, matched, "a printed key still hides a difference");
+    assert_eq!(matched, 0);
 }

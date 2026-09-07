@@ -634,7 +634,7 @@ mod tests {
             .iter()
             .map(ToString::to_string)
             .collect();
-        assert_eq!(read, ["/a", "/b", "/c"]);
+        assert_eq!(read, ["/a[ELEMENT]", "/b[ELEMENT]", "/c[ELEMENT]"]);
     }
 
     #[test]

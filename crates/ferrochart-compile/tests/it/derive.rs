@@ -19,6 +19,7 @@ use ferrochart_form::field::{
 };
 use ferrochart_form::group::{GroupShape, UndeterminedReason};
 use ferrochart_form::ids::{ArchetypeId, LanguageTag};
+use ferrochart_form::key::NodeKey;
 use ferrochart_form::value::{ExpansionSource, Prefill, ValueSet};
 
 use crate::support::templates;
@@ -892,4 +893,41 @@ fn a_key_is_positional_exactly_where_a_sibling_ties() {
     // Every tie in this pack is between siblings that carry a node id and
     // differ in nothing else, which is why the old proxy found none of them.
     assert_eq!(positional_without_code, 0);
+}
+
+#[test]
+fn a_printed_key_tells_apart_every_key_that_does_not_match() {
+    // The property #83 was filed for. A printed key is what a replay report
+    // shows a person when it asks them to act on a difference, so two keys
+    // that print alike must be the same key.
+    let mut collisions = Vec::new();
+    for path in templates() {
+        let xml = fs::read_to_string(&path).expect("a committed corpus file is UTF-8");
+        let Ok(template) = adl14::from_xml(&xml) else {
+            continue;
+        };
+        let form = derive::form(&template).expect("every template derives");
+        let mut seen: BTreeMap<String, NodeKey> = BTreeMap::new();
+        let keys = form
+            .groups()
+            .map(|group| group.key.clone())
+            .chain(form.fields().map(|field| field.key.clone()));
+        for key in keys {
+            let printed = key.to_string();
+            match seen.get(&printed) {
+                Some(held) if *held != key => {
+                    collisions.push(format!("{}: {printed}", path.display()));
+                }
+                _ => {
+                    seen.insert(printed, key);
+                }
+            }
+        }
+    }
+    assert!(
+        collisions.is_empty(),
+        "{} distinct keys print alike:\n  {}",
+        collisions.len(),
+        collisions.join("\n  ")
+    );
 }
