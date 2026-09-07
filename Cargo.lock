@@ -456,6 +456,10 @@ dependencies = [
 [[package]]
 name = "ferrochart-form"
 version = "0.0.2"
+dependencies = [
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "ferrochart-overlay"

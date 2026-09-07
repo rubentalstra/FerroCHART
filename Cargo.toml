@@ -49,6 +49,7 @@ ferrochart-overlay = { path = "crates/ferrochart-overlay" }
 ferrochart-cdr = { path = "crates/ferrochart-cdr" }
 ferrochart-term = { path = "crates/ferrochart-term" }
 ferrochart-server = { path = "crates/ferrochart-server" }
+serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.145"
 
 # Every lint here is enforced by `.claude/rules/reliability.md`. `forbid`
