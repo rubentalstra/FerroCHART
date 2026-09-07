@@ -84,6 +84,23 @@ is BUSL-1.1 and Apache-2.0. `openehr-term` arrives with them, under Apache-2.0
 and CC-BY-SA-3.0 for the openEHR support terminology it embeds. `deny.toml`
 allows exactly this set and no more.
 
+## The FHIR model crate
+
+The FHIR model comes from the published `fhir-types` crate
+(`docs/architecture.md` sections 2 and 7.3). It is generated from the HL7 FHIR
+packages and released from FerroTERM, which is never a dependency here.
+
+| Item | Pin | Repeated in |
+|---|---|---|
+| fhir-types | 0.1.85 | `docs/architecture.md` §2, root `Cargo.toml` |
+
+Two lockstep lines now feed this project. `fhir-types` releases together with
+`fhir-terminology` and `sct-ecl` on one FerroTERM version, the way the
+`openehr-*` crates release together on one FerroEHR version, so bumping any
+crate of either family means bumping every crate this project takes from it.
+FerroCHART takes only `fhir-types` from the FerroTERM line, and the reason the
+other two are left is in `docs/architecture.md` section 7.3.
+
 ## Language and runtime
 
 No Cargo workspace exists yet. The toolchain pin below is live because

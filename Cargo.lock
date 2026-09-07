@@ -558,6 +558,20 @@ dependencies = [
 [[package]]
 name = "ferrochart-term"
 version = "0.0.4"
+dependencies = [
+ "fhir-types",
+]
+
+[[package]]
+name = "fhir-types"
+version = "0.1.85"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a329b57fa421c4ad26340c745f6a8e8f9dd5c90ceb6dd8dcd80eedb1a1b09b1f"
+dependencies = [
+ "quick-xml",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "find-msvc-tools"

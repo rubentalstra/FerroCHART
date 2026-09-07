@@ -65,8 +65,9 @@ release, the document, and the section.
 | openehr-adl | 0.0.61 | BUSL-1.1. The ADL 2, cADL and ODIN parser and the AOM 2 validation catalogue. |
 | openehr-its | 0.0.61 | BUSL-1.1 and Apache-2.0. Carries `opt14`, `flat` and the ITS-REST types. |
 | openehr-query | 0.0.61 | BUSL-1.1. Taken only when FerroCHART composes AQL queries rather than parsing paths. |
+| fhir-types | 0.1.85 | Apache-2.0. The FHIR model, generated per FHIR version from the published HL7 packages, plus the terminology operation request and response contracts. Section 7.3 takes it as the source of every FHIR resource FerroCHART reads or emits. |
 
-Three things this table has to say out loud.
+Four things this table has to say out loud.
 
 **The model crates are published artefacts, not the CDR.** `CLAUDE.md` bars
 FerroEHR as a compile-time dependency. The crates above are published on
@@ -83,6 +84,13 @@ is recorded rather than smoothed.** `openehr-rm` carries a `v1_2` generation
 ahead of the published RM release, and the ITS-BMM tree carries AM 2.4.0,
 BASE 1.3.0 and TERM 3.1.0 schemas ahead of their published component releases.
 FerroCHART pins the published release and selects the matching generation.
+
+**The FHIR model arrives the same way, from FerroTERM.** `fhir-types` is
+published on crates.io under Apache-2.0 and generated from the HL7 FHIR
+packages; the terminology server it is released from is no more a dependency
+here than the CDR is. Its line releases in lockstep too, so a bump moves
+`fhir-types`, `fhir-terminology` and `sct-ecl` together even though FerroCHART
+takes only the first.
 
 **The AM release and the ADL document version are separate numbers.**
 `openehr-adl` describes itself as ADL 2.4.0 while the current AM component
@@ -704,6 +712,44 @@ stored. Serving these resources persistently, so any client can expand an
 openEHR value set without supplying it, is a FerroTERM feature rather than a
 FerroCHART one, and is filed there.
 
+### 7.3 Where the FHIR types come from
+
+No FHIR resource is hand-written here. `fhir-types` (Apache-2.0, the pin
+table) is the source of the model, and it is the same decision the `openehr-*`
+crates are: it is generated from the published HL7 FHIR packages, and a
+hand-transcribed copy of a large published model drifts from its source with
+no way to detect it. No specification governs which crate supplies the types:
+our own design.
+
+The crate emits one module per FHIR version, and FerroCHART reads `r4` to
+match the R4 4.0.1 pin. `ValueSet`, `CodeSystem`, `ConceptMap`, `Parameters`,
+`OperationOutcome`, `Coding` and `CodeableConcept` are all there, which covers
+the calls of section 7.1 and the resources section 7.2 emits. The three calls
+also arrive as typed request and response shapes that convert to and from the
+`Parameters` resource the wire carries, so the client formats a request
+against a generated contract rather than against a hand-built parameter list.
+
+**Two more crates release on the same FerroTERM line, and neither is taken.**
+`fhir-terminology` (BUSL-1.1) is the engine that answers those operations over
+a loaded terminology release. The question to settle was whether its request
+and response builders are separable from the engine, since a client builds the
+same `Parameters` a server parses. They are already separate: those builders
+live in `fhir-types`, and `fhir-terminology` depends on that crate for them.
+Taking the engine as well would add a SNOMED CT release loader, a concept
+store and an expansion evaluator to a client whose job is to format a request
+and read a reply, and FerroCHART is a client of a terminology server rather
+than one.
+
+`sct-ecl` (BUSL-1.1) parses and evaluates the SNOMED CT expression constraint
+language, which is what a value set needs when it arrives constrained by an
+expression instead of enumerated. The four open external bindings and the
+three reference-set bindings counted at the top of this section can take that
+shape, and FHIR R4 `snomedct.html` section 4.3.1.0.8.3 carries such an
+expression as a `constraint` filter while section 4.3.1.0.9 carries it as the
+implicit value set `?fhir_vs=ecl/[ecl]`, so a client can pass one through
+without reading it. Whether the terminology client parses ECL itself is
+decided with that client, on issue #25.
+
 ## 8. The wire: FerroCHART as an ITS-REST client
 
 All citations are ITS-REST Release-1.1.0. The base path is `{baseUrl}/v1`.
@@ -948,6 +994,7 @@ Each release is green before the next starts.
 | Revision handling | Recompile, replay, and report per entry | No specification promises path stability across revisions, and specialisation provably changes codes | Migrating layout silently; discarding unmatched entries |
 | Coded field resolution | Local first, a server call only for what the template does not carry | Measured over 102 templates: 97.6% of 843 coded fields get their membership from the template, and an enumerated external code carries no rubric there | Expanding everything over the network; treating membership and display as one question |
 | Value set identity in FHIR | A minted URL under the deployer's domain, encoding the archetype id, with the archetype version as `version` | No openEHR specification defines a canonical URI for a local value set, and FHIR requires a `url`; the archetype id is globally unique | A `urn:` form, which does not resolve; a URL under `specifications.openehr.org`, which is another publisher's namespace |
+| FHIR model | Consume the published `fhir-types` crate | Generated from the HL7 FHIR packages and Apache-2.0, the same ground as the `openehr-*` model tier; it carries the operation request and response contracts too | Hand-writing the resources; taking `fhir-terminology`, which is the server-side engine and depends on `fhir-types` for the same contracts |
 | Terminology wire | FHIR R4 4.0.1 | AQL section 3.9.5.1 names `hl7.org/fhir/4.0` and never R5 | R5 |
 | Field-level errors | Validated locally before the post, and owned by FerroCHART | The ITS-REST error body is optional, conditional, and carries no path | Rendering the CDR's error body |
 | Compile site | The server | The owner's decision, and `openehr-its` has no WASM-capable feature set | Compiling in the browser |

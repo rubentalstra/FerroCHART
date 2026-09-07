@@ -43,6 +43,11 @@ openehr-query = "0.0.61"
 reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls"] }
 http = "1.5.0"
 url = "2.5.8"
+# The FHIR model (docs/architecture.md sections 2 and 7.3). Generated from
+# the published HL7 FHIR packages and released from FerroTERM, which is never
+# a dependency here; the crate is Apache-2.0 and carries the terminology
+# operation request and response contracts as well as the resources.
+fhir-types = "0.1.85"
 
 # The server surface (docs/architecture.md section 11, issue #41).
 axum = { version = "0.8.9", default-features = false, features = ["http1", "json", "tokio"] }

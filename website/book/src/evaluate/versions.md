@@ -27,6 +27,10 @@ different numbers and are never conflated.
 `openehr-query`, pinned together because the line releases in lockstep and each
 patch is its own compatibility set.
 
+The FHIR model is `fhir-types`, generated from the published HL7 FHIR packages
+and released on a lockstep line of its own. FerroCHART reads its R4 module, to
+match the FHIR pin above.
+
 ## The template corpus
 
 The openEHR CKM library, fetched by `scripts/vendor/ckm-templates.sh` and
