@@ -4,10 +4,21 @@
 # The ADL 2 archetype pack: provenance
 
 Fetched from <https://github.com/openEHR/adl-archetypes>, directory `Reference/CKM_2013_12_09`, at commit
-`093c77ea003742b9540e3dd377d615e2b26f2996`, by `scripts/vendor/adl2-archetypes.sh` on 2026-09-06T23:38:22Z.
+`093c77ea003742b9540e3dd377d615e2b26f2996`, by `scripts/vendor/adl2-archetypes.sh`.
+
+The pin is the commit. This file states no fetch time on purpose: a
+timestamp would make a committed record go dirty every time anyone runs
+the script, which trains a reader to ignore the diff.
 
 Upstream describes the tree as archetypes exported from the openEHR
 Clinical Knowledge Manager on 2013-12-09.
+
+**Every ADL 2 half declares `generated`** (openEHR AM Release-2.3.0
+`ADL2.html` section 7.5, the generated indicator), so the pack is one
+authoring plus a conversion rather than two independent authorings. That
+bounds what a comparison across the pair can prove: agreement shows the
+conversion preserved something, not that two people modelled the same
+concept the same way. Issue #59 measured the consequences.
 
 - ADL 2 archetypes (`*.adls`): 322
 - ADL 1.4 twins (`*.adl`): 330
