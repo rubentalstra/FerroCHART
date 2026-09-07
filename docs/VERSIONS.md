@@ -128,6 +128,32 @@ GitHub Pages.
 | mdbook-toc | 0.15.4 | `.github/actions/docs-toolchain/action.yml` `mdbook-toc-version` |
 | mdbook-mermaid | 0.17.1 | `.github/actions/docs-toolchain/action.yml` `mdbook-mermaid-version` |
 
+**The preprocessor pins are coupled to the mdBook pin, and the coupling runs
+one way**: a preprocessor declares which `mdbook-preprocessor` it was built
+against, and the pinned mdBook has to satisfy that requirement. mdbook-toc
+0.15.4 declares `mdbook-preprocessor ^0.5.0`, that crate follows semver for
+its APIs, and `^0.5.0` admits 0.5.4, so the current pins are compatible.
+
+**Every build prints a version warning anyway, and it is not the signal it
+looks like** (issue #98):
+
+```text
+The mdbook-toc preprocessor was built against version 0.5.0 of mdbook,
+but we're being called from version 0.5.4
+```
+
+mdBook compares the exact version string rather than the semver range its own
+preprocessor library declares, so the warning fires between every compatible
+pair. Treating it as an error would fail the build forever, and pinning mdBook
+back to 0.5.0 to silence it would downgrade the renderer for a cosmetic
+message. Both crates are at their newest published versions.
+
+What can actually break is the output rather than the warning: a preprocessor
+that stops running, or runs and produces nothing, leaves the marker in the
+page or drops the list, and mdBook reports neither as an error.
+`scripts/checks/book-toc.sh` therefore checks the rendered pages, and the docs
+lane runs it after the site is assembled. Reported upstream as #108.
+
 ## Product and citation version
 
 The product version is the workspace `version` in the root `Cargo.toml`, which

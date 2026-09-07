@@ -23,6 +23,12 @@ the build order.
 
 ### Added
 
+- Every chapter that asks for a table of contents is checked to have one
+  (#98). `scripts/checks/book-toc.sh` reads the rendered pages, and the docs
+  lane runs it after the site is assembled, because mdBook reports a
+  preprocessor that ran and produced nothing as a warning at most and would
+  otherwise publish a chapter with a missing table of contents and a green
+  build.
 - The terminology of an archetype can be enumerated, where it could only be
   asked about a code the caller already held (#91). `Terminology::definitions`
   returns the rubrics one language states, `all_bindings` and
