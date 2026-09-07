@@ -55,8 +55,9 @@ exceptions = [
   # it embeds.
   { allow = ["BUSL-1.1", "Apache-2.0"], crate = "openehr-its" },
   # openehr-term embeds the openEHR support terminology, which the openEHR
-  # Foundation publishes under CC-BY-SA-3.0. It reaches this tree through
-  # openehr-its and openehr-adl, never as a direct dependency.
+  # Foundation publishes under CC-BY-SA-3.0. ferrochart-term depends on it
+  # directly, for the RM-mandated groups the terminology client resolves
+  # without a server (docs/architecture.md section 7).
   { allow = ["Apache-2.0", "CC-BY-SA-3.0"], crate = "openehr-term" },
 ]
 

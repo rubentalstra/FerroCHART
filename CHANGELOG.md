@@ -49,6 +49,33 @@ the build order.
   `docs/architecture.md` sections 5.3 and 5.4 record where every Reference
   Model field a form never shows comes from, which of them FerroCHART invents,
   and what a round trip may assert.
+- The terminology client (#25), in `ferrochart-term`. It resolves the codes
+  behind a coded field, and the default path needs no network: an
+  archetype-local `at`-code list comes out of the template's own terminology
+  with its rubrics in the requested language, and openEHR's own terminology
+  groups come from the `openehr-term` crate. A test proves the local path
+  issues zero HTTP requests. Where the template names a target, the client
+  calls a FHIR R4 4.0.1 terminology server: `ValueSet/$expand` to fill a
+  picker, `CodeSystem/$lookup` for the display text of an enumerated external
+  code, and `ValueSet/$validate-code` to confirm a chosen one. Every request
+  is formatted against the generated `fhir-types` operation contracts, and no
+  FHIR resource is hand-written. A refused expansion, a value set the server
+  does not hold, a timeout and a binding no FHIR request can name are each a
+  typed error carrying the upstream status, the `OperationOutcome` diagnostics
+  where the body carries one, and the raw body regardless. None of them is an
+  empty picker. Expansions are cached per template, language and request, and
+  a recompile of one template drops that template's entries.
+- FerroCHART does not parse the SNOMED CT expression constraint language, and
+  passes an expression through to the server as the implicit value set of FHIR
+  R4 `snomedct.html` section 4.3.1.0.9. The reason is in
+  `docs/architecture.md` section 7.3 and its decision register: executing an
+  expression needs a SNOMED CT release, a concept store and a closure index,
+  which is a terminology server's work, and `sct-ecl` would add a BUSL-1.1
+  licence exception for a check the server repeats anyway.
+- `scripts/test-term.sh` runs the terminology client's wire tests against a
+  real server, HL7's public R4 service by default and the compose demo profile
+  with `--ferroterm`. The cases are `#[ignore]`d, so a run without a server
+  reports them as ignored rather than as passes.
 - Every chapter that asks for a table of contents is checked to have one
   (#98). `scripts/checks/book-toc.sh` reads the rendered pages, and the docs
   lane runs it after the site is assembled, because mdBook reports a

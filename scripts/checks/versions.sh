@@ -133,7 +133,7 @@ fi
 
 echo "== model crate pins (docs/architecture.md <-> docs/VERSIONS.md <-> Cargo.toml)"
 if [ -f docs/architecture.md ] && [ -f docs/VERSIONS.md ]; then
-  for crate in openehr-base openehr-rm openehr-am openehr-adl openehr-its openehr-query fhir-types; do
+  for crate in openehr-base openehr-rm openehr-am openehr-adl openehr-its openehr-query openehr-term fhir-types; do
     arch="$(pin_of "$crate" docs/architecture.md)"
     matrix="$(pin_of "$crate" docs/VERSIONS.md)"
     if [ -z "$arch" ]; then

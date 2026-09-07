@@ -65,6 +65,7 @@ release, the document, and the section.
 | openehr-adl | 0.0.61 | BUSL-1.1. The ADL 2, cADL and ODIN parser and the AOM 2 validation catalogue. |
 | openehr-its | 0.0.61 | BUSL-1.1 and Apache-2.0. Carries `opt14`, `flat` and the ITS-REST types. |
 | openehr-query | 0.0.61 | BUSL-1.1. Taken only when FerroCHART composes AQL queries rather than parsing paths. |
+| openehr-term | 0.0.61 | Apache-2.0 and CC-BY-SA-3.0 for the openEHR support terminology it embeds. The terminology client of section 7 reads the RM-mandated groups from it rather than calling a server for them. |
 | fhir-types | 0.1.85 | Apache-2.0. The FHIR model, generated per FHIR version from the published HL7 packages, plus the terminology operation request and response contracts. Section 7.3 takes it as the source of every FHIR resource FerroCHART reads or emits. |
 
 Four things this table has to say out loud.
@@ -827,11 +828,34 @@ than one.
 language, which is what a value set needs when it arrives constrained by an
 expression instead of enumerated. The four open external bindings and the
 three reference-set bindings counted at the top of this section can take that
-shape, and FHIR R4 `snomedct.html` section 4.3.1.0.8.3 carries such an
-expression as a `constraint` filter while section 4.3.1.0.9 carries it as the
-implicit value set `?fhir_vs=ecl/[ecl]`, so a client can pass one through
-without reading it. Whether the terminology client parses ECL itself is
-decided with that client, on issue #25.
+shape.
+
+**FerroCHART does not read ECL, and passes an expression through to the
+server.** FHIR R4 `snomedct.html` section 4.3.1.0.9 defines the implicit value
+set `?fhir_vs=ecl/[ecl]` as "all concept ids that match the supplied
+(URI-encoded) expression constraint", and section 4.3.1.0.8.3 defines the
+equivalent `ValueSet.compose.include.filter` with property `constraint` and op
+`=`, whose result "is the result of executing the given SNOMED CT Expression
+Constraint". Both are wire forms a client fills in without understanding the
+expression, so the client percent-encodes it into the implicit value set URL
+and sends it as the `url` in parameter.
+
+Four things would have justified taking the parser, and none of them holds.
+Evaluating an expression locally needs a SNOMED CT release, a concept store and
+a transitive-closure index, which is the same server-side engine this section
+already declines with `fhir-terminology`. Validating an expression before
+sending it would duplicate a check the server performs anyway, and the server's
+refusal already arrives as a typed error carrying its `OperationOutcome`.
+Keying the cache on a normalised expression is unnecessary, because the key is
+the request as it went on the wire and the template states the expression
+verbatim. Resolving a member locally is the evaluator again. Against that,
+`sct-ecl` is BUSL-1.1 and would add a `deny.toml` licence exception, which
+`fhir-types` needed none of.
+
+The cost of the decision is that FerroCHART cannot tell a malformed expression
+from a value set the server does not hold until the server answers. That is
+visible on the field either way, and the server's own diagnostics are better
+than a second opinion from a client that never has the release loaded.
 
 ## 8. The wire: FerroCHART as an ITS-REST client
 
@@ -984,12 +1008,20 @@ renderer was built. The layout types already referenced the definition's own
 Neither crate re-exports anything the other owns: a caller that needs a layout
 type names `ferrochart-form`.
 
-**The two closure promises are checked, not asserted.**
+**The closure promises are checked, not asserted.**
 `scripts/checks/crate-closure.sh` reads the resolved dependency graph and fails
-when `ferrochart-form` links any other crate of this tree, or when
-`ferrochart-renderer` links anything but `ferrochart-form`. It walks the
-transitive normal and build closure, so a first-party crate arriving through an
-intermediate is caught too, and it is a CI lane of its own.
+when `ferrochart-form` links any other crate of this tree, when
+`ferrochart-renderer` or `ferrochart-cdr` links anything but
+`ferrochart-form`, or when `ferrochart-term` links anything but
+`ferrochart-compile` and `ferrochart-form`. It walks the transitive normal and
+build closure, so a first-party crate arriving through an intermediate is
+caught too, and it is a CI lane of its own.
+
+`ferrochart-term` takes `ferrochart-compile` for one reason: the 70.6% path of
+section 7 resolves an archetype-local value set straight out of the template's
+own terminology, which is the internal constraint model's type. The promise
+that it links nothing else is what keeps the terminology client a client: it
+never reaches the CDR, the overlay store or the server surface.
 
 The root manifest carries the workspace lints of `.claude/rules/reliability.md`
 at their stated tiers, `unsafe_code = "forbid"` among them, and the release
@@ -1079,6 +1111,9 @@ Each release is green before the next starts.
 | Value set identity in FHIR | A minted URL under the deployer's domain, encoding the archetype id, with the archetype version as `version` | No openEHR specification defines a canonical URI for a local value set, and FHIR requires a `url`; the archetype id is globally unique | A `urn:` form, which does not resolve; a URL under `specifications.openehr.org`, which is another publisher's namespace |
 | FHIR model | Consume the published `fhir-types` crate | Generated from the HL7 FHIR packages and Apache-2.0, the same ground as the `openehr-*` model tier; it carries the operation request and response contracts too | Hand-writing the resources; taking `fhir-terminology`, which is the server-side engine and depends on `fhir-types` for the same contracts |
 | Terminology wire | FHIR R4 4.0.1 | AQL section 3.9.5.1 names `hl7.org/fhir/4.0` and never R5 | R5 |
+| SNOMED CT expression constraints | Passed through to the server, never parsed here | FHIR R4 `snomedct.html` sections 4.3.1.0.8.3 and 4.3.1.0.9 both carry the expression as a wire form a client fills in, and executing it needs the release, a concept store and a closure index | Taking `sct-ecl`, which is the evaluator and would add a BUSL-1.1 licence exception for a check the server repeats |
+| Terminology expansion cache | Per template, language and request, dropped per template on recompile | No specification governs caching, and FHIR R4 publishes no cache-validity mechanism for these operations, so an expiry would be a guess | A time-to-live; a cache keyed by canonical URL alone, which would serve one language's text for another |
+| An openEHR `terminology_id` to a FHIR system URI | A table of the names the corpus states, paired with the URIs FHIR R4 `terminologies-systems.html` section 4.3.0 publishes, overridable per deployment | No specification maps one onto the other, and ICD-10 has no single URI at all | Guessing a URI from the name, which would ask about the wrong code system |
 | Field-level errors | Validated locally before the post, and owned by FerroCHART | The ITS-REST error body is optional, conditional, and carries no path | Rendering the CDR's error body |
 | Compile site | The server | The owner's decision, and `openehr-its` has no WASM-capable feature set | Compiling in the browser |
 | Renderer | Leptos client-side, Trunk, the FerroTERM recipe | Proven in the family, and the boundary and bundle guards come with it | A JavaScript front end; server-rendered HTML |

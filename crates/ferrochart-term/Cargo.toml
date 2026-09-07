@@ -14,7 +14,22 @@ homepage.workspace = true
 publish.workspace = true
 
 [dependencies]
+ferrochart-compile.workspace = true
+ferrochart-form.workspace = true
 fhir-types.workspace = true
+http.workspace = true
+openehr-base.workspace = true
+openehr-term.workspace = true
+percent-encoding.workspace = true
+reqwest.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+wiremock.workspace = true
 
 [lints]
 workspace = true

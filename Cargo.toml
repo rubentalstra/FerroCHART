@@ -36,6 +36,7 @@ openehr-am = "0.0.61"
 openehr-adl = "0.0.61"
 openehr-its = "0.0.61"
 openehr-query = "0.0.61"
+openehr-term = "0.0.61"
 
 # The ITS-REST client (docs/architecture.md section 8, issue #22). rustls
 # rather than the platform TLS stack, and no default features, which is the
@@ -44,6 +45,11 @@ openehr-query = "0.0.61"
 reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls"] }
 http = "1.5.0"
 url = "2.5.8"
+# The terminology client percent-encodes a SNOMED CT expression constraint
+# into an implicit value set URL (docs/architecture.md section 7.3), where the
+# `ecl/` prefix stays literal and only the expression is escaped, so a whole
+# query-string serializer is the wrong tool.
+percent-encoding = "2.3.2"
 # The FHIR model (docs/architecture.md sections 2 and 7.3). Generated from
 # the published HL7 FHIR packages and released from FerroTERM, which is never
 # a dependency here; the crate is Apache-2.0 and carries the terminology

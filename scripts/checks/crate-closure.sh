@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BUSL-1.1
 # First-party dependency-closure guard (docs/architecture.md sections 10, 11).
 #
-# Two crates carry a promise about what they link, and a promise no tool
+# Five crates carry a promise about what they link, and a promise no tool
 # checks is a wish:
 #
 #   ferrochart-form       the published contract a third party writes a
@@ -12,6 +12,17 @@
 #   ferrochart-renderer   the browser binary. It links ferrochart-form and no
 #                         other crate of this tree, so the UI cannot reach an
 #                         engine crate.
+#   ferrochart-cdr        the ITS-REST client. It links ferrochart-form for the
+#                         identifiers on the wire and nothing else, so it stays
+#                         a client rather than half an engine.
+#   ferrochart-compose    the composition builder. It links ferrochart-form and
+#                         nothing else, so it works from the form definition
+#                         rather than from the template.
+#   ferrochart-term       the terminology client. It links ferrochart-compile
+#                         for the template terminology it resolves value sets
+#                         out of, and ferrochart-form, and nothing else: it
+#                         never reaches the CDR client, the overlay store or
+#                         the server surface.
 #
 # The check reads the resolved graph from `cargo metadata` and walks the
 # normal and build closure of each package, so it catches a first-party crate
@@ -52,6 +63,7 @@ promises=(
   "ferrochart-renderer|ferrochart-form"
   "ferrochart-cdr|ferrochart-form"
   "ferrochart-compose|ferrochart-form"
+  "ferrochart-term|ferrochart-compile ferrochart-form"
 )
 
 metadata="$(cargo metadata --locked --format-version 1 --all-features)"
