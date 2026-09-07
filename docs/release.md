@@ -243,7 +243,12 @@ path for real, including the attestations and the registry push.
    binaries are only checked at the release page's asset list.
 2. **Read the published release.** Its notes are the changelog section, and its
    asset list is what `finalize-release` demanded.
-3. **Post the board status update** with what shipped and what the next
+3. **Close the milestone.** `gh api -X PATCH
+   repos/rubentalstra/FerroCHART/milestones/<n> -f state=closed`. A milestone
+   is a delivery promise, and one left open after its release is cut says the
+   promise is still outstanding. Nothing closes it automatically, and both
+   cuts so far needed it done by hand.
+4. **Post the board status update** with what shipped and what the next
    milestone targets (`.claude/rules/project-board.md`).
 
 ## What a published release is protected against

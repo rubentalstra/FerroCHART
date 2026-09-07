@@ -72,7 +72,9 @@ Bootstrap the labels once with `scripts/gh/labels.sh`.
 
 A milestone is a delivery promise (`vX.Y.Z`). A release is cut when its
 milestone reaches zero open issues (or the owner calls the cut and moves the
-stragglers to the next milestone). Every en-route issue goes in the CURRENT
+stragglers to the next milestone). **Closing the milestone is part of the cut**
+(`docs/release.md` §After the tag): nothing closes it automatically, and one
+left open says the promise is still outstanding. Every en-route issue goes in the CURRENT
 milestone, never the next. A new `vX.Y.Z` milestone gets a due date (the
 board's Roadmap view places items by it, via `scripts/gh/project.sh
 sync-dates`).
