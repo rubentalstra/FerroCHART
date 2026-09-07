@@ -1,13 +1,16 @@
 # SPDX-FileCopyrightText: Ruben Talstra
 # SPDX-License-Identifier: BUSL-1.1
 
-# Docs: build the documentation book and publish it to GitHub Pages.
+# Docs: assemble the documentation site and publish it to GitHub Pages.
 #
-# The shape is GitHub's Pages-with-Actions pattern: a `build` job renders the
-# book and uploads it as a Pages artifact, and a `deploy` job publishes that
+# The shape is GitHub's Pages-with-Actions pattern: a `build` job assembles the
+# site and uploads it as a Pages artifact, and a `deploy` job publishes that
 # artifact to the github-pages environment. `build` runs on pull requests too,
-# so a book that does not build fails the check; only a push to main or a
+# so a site that does not assemble fails the check; only a push to main or a
 # manual dispatch deploys.
+#
+# The site is the landing page at the root and the book under /docs/, put
+# together by scripts/site/assemble.sh.
 name: Docs
 
 on:
@@ -25,7 +28,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Render the book and upload it as the Pages artifact. Runs on every event,
+  # Assemble the site and upload it as the Pages artifact. Runs on every event,
   # pull requests included.
   build:
     name: build
@@ -38,15 +41,14 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/docs-toolchain
-      - name: Build the book
-        working-directory: website/book
-        run: mdbook build
+      - name: Assemble the site (the landing page at /, the book under /docs/)
+        run: scripts/site/assemble.sh _site
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: website/book/book
+          path: _site
 
   # Publish the artifact. Skipped on pull requests: a pull request verifies the
-  # book and never deploys it.
+  # site and never deploys it.
   deploy:
     name: deploy
     needs: build
