@@ -524,15 +524,54 @@ fn quantity_field(constraint: &QuantityConstraint) -> FieldKind {
 /// every unit it lists, because there is nothing that says otherwise.
 fn unfolded_quantity(attributes: &Attributes<'_>, path: &str) -> Result<FieldKind, DeriveError> {
     attributes.reject_unmodelled(&["magnitude", "units", "precision", "property"], path)?;
-    let magnitude = real_at(attributes, "magnitude", path)?
-        .ranges
-        .first()
-        .cloned();
-    let decimals = count_at(attributes, "precision", path)?
-        .ranges
-        .first()
-        .cloned();
     let units = text_at(attributes, "units", path)?;
+    // Every permitted unit carries the same magnitude and precision in the
+    // unfolded shape, so a refusal names all of them rather than the first.
+    let under = || units.options.join(", ");
+
+    // One permitted unit carries one magnitude interval and one precision
+    // (RM Release-1.1.0 `data_types.html` section 6.2.8), so anything the
+    // template states beyond that is refused rather than trimmed to fit.
+    // Trimming would make the field admit or refuse values the template does
+    // not, which is the one thing a compiled form may never do.
+    let stated = real_at(attributes, "magnitude", path)?;
+    if !stated.options.is_empty() {
+        return Err(DeriveError::UnrepresentableUnitBound {
+            path: path.to_owned(),
+            attribute: "magnitude",
+            units: under(),
+            found: format!("an enumeration of {} values", stated.options.len()),
+        });
+    }
+    if stated.ranges.len() > 1 {
+        return Err(DeriveError::UnrepresentableUnitBound {
+            path: path.to_owned(),
+            attribute: "magnitude",
+            units: under(),
+            found: format!("{} separate ranges", stated.ranges.len()),
+        });
+    }
+    let magnitude = stated.ranges.first().cloned();
+
+    let stated = count_at(attributes, "precision", path)?;
+    if !stated.options.is_empty() {
+        return Err(DeriveError::UnrepresentableUnitBound {
+            path: path.to_owned(),
+            attribute: "precision",
+            units: under(),
+            found: format!("an enumeration of {} values", stated.options.len()),
+        });
+    }
+    if stated.ranges.len() > 1 {
+        return Err(DeriveError::UnrepresentableUnitBound {
+            path: path.to_owned(),
+            attribute: "precision",
+            units: under(),
+            found: format!("{} separate ranges", stated.ranges.len()),
+        });
+    }
+    let decimals = stated.ranges.first().cloned();
+
     Ok(FieldKind::Quantity(QuantityField {
         property: None,
         units: units
@@ -1026,6 +1065,24 @@ fn interval_field(
     let end = |child: Option<&ConstraintNode>| -> Result<FieldKind, DeriveError> {
         match child {
             Some(child) => {
+                // An interval end is itself a `DV_ORDERED` (RM Release-1.1.0
+                // `data_types.html` section 6.2.2), so it may state a
+                // reference band. `IntervalField` has nowhere to put one, and
+                // a band on the bound of a range is refused rather than
+                // dropped, because every other constraint this derivation
+                // cannot carry is refused by name (#87).
+                if let Some(stated) = child
+                    .children()
+                    .iter()
+                    .map(|node| node.identity().rm_attribute().as_str())
+                    .find(|attribute| is_display_metadata(attribute))
+                {
+                    return Err(DeriveError::UnmodelledAttribute {
+                        path: path.to_owned(),
+                        rm_type: child.identity().rm_type().as_str().to_owned(),
+                        attribute: stated.to_owned(),
+                    });
+                }
                 value_kind(terms, child, path)?.ok_or_else(|| DeriveError::UnmodelledDataValue {
                     path: path.to_owned(),
                     rm_type: child.identity().rm_type().as_str().to_owned(),

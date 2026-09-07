@@ -155,6 +155,16 @@ the build order.
   links any other crate of this tree, or when `ferrochart-renderer` links
   anything but `ferrochart-form`.
 
+### Fixed
+
+- The compiler refuses a quantity magnitude or precision it cannot represent,
+  naming the units and what it found, instead of reading part of the
+  constraint and leaving the field wider than the template (#86).
+- The compiler refuses a reference band stated on the end of an interval
+  instead of dropping it (#87).
+- The book at ferrochart.eu serves the brand favicon. It served mdBook's
+  default while `assets/brand/favicon.svg` sat unused in the repository (#94).
+
 ## [0.0.3] - 2026-09-07
 
 ### Added

@@ -1,0 +1,59 @@
+-- SPDX-FileCopyrightText: Ruben Talstra
+-- SPDX-License-Identifier: BUSL-1.1
+-- Synthetic content invented for this test. No patient data.
+--
+-- An interval whose upper end states a reference band. Both ends of a
+-- DV_INTERVAL are DV_ORDERED (openEHR RM Release-1.1.0 data_types.html
+-- section 6.2.2), so the band is legal; IntervalField has nowhere to carry
+-- one, so the derivation refuses it by name.
+archetype (adl_version=2.0.5; rm_release=1.0.2)
+    openEHR-EHR-OBSERVATION.ferro_adl2_interval_band.v1.0.0
+
+language
+    original_language = <[ISO_639-1::en]>
+
+description
+    lifecycle_state = <"published">
+
+definition
+    OBSERVATION[id1] occurrences matches {1..1} matches {
+        data matches {
+            ITEM_TREE[id2] occurrences matches {1..1} matches {
+                items existence matches {0..1} cardinality matches {0..*; ordered} matches {
+                    ELEMENT[id3] occurrences matches {0..1} matches {
+                        value matches {
+                            DV_INTERVAL<DV_COUNT>[id4] occurrences matches {1..1} matches {
+                                upper matches {
+                                    DV_COUNT[id5] matches {
+                                        magnitude matches {|0..100|}
+                                        normal_range matches {
+                                            DV_INTERVAL<DV_COUNT>[id6] matches {
+                                                upper matches {
+                                                    DV_COUNT[id7] matches {
+                                                        magnitude matches {|0..10|}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+terminology
+    term_definitions = <
+        ["en"] = <
+            ["id1"] = < text = <"Ferro ADL 2 interval band"> description = <"A synthetic observation invented for this test."> >
+            ["id2"] = < text = <"Tree"> description = <"The item tree."> >
+            ["id3"] = < text = <"Span"> description = <"A synthetic span."> >
+            ["id4"] = < text = <"Span value"> description = <"The span."> >
+            ["id5"] = < text = <"Span upper"> description = <"The upper bound of the span."> >
+            ["id6"] = < text = <"Span upper band"> description = <"A band stated on the upper bound."> >
+            ["id7"] = < text = <"Span upper band top"> description = <"The top of that band."> >
+        >
+    >

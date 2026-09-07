@@ -12,6 +12,10 @@ src = "src"
 build-dir = "book"
 
 [output.html]
+# The tab icon is a theme override: mdBook copies theme/favicon.svg and
+# theme/favicon.png into the build output and links them from every page. Both
+# come from assets/brand (assets/brand/README.md).
+#
 # The book is published under /docs/, with the landing page at the site root
 # (scripts/site/assemble.sh). site-url makes the book's asset, search index,
 # and 404 links absolute under that prefix, which is also what lets one 404
@@ -21,7 +25,9 @@ site-url = "/docs/"
 default-theme = "rust"
 preferred-dark-theme = "coal"
 git-repository-url = "https://github.com/rubentalstra/FerroCHART"
-edit-url-template = "https://github.com/rubentalstra/FerroCHART/edit/main/website/book/src/{path}"
+# mdBook 0.5.4 expands {path} to the path under the book root, which already
+# begins with src/, so the template stops at the book directory.
+edit-url-template = "https://github.com/rubentalstra/FerroCHART/edit/main/website/book/{path}"
 
 [output.html.search]
 enable = true
