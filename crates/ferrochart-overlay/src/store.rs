@@ -533,6 +533,14 @@ impl<'a> Author<'a> {
 
     /// Where `key` lands in the definition, what the node collects there, and
     /// what a positional entry is anchored to.
+    ///
+    /// Positionality is recomputed here rather than read from
+    /// `NodeKey::is_positional`, because resolving the key against the
+    /// definition is required anyway to reject an entry that decorates no
+    /// node, and the number of candidates that resolution returns IS the
+    /// condition. The flag is the compiler's answer to the same question and
+    /// agrees with this one (#67); this is the authority because it holds the
+    /// definition.
     fn place(
         &self,
         key: &NodeKey,

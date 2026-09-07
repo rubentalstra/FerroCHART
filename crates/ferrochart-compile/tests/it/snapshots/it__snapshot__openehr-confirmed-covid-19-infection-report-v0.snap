@@ -62,7 +62,7 @@ expression: form
               "sibling_ordinal": 0
             }
           ],
-          "is_positional": true
+          "is_positional": false
         },
         "rm_type": "DV_CODED_TEXT",
         "label": {},
@@ -124,7 +124,7 @@ expression: form
               "sibling_ordinal": 0
             }
           ],
-          "is_positional": true
+          "is_positional": false
         },
         "rm_type": "EVENT_CONTEXT",
         "archetype_id": null,
@@ -169,7 +169,7 @@ expression: form
                   "sibling_ordinal": 0
                 }
               ],
-              "is_positional": true
+              "is_positional": false
             },
             "rm_type": "ITEM_TREE",
             "archetype_id": null,
@@ -226,7 +226,7 @@ expression: form
                       "sibling_ordinal": 0
                     }
                   ],
-                  "is_positional": true
+                  "is_positional": false
                 },
                 "rm_type": "DV_TEXT",
                 "label": {
@@ -323,7 +323,7 @@ expression: form
                       "sibling_ordinal": 1
                     }
                   ],
-                  "is_positional": true
+                  "is_positional": false
                 },
                 "rm_type": "DV_TEXT",
                 "label": {
@@ -424,7 +424,7 @@ expression: form
                       "sibling_ordinal": 2
                     }
                   ],
-                  "is_positional": true
+                  "is_positional": false
                 },
                 "rm_type": "CLUSTER",
                 "archetype_id": "openEHR-EHR-CLUSTER.person_anonymised_parent.v0",
@@ -489,7 +489,7 @@ expression: form
                           "sibling_ordinal": 0
                         }
                       ],
-                      "is_positional": true
+                      "is_positional": false
                     },
                     "rm_type": "DV_CODED_TEXT",
                     "label": {
@@ -636,7 +636,7 @@ expression: form
                           "sibling_ordinal": 1
                         }
                       ],
-                      "is_positional": true
+                      "is_positional": false
                     },
                     "rm_type": "DV_DURATION",
                     "label": {
@@ -750,7 +750,7 @@ expression: form
                       "sibling_ordinal": 3
                     }
                   ],
-                  "is_positional": true
+                  "is_positional": false
                 },
                 "rm_type": "CLUSTER",
                 "archetype_id": "openEHR-EHR-CLUSTER.address_cc.v0",
@@ -815,7 +815,7 @@ expression: form
                           "sibling_ordinal": 0
                         }
                       ],
-                      "is_positional": true
+                      "is_positional": false
                     },
                     "rm_type": "DV_CODED_TEXT",
                     "label": {
@@ -938,7 +938,7 @@ expression: form
                           "sibling_ordinal": 1
                         }
                       ],
-                      "is_positional": true
+                      "is_positional": false
                     },
                     "rm_type": "DV_TEXT",
                     "label": {
@@ -1043,7 +1043,7 @@ expression: form
                           "sibling_ordinal": 2
                         }
                       ],
-                      "is_positional": true
+                      "is_positional": false
                     },
                     "rm_type": "DV_TEXT",
                     "label": {
@@ -1143,7 +1143,7 @@ expression: form
                       "sibling_ordinal": 4
                     }
                   ],
-                  "is_positional": true
+                  "is_positional": false
                 },
                 "rm_type": "CLUSTER",
                 "archetype_id": "openEHR-EHR-CLUSTER.address_cc.v0",
@@ -1208,7 +1208,7 @@ expression: form
                           "sibling_ordinal": 0
                         }
                       ],
-                      "is_positional": true
+                      "is_positional": false
                     },
                     "rm_type": "DV_CODED_TEXT",
                     "label": {
@@ -1331,7 +1331,7 @@ expression: form
                           "sibling_ordinal": 1
                         }
                       ],
-                      "is_positional": true
+                      "is_positional": false
                     },
                     "rm_type": "DV_TEXT",
                     "label": {
@@ -8429,7 +8429,7 @@ expression: form
                                     "sibling_ordinal": 0
                                   }
                                 ],
-                                "is_positional": true
+                                "is_positional": false
                               },
                               "rm_type": "DV_CODED_TEXT",
                               "label": {},
@@ -8631,7 +8631,7 @@ expression: form
                                     "sibling_ordinal": 1
                                   }
                                 ],
-                                "is_positional": true
+                                "is_positional": false
                               },
                               "rm_type": "DV_TEXT",
                               "label": {},
@@ -9478,7 +9478,7 @@ expression: form
                                     "sibling_ordinal": 0
                                   }
                                 ],
-                                "is_positional": true
+                                "is_positional": false
                               },
                               "rm_type": "DV_CODED_TEXT",
                               "label": {},
@@ -9608,7 +9608,7 @@ expression: form
                                     "sibling_ordinal": 1
                                   }
                                 ],
-                                "is_positional": true
+                                "is_positional": false
                               },
                               "rm_type": "DV_TEXT",
                               "label": {},
@@ -10373,7 +10373,7 @@ expression: form
                                     "sibling_ordinal": 0
                                   }
                                 ],
-                                "is_positional": true
+                                "is_positional": false
                               },
                               "rm_type": "DV_CODED_TEXT",
                               "label": {},
@@ -10503,7 +10503,7 @@ expression: form
                                     "sibling_ordinal": 1
                                   }
                                 ],
-                                "is_positional": true
+                                "is_positional": false
                               },
                               "rm_type": "DV_TEXT",
                               "label": {},
@@ -12870,7 +12870,7 @@ expression: form
                                                 "sibling_ordinal": 0
                                               }
                                             ],
-                                            "is_positional": true
+                                            "is_positional": false
                                           },
                                           "rm_type": "DV_TEXT",
                                           "label": {},
@@ -12970,7 +12970,7 @@ expression: form
                                                 "sibling_ordinal": 1
                                               }
                                             ],
-                                            "is_positional": true
+                                            "is_positional": false
                                           },
                                           "rm_type": "DV_IDENTIFIER",
                                           "label": {},
@@ -13810,7 +13810,7 @@ expression: form
                                                 "sibling_ordinal": 0
                                               }
                                             ],
-                                            "is_positional": true
+                                            "is_positional": false
                                           },
                                           "rm_type": "DV_TEXT",
                                           "label": {},
@@ -13910,7 +13910,7 @@ expression: form
                                                 "sibling_ordinal": 1
                                               }
                                             ],
-                                            "is_positional": true
+                                            "is_positional": false
                                           },
                                           "rm_type": "DV_CODED_TEXT",
                                           "label": {},
@@ -18325,7 +18325,7 @@ expression: form
                                     "sibling_ordinal": 0
                                   }
                                 ],
-                                "is_positional": true
+                                "is_positional": false
                               },
                               "rm_type": "DV_CODED_TEXT",
                               "label": {},
@@ -18455,7 +18455,7 @@ expression: form
                                     "sibling_ordinal": 1
                                   }
                                 ],
-                                "is_positional": true
+                                "is_positional": false
                               },
                               "rm_type": "DV_TEXT",
                               "label": {},
@@ -20939,7 +20939,7 @@ expression: form
                                 "sibling_ordinal": 0
                               }
                             ],
-                            "is_positional": true
+                            "is_positional": false
                           },
                           "rm_type": "DV_CODED_TEXT",
                           "label": {},
@@ -21061,7 +21061,7 @@ expression: form
                                 "sibling_ordinal": 1
                               }
                             ],
-                            "is_positional": true
+                            "is_positional": false
                           },
                           "rm_type": "DV_TEXT",
                           "label": {},
@@ -21342,7 +21342,7 @@ expression: form
                                 "sibling_ordinal": 0
                               }
                             ],
-                            "is_positional": true
+                            "is_positional": false
                           },
                           "rm_type": "DV_COUNT",
                           "label": {},
@@ -21409,7 +21409,7 @@ expression: form
                                 "sibling_ordinal": 1
                               }
                             ],
-                            "is_positional": true
+                            "is_positional": false
                           },
                           "rm_type": "DV_CODED_TEXT",
                           "label": {},

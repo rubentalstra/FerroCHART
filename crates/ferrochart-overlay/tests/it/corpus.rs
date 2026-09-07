@@ -74,10 +74,21 @@ fn the_pack_carries_same_id_sibling_groups_and_every_one_of_them_is_reported() {
         let mut author = Author::new(&definition);
         let mut here = 0_usize;
         for key in keys(&definition) {
-            if let Placement::Positional { tied } = author.set(&key, Layout::new()).unwrap() {
+            let derived_flag = key.is_positional;
+            let placement = author.set(&key, Layout::new()).unwrap();
+            if let Placement::Positional { tied } = placement {
                 assert!(tied > 1, "a positional placement names several nodes");
                 here += 1;
             }
+            // The compiler answers the same question when it builds the key
+            // (#67), and the two must agree or one of them is wrong about the
+            // definition in front of it.
+            assert_eq!(
+                derived_flag,
+                matches!(placement, Placement::Positional { .. }),
+                "{}: the derived key and the overlay disagree about positionality at {key}",
+                path.display()
+            );
         }
         let overlay = author.finish();
         for entry in overlay.entries() {

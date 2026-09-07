@@ -47,6 +47,7 @@ use ferrochart_form::ids::{
 use ferrochart_form::key::{KeyStep, NodeKey};
 use ferrochart_form::occurrences::Occurrences;
 use ferrochart_form::text::Localized;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::derive::error::DeriveError;
 use crate::derive::terms::Terms;
@@ -129,13 +130,52 @@ fn key_step(identity: &NodeIdentity) -> KeyStep {
     }
 }
 
-fn child_key(parent: &NodeKey, identity: &NodeIdentity) -> NodeKey {
-    let step = key_step(identity);
-    let positional =
-        step.node_id.is_none() && step.archetype_id.is_none() && step.pinned_name.is_none();
-    let mut key = parent.child(step);
-    key.is_positional = key.is_positional || positional;
+fn child_key(parent: &NodeKey, identity: &NodeIdentity, tied: bool) -> NodeKey {
+    let mut key = parent.child(key_step(identity));
+    key.is_positional = key.is_positional || tied;
     key
+}
+
+/// The five parts that tell one child apart from its siblings, without the
+/// ordinal.
+type Discriminator = (String, String, String, String, String);
+
+/// What tells one child apart from its siblings, without its ordinal.
+///
+/// The five parts of `docs/architecture.md` section 6.2, in the order that
+/// section lists them. Two children with the same tuple are separated by
+/// nothing but their position.
+fn discriminator(identity: &NodeIdentity) -> Discriminator {
+    (
+        identity.rm_attribute().as_str().to_owned(),
+        identity
+            .node_id()
+            .map(|code| code.as_str().to_owned())
+            .unwrap_or_default(),
+        identity
+            .archetype_id()
+            .map(|id| id.as_str().to_owned())
+            .unwrap_or_default(),
+        identity.rm_type().as_str().to_owned(),
+        identity.pinned_name().unwrap_or_default().to_owned(),
+    )
+}
+
+/// The discriminators that more than one of `siblings` shares.
+///
+/// A step is positionally keyed only where its whole tuple ties, which is what
+/// section 6.2 decided and what a caller holding one identity cannot know.
+fn tied_discriminators<'a>(
+    siblings: impl Iterator<Item = &'a ConstraintNode>,
+) -> BTreeSet<Discriminator> {
+    let mut seen: BTreeMap<Discriminator, usize> = BTreeMap::new();
+    for sibling in siblings {
+        *seen.entry(discriminator(sibling.identity())).or_default() += 1;
+    }
+    seen.into_iter()
+        .filter(|(_, count)| *count > 1)
+        .map(|(tuple, _)| tuple)
+        .collect()
 }
 
 /// What shape the Reference Model gives a group's content.
@@ -270,6 +310,7 @@ impl Deriver<'_> {
         let mut items = Vec::new();
         let mut undetermined = Vec::new();
         let mut name_constraint = None;
+        let tied = tied_discriminators(node.children().iter());
         // NOTE: no specification governs this: our own design. Items keep
         // template order, the only order there is, and the cardinality flag
         // below says whether that order carries meaning.
@@ -284,7 +325,8 @@ impl Deriver<'_> {
             if field::is_never_entered(attribute) {
                 continue;
             }
-            let (derived, extra) = self.node(child, child_key(&key, child.identity()))?;
+            let is_tied = tied.contains(&discriminator(child.identity()));
+            let (derived, extra) = self.node(child, child_key(&key, child.identity(), is_tied))?;
             undetermined.extend(extra);
             match derived {
                 Derived::Group(group) => items.push(FormItem::Group(group)),
@@ -320,7 +362,7 @@ impl Deriver<'_> {
         node: &ConstraintNode,
         parent: &NodeKey,
     ) -> Result<Option<NameConstraint>, DeriveError> {
-        let key = child_key(parent, node.identity());
+        let key = child_key(parent, node.identity(), false);
         let path = key.to_string();
         Ok(
             field::value_kind(&self.terms, node, &path)?.map(|kind| NameConstraint {
@@ -355,9 +397,11 @@ impl Deriver<'_> {
         }
 
         let values = field::value_children(node);
+        let tied_values = tied_discriminators(values.iter().copied());
         let mut alternatives = Vec::new();
         for child in &values {
-            let value_key = child_key(&key, child.identity());
+            let is_tied = tied_values.contains(&discriminator(child.identity()));
+            let value_key = child_key(&key, child.identity(), is_tied);
             let path = value_key.to_string();
             match field::value_kind(&self.terms, child, &path)? {
                 None => {}
@@ -379,7 +423,8 @@ impl Deriver<'_> {
 
         let mut undetermined = Vec::new();
         for child in &values {
-            let value_key = child_key(&key, child.identity());
+            let is_tied = tied_values.contains(&discriminator(child.identity()));
+            let value_key = child_key(&key, child.identity(), is_tied);
             if !alternatives.iter().any(|(_, key, _)| *key == value_key) {
                 undetermined.push(self.undetermined(
                     child,
