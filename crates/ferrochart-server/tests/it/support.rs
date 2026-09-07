@@ -68,5 +68,7 @@ pub(crate) fn envelope() -> Envelope {
             code: "238".to_owned(),
             rubric: "other care".to_owned(),
         }),
+        // A template rooted below COMPOSITION is wrapped in this one.
+        composition_archetype: Some("openEHR-EHR-COMPOSITION.encounter.v1".to_owned()),
     }
 }

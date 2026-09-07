@@ -65,6 +65,8 @@ pub(crate) fn envelope() -> Envelope {
             code: "238".to_owned(),
             rubric: "other care".to_owned(),
         }),
+        // A template rooted below COMPOSITION is wrapped in this one.
+        composition_archetype: Some("openEHR-EHR-COMPOSITION.encounter.v1".to_owned()),
     }
 }
 
@@ -220,6 +222,64 @@ fn a_category_outside_the_openehr_group_is_refused() {
     match build::composition(&form, &filler::fill(&form), &invented) {
         Err(BuildError::UnknownCategory { code }) => assert_eq!(code, "999"),
         Ok(_) => panic!("a category outside the group was accepted"),
+        Err(other) => panic!("the refusal is {other:?}"),
+    }
+}
+
+#[test]
+fn a_wrapped_entry_names_the_composition_archetype_and_not_its_own() {
+    // 113 of the 123 committed templates root below COMPOSITION, so
+    // FerroCHART supplies the document around them. `ehr.html` section 5.4.1
+    // makes `Is_archetype_root` an invariant of COMPOSITION and
+    // `common.html` section 3.2.2 requires a root's `archetype_node_id` to be
+    // the stringified archetype id, so writing the entry's archetype there
+    // would claim a COMPOSITION is an OBSERVATION.
+    let Some((path, form)) = forms()
+        .into_iter()
+        .find(|(_, form)| form.root.rm_type.as_str() != "COMPOSITION")
+    else {
+        panic!("the pack has no template rooted below COMPOSITION");
+    };
+    let Ok(composition) = build::composition(&form, &filler::fill(&form), &envelope()) else {
+        return;
+    };
+    let json = serde_json::to_value(&composition).expect("a composition serialises");
+    let wrapper = "openEHR-EHR-COMPOSITION.encounter.v1";
+    assert_eq!(json["archetype_node_id"], wrapper, "{}", path.display());
+    assert_eq!(
+        json["archetype_details"]["archetype_id"]["value"],
+        wrapper,
+        "{}",
+        path.display()
+    );
+    // The entry keeps its own identity one level down.
+    assert_eq!(
+        json["content"][0]["archetype_node_id"],
+        form.root
+            .archetype_id
+            .as_ref()
+            .map(ferrochart_form::ids::ArchetypeId::as_str)
+            .unwrap_or_default()
+    );
+}
+
+#[test]
+fn a_wrapped_entry_with_no_composition_archetype_is_refused() {
+    // Inventing one would put a clinical classification in a document nobody
+    // chose, so the build refuses and names what the configuration is missing.
+    let Some((_, form)) = forms()
+        .into_iter()
+        .find(|(_, form)| form.root.rm_type.as_str() != "COMPOSITION")
+    else {
+        return;
+    };
+    let mut unconfigured = envelope();
+    unconfigured.composition_archetype = None;
+    match build::composition(&form, &filler::fill(&form), &unconfigured) {
+        Err(BuildError::Invariant { invariant, .. }) => {
+            assert_eq!(invariant, "COMPOSITION.Is_archetype_root");
+        }
+        Ok(_) => panic!("a composition was built with no archetype of its own"),
         Err(other) => panic!("the refusal is {other:?}"),
     }
 }

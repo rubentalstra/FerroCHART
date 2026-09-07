@@ -387,6 +387,7 @@ are RM Release-1.1.0.
 | Class | Attribute, 1..1 | Source |
 |---|---|---|
 | COMPOSITION | `language`, `territory` | configuration |
+| | `archetype_details.archetype_id`, where the template roots below COMPOSITION | configuration |
 | | `composer` | the session |
 | | `category` | the template where it constrains one, else configuration |
 | | `archetype_details` | derived, except `rm_version` |
@@ -398,6 +399,13 @@ are RM Release-1.1.0.
 | ACTION | `time`, `ism_transition`, `description` | the session and the form |
 | INSTRUCTION | `narrative` | the entry's own label |
 | ACTIVITY | `description`, `action_archetype_id` | the form, and a widest-pattern default |
+
+**A template rooted below COMPOSITION needs an archetype for the document
+around it.** `Is_archetype_root` is an invariant of COMPOSITION and a root's
+`archetype_node_id` is the stringified archetype id, so the wrapper cannot
+borrow the entry's: a document that did would claim a COMPOSITION is an
+OBSERVATION. No specification says which archetype a deployment wraps a
+standalone entry in, so configuration names it and a build with none refuses.
 
 No committed template constrains `language`, `territory`, `composer`,
 `setting`, `start_time` or `health_care_facility`, and only 10 of the 123 root
