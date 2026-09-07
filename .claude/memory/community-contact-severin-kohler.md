@@ -30,6 +30,12 @@ Three things he said that change the work:
   cent of an openEHR-to-FHIR or openEHR-to-OMOP mapping takes clinical
   judgement and cannot be generated, from his own work with an AI lab. The
   same holds for form layout, which is why the overlay exists.
+- **The form builder has to be editable: a person moves and sizes the fields
+  themselves.** On 2026-09-07, called very important: "important is that this
+  form builder is editable so the forms itself, so you can move and size the
+  form fields etc". So the authoring surface is direct manipulation over a
+  live form, not a property sheet beside a tree, and the overlay has to carry
+  geometry it did not carry when it was first built (#69, #27).
 - **The licence text has to answer the hospital question at a glance.** He
   asked whether hospitals and research institutes may run it in production,
   and found the FerroHEALTH draft site linking the boilerplate BUSL text with
