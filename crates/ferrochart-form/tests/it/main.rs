@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Ruben Talstra
 // SPDX-License-Identifier: BUSL-1.1
 
-//! The integration tests of `ferrochart-overlay`, in one binary.
+//! The integration tests of `ferrochart-form`, in one binary.
 
 #![allow(
     clippy::unwrap_used,
@@ -12,11 +12,4 @@
     reason = "test assertions"
 )]
 
-mod corpus;
-mod geometry;
-mod real_revision;
-mod replay;
-mod report;
-mod store;
-mod support;
 mod wire;

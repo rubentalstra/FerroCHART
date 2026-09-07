@@ -1,0 +1,754 @@
+---
+source: crates/ferrochart-overlay/tests/it/wire.rs
+expression: authored().to_json().unwrap()
+---
+{
+  "format_version": 2,
+  "template": {
+    "id": "Aedes indices - JM",
+    "id_form": "legacy_name"
+  },
+  "sections": [
+    {
+      "id": "counts",
+      "parent": null,
+      "label": {
+        "en": "Counts"
+      },
+      "help": {},
+      "order": null,
+      "columns": 4
+    },
+    {
+      "id": "counts-detail",
+      "parent": "counts",
+      "label": {
+        "en": "Detail"
+      },
+      "help": {
+        "en": "The numbers behind the indices."
+      },
+      "order": 2,
+      "columns": 3
+    }
+  ],
+  "entries": [
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+            "rm_type": "OBSERVATION",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "OBSERVATION",
+      "anchor": null,
+      "layout": {
+        "order": 0,
+        "section": "counts",
+        "label": {
+          "en": "Field 0"
+        },
+        "help": {
+          "en": "What the number means."
+        },
+        "default": {
+          "type": "real",
+          "value": 2.5
+        },
+        "visibility": {
+          "visibility": "always"
+        },
+        "widget": "segmented",
+        "geometry": {
+          "span": 2,
+          "break_before": true,
+          "width": 12
+        },
+        "hints": {
+          "alpha": "alpha-0",
+          "zebra": "zebra-0"
+        }
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+            "rm_type": "OBSERVATION",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "HISTORY",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "HISTORY",
+      "anchor": null,
+      "layout": {
+        "order": 1,
+        "section": "counts-detail",
+        "label": {
+          "en": "Field 1"
+        },
+        "help": {
+          "en": "What the number means."
+        },
+        "default": {
+          "type": "quantity",
+          "value": {
+            "magnitude": 37.5,
+            "units": "Cel",
+            "precision": 1
+          }
+        },
+        "visibility": {
+          "visibility": "never"
+        },
+        "widget": "segmented",
+        "geometry": {
+          "span": 2,
+          "break_before": false,
+          "width": 12
+        },
+        "hints": {
+          "alpha": "alpha-1",
+          "zebra": "zebra-1"
+        }
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+            "rm_type": "OBSERVATION",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "HISTORY",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "events",
+            "node_id": "at0002",
+            "archetype_id": null,
+            "rm_type": "EVENT",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "EVENT",
+      "anchor": null,
+      "layout": {
+        "order": 2,
+        "section": "counts",
+        "label": {
+          "en": "Field 2"
+        },
+        "help": {
+          "en": "What the number means."
+        },
+        "default": {
+          "type": "ordinal",
+          "value": {
+            "value": 1.0,
+            "symbol": {
+              "terminology": "local",
+              "code": "at0004"
+            }
+          }
+        },
+        "visibility": {
+          "visibility": "when",
+          "condition": {
+            "test": "all",
+            "conditions": [
+              {
+                "test": "answered",
+                "node": {
+                  "steps": [
+                    {
+                      "rm_attribute": "",
+                      "node_id": "at0000",
+                      "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+                      "rm_type": "OBSERVATION",
+                      "pinned_name": null,
+                      "sibling_ordinal": 0
+                    }
+                  ],
+                  "is_positional": false
+                }
+              },
+              {
+                "test": "equals",
+                "node": {
+                  "steps": [
+                    {
+                      "rm_attribute": "",
+                      "node_id": "at0000",
+                      "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+                      "rm_type": "OBSERVATION",
+                      "pinned_name": null,
+                      "sibling_ordinal": 0
+                    }
+                  ],
+                  "is_positional": false
+                },
+                "value": {
+                  "type": "real",
+                  "value": 2.5
+                }
+              }
+            ]
+          }
+        },
+        "widget": "segmented",
+        "geometry": {
+          "span": 2,
+          "break_before": false,
+          "width": 12
+        },
+        "hints": {
+          "alpha": "alpha-2",
+          "zebra": "zebra-2"
+        }
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+            "rm_type": "OBSERVATION",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "HISTORY",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "events",
+            "node_id": "at0002",
+            "archetype_id": null,
+            "rm_type": "EVENT",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0003",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "ITEM_TREE",
+      "anchor": null,
+      "layout": {
+        "order": 3,
+        "section": "counts-detail",
+        "label": {
+          "en": "Field 3"
+        },
+        "help": {
+          "en": "What the number means."
+        },
+        "default": null,
+        "visibility": {
+          "visibility": "always"
+        },
+        "widget": "segmented",
+        "geometry": {
+          "span": 2,
+          "break_before": true,
+          "width": 12
+        },
+        "hints": {
+          "alpha": "alpha-3",
+          "zebra": "zebra-3"
+        }
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+            "rm_type": "OBSERVATION",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "HISTORY",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "events",
+            "node_id": "at0002",
+            "archetype_id": null,
+            "rm_type": "EVENT",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0003",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0004",
+            "archetype_id": null,
+            "rm_type": "ELEMENT",
+            "pinned_name": "Location type",
+            "sibling_ordinal": 0
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "DV_TEXT",
+      "anchor": null,
+      "layout": {
+        "order": 4,
+        "section": "counts",
+        "label": {
+          "en": "Field 4"
+        },
+        "help": {
+          "en": "What the number means."
+        },
+        "default": {
+          "type": "real",
+          "value": 2.5
+        },
+        "visibility": {
+          "visibility": "never"
+        },
+        "widget": "segmented",
+        "geometry": {
+          "span": 2,
+          "break_before": false,
+          "width": 12
+        },
+        "hints": {
+          "alpha": "alpha-4",
+          "zebra": "zebra-4"
+        }
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+            "rm_type": "OBSERVATION",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "HISTORY",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "events",
+            "node_id": "at0002",
+            "archetype_id": null,
+            "rm_type": "EVENT",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0003",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0006",
+            "archetype_id": null,
+            "rm_type": "ELEMENT",
+            "pinned_name": null,
+            "sibling_ordinal": 3
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "DV_PROPORTION",
+      "anchor": null,
+      "layout": {
+        "order": 7,
+        "section": "counts-detail",
+        "label": {
+          "en": "Field 7"
+        },
+        "help": {
+          "en": "What the number means."
+        },
+        "default": null,
+        "visibility": {
+          "visibility": "never"
+        },
+        "widget": "segmented",
+        "geometry": {
+          "span": 2,
+          "break_before": false,
+          "width": 12
+        },
+        "hints": {
+          "alpha": "alpha-7",
+          "zebra": "zebra-7"
+        }
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+            "rm_type": "OBSERVATION",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "HISTORY",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "events",
+            "node_id": "at0002",
+            "archetype_id": null,
+            "rm_type": "EVENT",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0003",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0007",
+            "archetype_id": null,
+            "rm_type": "ELEMENT",
+            "pinned_name": "Premises index (PI)",
+            "sibling_ordinal": 1
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "DV_PROPORTION",
+      "anchor": null,
+      "layout": {
+        "order": 5,
+        "section": "counts-detail",
+        "label": {
+          "en": "Field 5"
+        },
+        "help": {
+          "en": "What the number means."
+        },
+        "default": {
+          "type": "quantity",
+          "value": {
+            "magnitude": 37.5,
+            "units": "Cel",
+            "precision": 1
+          }
+        },
+        "visibility": {
+          "visibility": "when",
+          "condition": {
+            "test": "all",
+            "conditions": [
+              {
+                "test": "answered",
+                "node": {
+                  "steps": [
+                    {
+                      "rm_attribute": "",
+                      "node_id": "at0000",
+                      "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+                      "rm_type": "OBSERVATION",
+                      "pinned_name": null,
+                      "sibling_ordinal": 0
+                    }
+                  ],
+                  "is_positional": false
+                }
+              },
+              {
+                "test": "equals",
+                "node": {
+                  "steps": [
+                    {
+                      "rm_attribute": "",
+                      "node_id": "at0000",
+                      "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+                      "rm_type": "OBSERVATION",
+                      "pinned_name": null,
+                      "sibling_ordinal": 0
+                    }
+                  ],
+                  "is_positional": false
+                },
+                "value": {
+                  "type": "real",
+                  "value": 2.5
+                }
+              }
+            ]
+          }
+        },
+        "widget": "segmented",
+        "geometry": {
+          "span": 2,
+          "break_before": false,
+          "width": 12
+        },
+        "hints": {
+          "alpha": "alpha-5",
+          "zebra": "zebra-5"
+        }
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+            "rm_type": "OBSERVATION",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "HISTORY",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "events",
+            "node_id": "at0002",
+            "archetype_id": null,
+            "rm_type": "EVENT",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0003",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0008",
+            "archetype_id": null,
+            "rm_type": "ELEMENT",
+            "pinned_name": null,
+            "sibling_ordinal": 2
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "DV_PROPORTION",
+      "anchor": null,
+      "layout": {
+        "order": 6,
+        "section": "counts",
+        "label": {
+          "en": "Field 6"
+        },
+        "help": {
+          "en": "What the number means."
+        },
+        "default": {
+          "type": "ordinal",
+          "value": {
+            "value": 1.0,
+            "symbol": {
+              "terminology": "local",
+              "code": "at0004"
+            }
+          }
+        },
+        "visibility": {
+          "visibility": "always"
+        },
+        "widget": "segmented",
+        "geometry": {
+          "span": 2,
+          "break_before": true,
+          "width": 12
+        },
+        "hints": {
+          "alpha": "alpha-6",
+          "zebra": "zebra-6"
+        }
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+            "rm_type": "OBSERVATION",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "protocol",
+            "node_id": "at0005",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "ITEM_TREE",
+      "anchor": null,
+      "layout": {
+        "order": 8,
+        "section": "counts",
+        "label": {
+          "en": "Field 8"
+        },
+        "help": {
+          "en": "What the number means."
+        },
+        "default": {
+          "type": "real",
+          "value": 2.5
+        },
+        "visibility": {
+          "visibility": "when",
+          "condition": {
+            "test": "all",
+            "conditions": [
+              {
+                "test": "answered",
+                "node": {
+                  "steps": [
+                    {
+                      "rm_attribute": "",
+                      "node_id": "at0000",
+                      "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+                      "rm_type": "OBSERVATION",
+                      "pinned_name": null,
+                      "sibling_ordinal": 0
+                    }
+                  ],
+                  "is_positional": false
+                }
+              },
+              {
+                "test": "equals",
+                "node": {
+                  "steps": [
+                    {
+                      "rm_attribute": "",
+                      "node_id": "at0000",
+                      "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+                      "rm_type": "OBSERVATION",
+                      "pinned_name": null,
+                      "sibling_ordinal": 0
+                    }
+                  ],
+                  "is_positional": false
+                },
+                "value": {
+                  "type": "real",
+                  "value": 2.5
+                }
+              }
+            ]
+          }
+        },
+        "widget": "segmented",
+        "geometry": {
+          "span": 2,
+          "break_before": false,
+          "width": 12
+        },
+        "hints": {
+          "alpha": "alpha-8",
+          "zebra": "zebra-8"
+        }
+      }
+    }
+  ]
+}

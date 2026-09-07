@@ -47,8 +47,9 @@ Rust job runs; the gate stays because it keeps the lane honest on a tree that
 has no manifest. Every Rust job carries
 `needs: detect` and `if: needs.detect.outputs.cargo == 'true'`: rustfmt,
 clippy at `-D warnings`, nextest plus doctests, rustdoc at `-D warnings`,
-`cargo deny check`, MSRV through `cargo hack check --rust-version`, and
-`dependency-review-action` on pull requests. Each lane mirrors the local
+`cargo deny check`, the `crate-closure` and `serde-json-features` guards over
+the resolved dependency graph, MSRV through `cargo hack check --rust-version`,
+and `dependency-review-action` on pull requests. Each lane mirrors the local
 command in `.claude/rules/ci-cd.md` verbatim. The workspace pull request
 therefore changes nothing in CI; the lanes activate by themselves.
 

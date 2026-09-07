@@ -523,6 +523,7 @@ dependencies = [
 name = "ferrochart-form"
 version = "0.0.4"
 dependencies = [
+ "insta",
  "serde",
  "serde_json",
  "thiserror",

@@ -349,6 +349,26 @@ jobs:
       - uses: ./.github/actions/setup-rust
       - run: bash scripts/checks/crate-closure.sh
 
+  # The serde_json feature guard. Cargo features are additive across a build
+  # graph, so one dependency can change how every crate here serializes, and
+  # one already did: the form definition stopped deserializing when a new
+  # dependency turned on arbitrary_precision. It reads the resolved graph, so
+  # it needs cargo.
+  serde-json-features:
+    name: serde-json-features
+    needs: detect
+    if: needs.detect.outputs.cargo == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+      - run: bash scripts/checks/serde-json-features.sh
+
   msrv:
     name: msrv (cargo-hack)
     needs: detect
@@ -415,6 +435,7 @@ jobs:
       - doc
       - cargo-deny
       - crate-closure
+      - serde-json-features
       - msrv
       - dependency-review
     if: always()

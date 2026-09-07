@@ -23,6 +23,23 @@ the build order.
 
 ### Added
 
+- Three layers that guard the two documents FerroCHART publishes, after a
+  dependency's cargo feature took one of them off the wire with no change to
+  this tree (#107). `serde_json/arbitrary_precision`, enabled for the whole
+  workspace by one new dependency, sends a number to serde's content buffer as
+  a map, and the internally tagged enums of the form definition stopped
+  deserializing. Each layer catches something the others do not: the form
+  definition and the layout overlay each round-trip a document carrying every
+  number-bearing shape they publish, so a document that no longer reads back
+  fails; each also carries a golden snapshot of its exact bytes, so a document
+  that still reads back and no longer means the same thing to a consumer
+  written against the old bytes is a diff a person reads and accepts; and
+  `scripts/checks/serde-json-features.sh` compares the resolved `serde_json`
+  feature set against the reviewed one, failing on a refused or an unreviewed
+  feature and naming what turned it on, which is the cause the two tests can
+  only report the effect of. The form definition's `FORMAT_VERSION` now says
+  what the number covers, so a byte change is a decision rather than an
+  accident.
 - Every chapter that asks for a table of contents is checked to have one
   (#98). `scripts/checks/book-toc.sh` reads the rendered pages, and the docs
   lane runs it after the site is assembled, because mdBook reports a

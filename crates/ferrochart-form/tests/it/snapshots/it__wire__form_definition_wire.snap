@@ -1,0 +1,396 @@
+---
+source: crates/ferrochart-form/tests/it/wire.rs
+expression: "serde_json::to_string_pretty(&definition()).unwrap()"
+---
+{
+  "format_version": 1,
+  "template_id": "Ferro wire probe",
+  "default_language": "en",
+  "languages": [
+    "en"
+  ],
+  "root": {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "",
+          "node_id": "at0000",
+          "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+          "rm_type": "OBSERVATION",
+          "pinned_name": "Wire probe",
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "rm_type": "OBSERVATION",
+    "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+    "label": {
+      "en": "Wire probe"
+    },
+    "help": {},
+    "occurrences": {
+      "minimum": 1,
+      "maximum": 1
+    },
+    "shape": "plain",
+    "name_constraint": null,
+    "is_ordered": true,
+    "is_unique": false,
+    "is_deprecated": false,
+    "items": [
+      {
+        "item": "group",
+        "key": {
+          "steps": [
+            {
+              "rm_attribute": "",
+              "node_id": "at0000",
+              "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+              "rm_type": "OBSERVATION",
+              "pinned_name": "Wire probe",
+              "sibling_ordinal": 0
+            },
+            {
+              "rm_attribute": "data",
+              "node_id": "at0001",
+              "archetype_id": null,
+              "rm_type": "ITEM_TREE",
+              "pinned_name": null,
+              "sibling_ordinal": 0
+            }
+          ],
+          "is_positional": false
+        },
+        "rm_type": "ITEM_TREE",
+        "archetype_id": null,
+        "label": {
+          "en": "Tree"
+        },
+        "help": {},
+        "occurrences": {
+          "minimum": 1,
+          "maximum": 1
+        },
+        "shape": "tree",
+        "name_constraint": null,
+        "is_ordered": true,
+        "is_unique": false,
+        "is_deprecated": false,
+        "items": [
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": "Wire probe",
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0002",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_SCALE",
+            "label": {
+              "en": "Breathlessness"
+            },
+            "help": {
+              "en": "How short of breath the person is."
+            },
+            "occurrences": {
+              "minimum": 1,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "ordinal",
+              "options": [
+                {
+                  "score": 0.0,
+                  "symbol": {
+                    "terminology": "local",
+                    "code": "at0003"
+                  },
+                  "label": {
+                    "en": "None"
+                  },
+                  "description": {}
+                },
+                {
+                  "score": 1.5,
+                  "symbol": {
+                    "terminology": "local",
+                    "code": "at0004"
+                  },
+                  "label": {
+                    "en": "Some"
+                  },
+                  "description": {
+                    "en": "Short of breath on exertion."
+                  }
+                }
+              ]
+            },
+            "name_constraint": null,
+            "is_ordered": false,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": true,
+              "options": [
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "253"
+                  },
+                  "rubric": "unknown"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "271"
+                  },
+                  "rubric": "no information"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "272"
+                  },
+                  "rubric": "masked"
+                },
+                {
+                  "code": {
+                    "terminology": "openehr",
+                    "code": "273"
+                  },
+                  "rubric": "not applicable"
+                }
+              ],
+              "accepts_reason": true
+            },
+            "prefill": {
+              "type": "ordinal",
+              "value": {
+                "value": 1.5,
+                "symbol": {
+                  "terminology": "local",
+                  "code": "at0004"
+                }
+              }
+            },
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": "Wire probe",
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0005",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_QUANTITY",
+            "label": {
+              "en": "Body temperature"
+            },
+            "help": {},
+            "occurrences": {
+              "minimum": 0,
+              "maximum": 1
+            },
+            "kind": {
+              "kind": "quantity",
+              "property": {
+                "terminology": "openehr",
+                "code": "127"
+              },
+              "units": [
+                {
+                  "units": "Cel",
+                  "magnitude": {
+                    "minimum": 11.0,
+                    "maximum": 44.0,
+                    "minimum_included": true,
+                    "maximum_included": true
+                  },
+                  "decimals": {
+                    "minimum": 1,
+                    "maximum": 1,
+                    "minimum_included": true,
+                    "maximum_included": true
+                  }
+                }
+              ]
+            },
+            "name_constraint": null,
+            "reference_ranges": {
+              "normal_status": null,
+              "normal_range": null,
+              "other": []
+            },
+            "is_ordered": false,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": false,
+              "options": [],
+              "accepts_reason": false
+            },
+            "prefill": {
+              "type": "quantity",
+              "value": {
+                "magnitude": 37.0,
+                "units": "Cel",
+                "precision": 1
+              }
+            },
+            "is_deprecated": false,
+            "is_fixed": false
+          },
+          {
+            "item": "field",
+            "key": {
+              "steps": [
+                {
+                  "rm_attribute": "",
+                  "node_id": "at0000",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+                  "rm_type": "OBSERVATION",
+                  "pinned_name": "Wire probe",
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "data",
+                  "node_id": "at0001",
+                  "archetype_id": null,
+                  "rm_type": "ITEM_TREE",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                },
+                {
+                  "rm_attribute": "items",
+                  "node_id": "at0006",
+                  "archetype_id": null,
+                  "rm_type": "ELEMENT",
+                  "pinned_name": null,
+                  "sibling_ordinal": 0
+                }
+              ],
+              "is_positional": false
+            },
+            "rm_type": "DV_TEXT",
+            "label": {
+              "en": "Comment"
+            },
+            "help": {},
+            "occurrences": {
+              "minimum": 0,
+              "maximum": null
+            },
+            "kind": {
+              "kind": "text",
+              "patterns": [],
+              "options": [],
+              "options_closed": false
+            },
+            "name_constraint": null,
+            "is_ordered": true,
+            "is_unique": false,
+            "null_flavour": {
+              "is_offered": false,
+              "options": [],
+              "accepts_reason": false
+            },
+            "prefill": null,
+            "is_deprecated": true,
+            "is_fixed": false
+          }
+        ],
+        "undetermined": []
+      }
+    ],
+    "undetermined": [
+      {
+        "key": {
+          "steps": [
+            {
+              "rm_attribute": "",
+              "node_id": "at0000",
+              "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+              "rm_type": "OBSERVATION",
+              "pinned_name": "Wire probe",
+              "sibling_ordinal": 0
+            },
+            {
+              "rm_attribute": "protocol",
+              "node_id": "at0007",
+              "archetype_id": null,
+              "rm_type": "ITEM_TREE",
+              "pinned_name": null,
+              "sibling_ordinal": 0
+            }
+          ],
+          "is_positional": false
+        },
+        "rm_type": "ITEM_TREE",
+        "label": {
+          "en": "Extension"
+        },
+        "occurrences": {
+          "minimum": 0,
+          "maximum": null
+        },
+        "reason": {
+          "reason": "open_slot",
+          "includes": [
+            {
+              "assertion": "archetype_id_pattern",
+              "value": "openEHR-EHR-CLUSTER\\..*\\.v1"
+            }
+          ],
+          "excludes": []
+        }
+      }
+    ]
+  }
+}
