@@ -325,7 +325,18 @@ openEHR specification governs it. These are the reason section 6 exists.
 
 ## 6. The layout overlay
 
-No specification governs this: our own design. The prior-art survey settles
+No specification governs this: our own design.
+
+**The overlay exists to be edited directly.** The person who asked for this
+product put it plainly on 2026-09-07: a form builder is editable, so you move
+and size the fields themselves. That decides the shape of two things. The
+authoring surface is direct manipulation over a live form rather than a
+property sheet beside a tree (section 10 and issue #27). And the overlay has
+to carry geometry, which it did not when it was first built: `order` moves an
+item among its siblings and nothing says how wide it is (issue #69). The
+geometry model is the open question there, and the recommendation is a column
+grid rather than free pixel placement, because a stored pixel geometry breaks
+on the next screen and a ward round is not conducted on the author's monitor. The prior-art survey settles
 the question. The XSDs carry three places layout could live, the `annotations`
 section, the `view` and `T_VIEW` structures, and vendor flags such as
 `hide_on_form`, and the specification prose defines the semantics of none of
