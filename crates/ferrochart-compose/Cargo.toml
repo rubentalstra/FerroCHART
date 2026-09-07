@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: Ruben Talstra
+# SPDX-License-Identifier: BUSL-1.1
+
+[package]
+name = "ferrochart-compose"
+description = "Builds a COMPOSITION from form values, and reads one back into a form"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+publish.workspace = true
+
+[dependencies]
+ferrochart-form.workspace = true
+openehr-base.workspace = true
+openehr-rm.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+ferrochart-compile.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true

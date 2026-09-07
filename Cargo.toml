@@ -8,6 +8,7 @@ members = [
   "crates/ferrochart-compile",
   "crates/ferrochart-overlay",
   "crates/ferrochart-cdr",
+  "crates/ferrochart-compose",
   "crates/ferrochart-term",
   "crates/ferrochart-server",
   "app/ferrochart-renderer",
@@ -69,6 +70,7 @@ ferrochart-form = { path = "crates/ferrochart-form" }
 ferrochart-compile = { path = "crates/ferrochart-compile" }
 ferrochart-overlay = { path = "crates/ferrochart-overlay" }
 ferrochart-cdr = { path = "crates/ferrochart-cdr" }
+ferrochart-compose = { path = "crates/ferrochart-compose" }
 ferrochart-term = { path = "crates/ferrochart-term" }
 ferrochart-server = { path = "crates/ferrochart-server" }
 serde = { version = "1.0.229", features = ["derive"] }
