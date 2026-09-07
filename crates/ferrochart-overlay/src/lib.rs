@@ -8,3 +8,10 @@
 //! The key is a step chain carrying the RM attribute, the node id, the
 //! archetype id, the RM type and the pinned name, with a sibling ordinal only
 //! where all five tie.
+
+pub mod entry;
+pub mod error;
+mod index;
+pub mod layout;
+pub mod replay;
+pub mod store;
