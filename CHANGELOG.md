@@ -30,6 +30,34 @@ the build order.
   model. Nothing from it is committed: one of the 652 files states a licence
   and the rest state none, so the tree is fetched into a directory
   `.gitignore` refuses and `PROVENANCE.md` records the omission.
+- The published form definition type (#17), in `ferrochart-form`. A definition
+  is a tree of groups rooted at the template root; a group holds items, an item
+  is a nested group or a field, and a field carries one of eighteen field
+  kinds, one per thing a clinician can enter. Labels and help text are resolved
+  per language from the archetype terminology, occurrences carry repeatability
+  and optionality, an `ELEMENT` the template permits to be omitted carries the
+  four null flavours openEHR RM Release-1.1.0 `data_structures.html`
+  section 4.1 names, and a `default_value` prefills the field. The crate
+  performs no I/O and depends on nothing else in the tree, so a third party can
+  write a renderer against it. Every map in the format is ordered and every
+  list keeps template order, so recompiling an unchanged template produces an
+  identical document.
+- The field derivation (#16), in `ferrochart-compile`: `docs/architecture.md`
+  section 5 implemented against the internal constraint model, so it is written
+  once for both ADL generations. Each permitted unit of a quantity carries its
+  own magnitude bounds and decimal precision, so changing the unit changes
+  both; a coded field's value set is enumerated with its rubrics where the
+  archetype lists them and marked for expansion at render time where it only
+  names them; an ordinal keeps list order, scores by its integer and stores its
+  symbol's code; a date, time, date-and-time or duration pattern is honoured
+  component by component; an occurrences upper bound above one makes an item
+  repeatable; an `assumed_value` never reaches the data; and an open slot is
+  recorded as undetermined content rather than rendered. A constraint the
+  derivation does not understand is a typed error naming the node, never a
+  permissive field. Each of the twelve cases `docs/architecture.md`
+  section 5.2 lists as ungoverned carries a decision in code labelled as
+  FerroCHART's own design. All 121 committed CKM templates the reader reads
+  derive a form.
 
 ## [0.0.2] - 2026-09-07
 

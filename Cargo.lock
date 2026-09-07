@@ -444,6 +444,7 @@ version = "0.0.2"
 name = "ferrochart-compile"
 version = "0.0.2"
 dependencies = [
+ "ferrochart-form",
  "openehr-adl",
  "openehr-am",
  "openehr-base",
@@ -456,6 +457,10 @@ dependencies = [
 [[package]]
 name = "ferrochart-form"
 version = "0.0.2"
+dependencies = [
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "ferrochart-overlay"

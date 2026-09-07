@@ -48,6 +48,16 @@ definition
                             }
                         }
                     }
+                    ELEMENT[id12] occurrences matches {0..1} matches {
+                        value matches {
+                            DV_SCALE[id13] occurrences matches {1..1} matches {
+                                [value, symbol] matches {
+                                    [{0.0}, {[at3]}],
+                                    [{0.5}, {[at4]}]
+                                }
+                            }
+                        }
+                    }
                     allow_archetype CLUSTER[id7] occurrences matches {0..*} matches {
                         include
                             archetype_id/value matches {/openEHR-EHR-CLUSTER\.ferro_.*\.v1/}
@@ -73,6 +83,10 @@ terminology
             ["id11"] = < text = <"Fraction value"> description = <"The fraction."> >
             ["at1"] = < text = <"Mild"> description = <"Mild severity."> >
             ["at2"] = < text = <"Severe"> description = <"Severe severity."> >
+            ["id12"] = < text = <"Scale"> description = <"A synthetic scale."> >
+            ["id13"] = < text = <"Scale value"> description = <"The scale score."> >
+            ["at3"] = < text = <"None"> description = <"No score."> >
+            ["at4"] = < text = <"Half"> description = <"Half a point."> >
             ["ac2"] = < text = <"Finding choice"> description = <"A set a terminology server expands."> >
         >
     >
