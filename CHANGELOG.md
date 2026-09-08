@@ -64,12 +64,22 @@ the build order.
   longer drawn: it named the screen its own heading names, so Layout read
   "Layout" twice. And the three frames say what their screen will do rather
   than citing a tracker issue number at the reader.
-- The README said the round trip had never run against a real CDR and to
-  treat the commit path as untested (#196). It runs on every pull request
-  (#195, #126). The README also promised a browser that posts what a
-  clinician entered, described the layout overlay as missing only its
-  authoring screen when the renderer honours none of it either, and gave a
-  `v0.0.5` asset name three releases out of date.
+- **Everything the project says about itself says what is built** (#196). It
+  was three releases behind and it understated the product to the people it is
+  for. The README said the round trip had never met a real CDR and to treat
+  the commit path as untested. The book's front page said the same, and its
+  renderer page said no published artefact serves the screens, when the
+  release binary embeds the bundle and the image copies that binary. The
+  landing page told a reader "the ITS-REST client, the composition builder,
+  and the FHIR terminology client are decided and scheduled for v0.0.5; they
+  are not written yet", when all three shipped in that release, and its
+  machine-readable version said `0.0.3`. The build order read as a plan for
+  work that has shipped, a health check example answered `"version":"0.0.2"`,
+  and an attestation example named a `v0.0.5` asset.
+
+  None of it was a version bump: every claim was read against the code. What
+  the pages say is missing now is what is missing, which is the layout overlay
+  reaching the browser and a form that can commit.
 
 - **An open archetype slot reads as a place to add content, not a warning**
   (#180). openEHR AM Release-2.3.0 `AOM2.html` section 4.5.8 gives

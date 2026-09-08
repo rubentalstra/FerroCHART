@@ -143,17 +143,20 @@ every way out of it.
 
 ## What is not built
 
-**No published artefact serves these screens yet.** The container image a
-release publishes carries the server binary, and the server answers `/api` and
-`/health` and nothing under `/ui`, so `compose.yaml` brings up the form surface
-without the renderer in front of it. Building the bundle and serving it is
-[issue #166][ship]. Until it lands, the battery above is how the screens run.
+The rail carries three entries whose screens have their frame and not yet
+their content. The layout overlay's authoring surface is [issue
+#27][overlay]; a commit log of what this server posted to the CDR and a
+settings screen for the endpoints it uses are both still frames.
 
-The rail also carries entries whose screens have their frame and not yet their
-content. The layout overlay's authoring surface is [issue #27][overlay]; a
-commit log of what this server posted to the CDR and a settings screen for the
-endpoints it uses are both still frames. A form is drawn in template order
-until the authoring surface lands.
+**No form can commit.** The server serves the routes, and the browser carries
+the client for them, and what is missing is the control on the form. So every
+screen here is a read.
+
+**The browser honours no layout overlay.** The model carries visibility rules,
+and the renderer reads none of them, so a form is drawn in template order and
+shows every field the template admits. Until that lands, a form asks every
+question the template has rather than the ones that follow from the answers
+given.
 
 ## Running the battery yourself
 
@@ -178,4 +181,3 @@ the host through the host gateway rather than on `127.0.0.1`, and a browser
 that cannot reach the address is a red lane with no defect behind it.
 
 [overlay]: https://github.com/rubentalstra/FerroCHART/issues/27
-[ship]: https://github.com/rubentalstra/FerroCHART/issues/166

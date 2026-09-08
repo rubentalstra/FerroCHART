@@ -63,7 +63,7 @@ credentials.
 
 ```console
 $ curl -s http://127.0.0.1:8080/health
-{"status":"ok","version":"0.0.2"}
+{"status":"ok","version":"0.1.0"}
 ```
 
 It reports that this process is up and nothing else. It deliberately does not
