@@ -23,6 +23,9 @@ use ferrochart_form::values::{Datum, FormValues};
 /// One, because the ratchets in this crate measure the gate over the document
 /// a full form produces, and a second instance of every repeating group would
 /// measure a different document.
+///
+// TODO(#142): raising this to two currently fails one template, because the
+// compiler sums two folded siblings into occurrences the validator refuses.
 const REPEATS: usize = 1;
 
 /// Fills every field of `definition` with a value its template permits.

@@ -69,10 +69,10 @@ the build order.
   builder used to build exactly one instance of every group whatever the
   template admitted, so a second entry in a repeating group was dropped
   without a word; 67 of the 121 forms the committed pack derives to carry at
-  least one repeating group, and 1868 fields sit under one. A value is now addressed by
-  the occurrence of every repeating group above it as well as by its field and
-  its own occurrence, the builder appends an index at each such group, and the
-  read-back assigns the same indices in document order.
+  least one repeating group, and 1868 fields sit under one. A value is now
+  addressed by the occurrence of every repeating group above it as well as by
+  its field and its own occurrence, the builder appends an index at each such
+  group, and the read-back assigns the same indices in document order.
 
 ## [0.0.5] - 2026-09-08
 
