@@ -70,9 +70,18 @@ pub(crate) fn href(section: &str) -> String {
     format!("{BASE}/{section}")
 }
 
+/// The address of the form one template compiles to.
+///
+/// The identifier is encoded, because a template identifier is free text and
+/// a raw `/` in one would address a screen that does not exist
+/// (`crate::url`).
+pub(crate) fn form_href(template_id: &str) -> String {
+    format!("{BASE}/{FORMS}/{}", crate::url::segment(template_id))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{BASE, FORMS, SLOTS, Slot, href, section};
+    use super::{BASE, FORMS, SLOTS, Slot, form_href, href, section};
 
     fn entries() -> Vec<&'static str> {
         SLOTS
@@ -100,6 +109,20 @@ mod tests {
         assert_eq!(section("/ui/templates/vitals.v1"), Some("templates"));
         assert_eq!(section("/ui/forms/abc/fields/7"), Some(FORMS));
         assert_eq!(section("/ui/forms?page=2"), Some(FORMS));
+    }
+
+    #[test]
+    fn a_form_address_marks_the_forms_entry_whatever_the_identifier_holds() {
+        let address = form_href("IDCR - Adverse Reaction List.v1");
+        assert_eq!(section(&address), Some(FORMS));
+        assert!(!address.contains(' '), "{address}");
+    }
+
+    #[test]
+    fn a_separator_in_a_template_identifier_does_not_add_a_screen() {
+        let address = form_href("a/b");
+        assert_eq!(address, "/ui/forms/a%2Fb");
+        assert_eq!(section(&address), Some(FORMS));
     }
 
     #[test]

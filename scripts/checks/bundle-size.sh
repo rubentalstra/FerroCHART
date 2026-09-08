@@ -90,6 +90,23 @@ for name in $names; do
         continue
       fi
       growth=$((measured - baseline))
+      # A step change is a growth this file NAMES in advance, with its reason
+      # and its issue, and it is honoured only when the build measures exactly
+      # the figure recorded. Anything else is charged against the budget as
+      # usual, so a stanza left behind permits nothing: the next change to
+      # grow the asset no longer measures that figure.
+      step=$(jq -r ".assets[\"$name\"].step_change.to // empty" "$root/$bars")
+      # Compared within the same tolerance a recorded figure gets, because a
+      # release build is not byte-identical across host platforms and an
+      # exact match would honour the allowance on one machine and refuse it
+      # on another.
+      apart=$((measured - ${step:-0}))
+      if [[ -n "$step" && "$growth" -gt "$budget" && "${apart#-}" -le "$drift_tolerance" ]]; then
+        reason=$(jq -r ".assets[\"$name\"].step_change.reason" "$root/$bars")
+        printf '%-5s %7d gzipped, %+d against the merge base: a NAMED step change, %s\n' \
+          "$name" "$measured" "$growth" "$reason"
+        continue
+      fi
       if [[ "$growth" -gt "$budget" ]]; then
         status=1
         echo "::error::$name grew $growth gzipped bytes over the merge base, past its $budget budget."

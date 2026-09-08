@@ -3,9 +3,10 @@
 
 //! The router, and the screens hanging off it.
 //!
-//! The screens are placeholders. The renderer itself is issue #26 and the
-//! overlay authoring surface is #27; this issue lands the frame they render
-//! inside.
+//! The template library and one form are real screens and live in
+//! [`crate::screen`]. The rest carry their frame and not yet their content:
+//! the overlay authoring surface is issue #27, and the controls a clinician
+//! types into are issue #137.
 
 use leptos::prelude::*;
 use leptos_meta::{Meta, Title, provide_meta_context};
@@ -15,6 +16,8 @@ use leptos_router::path;
 use crate::kit::page_header::{Crumb, PageHeader};
 use crate::kit::surface::CARD_PAD;
 use crate::nav;
+use crate::screen::form::Form;
+use crate::screen::templates::Templates;
 use crate::shell::Shell;
 use crate::theme;
 
@@ -30,8 +33,9 @@ pub(crate) fn App() -> impl IntoView {
         <Router base=nav::BASE>
             <Routes fallback=NotFound>
                 <ParentRoute path=path!("") view=move || view! { <Shell theme=theme /> }>
-                    <Route path=path!("") view=Forms />
-                    <Route path=path!("forms") view=Forms />
+                    <Route path=path!("") view=Form />
+                    <Route path=path!("forms") view=Form />
+                    <Route path=path!("forms/:template_id") view=Form />
                     <Route path=path!("templates") view=Templates />
                     <Route path=path!("layout") view=Layout />
                     <Route path=path!("commits") view=Commits />
@@ -59,23 +63,6 @@ fn Pending(
         <div class=CARD_PAD>
             <p class="text-sm text-ink-muted">{note}</p>
         </div>
-    }
-}
-
-/// The forms library.
-#[component]
-fn Forms() -> impl IntoView {
-    view! { <Pending title="Forms" note="The form renderer lands with issue #26." /> }
-}
-
-/// The template library.
-#[component]
-fn Templates() -> impl IntoView {
-    view! {
-        <Pending
-            title="Templates"
-            note="The operational templates this server has compiled, and what each one derived."
-        />
     }
 }
 

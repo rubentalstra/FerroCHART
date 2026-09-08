@@ -23,6 +23,24 @@ the build order.
 
 ### Added
 
+- The renderer's conversation with the server (#138). One module,
+  `app/ferrochart-renderer/src/api`, owns every request the browser makes over
+  `gloo-net`, and a test scans the crate's own sources and fails when any other
+  module names the transport. Its `ApiError` carries the status the server
+  answered with and the bytes it answered with, reads the surface's error
+  document so the stable code and the message arrive as fields, and passes a
+  CDR's own `cdr_status` and `cdr_body` through. A request that never reached
+  an answer reports no status rather than an invented one.
+- The template library at `/ui/templates` lists what the server holds, and
+  `/ui/forms/{template_id}` draws the group tree of one form definition as
+  headings with the field labels beneath. A read renders its failure inline,
+  with the status, the server's code, the CDR's answer and every link of the
+  cause chain, and never as a toast.
+- `app/ferrochart-renderer/src/placement.rs`, the lookup a control calls to
+  find the validation failures that belong to it. A failure lands on every
+  control its node key names, and one about how many nodes there are is drawn
+  once rather than under every repeat. A failure that names no field of the
+  form stays reachable through `unplaced` and is shown beside the form.
 - The HTTP form surface (#146): `GET /api/templates`,
   `GET /api/templates/{template_id}/definition`,
   `POST /api/templates/{template_id}/validation`,
