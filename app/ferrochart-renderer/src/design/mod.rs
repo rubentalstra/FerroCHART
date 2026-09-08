@@ -31,6 +31,7 @@ use crate::kit::table::{TABLE, TABLE_CELL, TABLE_HEAD, TABLE_HEAD_CELL, TABLE_RO
 use crate::kit::tabs::{Tab, TabPills};
 use crate::kit::toast::{ToastHost, Toasts};
 use crate::kit::tone::Tone;
+use crate::overlay::Laid;
 use crate::state::FormState;
 
 /// Every tone, in the order the guide draws them.
@@ -396,7 +397,7 @@ fn Controls() -> impl IntoView {
                 "One field per row of the derivation table, from a synthetic form definition. \
                 Everything here is invented content for this page."
             </p>
-            <FormBody definition=definition state=state language=language />
+            <FormBody definition=definition state=state language=language laid=Laid::none() />
             <p class="mt-3 text-xs text-ink-muted">
                 {move || format!("{} values entered.", state.values().len())}
             </p>

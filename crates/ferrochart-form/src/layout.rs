@@ -22,9 +22,11 @@ use std::num::{NonZeroU8, NonZeroU16};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use crate::ids::TemplateId;
 use crate::key::NodeKey;
 use crate::text::Localized;
 use crate::value::Prefill;
+use crate::values::{Datum, Entered};
 
 /// What names one authored section.
 ///
@@ -494,6 +496,111 @@ impl Condition {
     }
 }
 
+/// Whether an entered value is the one a condition names.
+///
+/// The comparison is by identity rather than by display: a code matches its
+/// code, a magnitude matches its number, and a rubric a terminology server
+/// happened to return is not part of the answer. A shape a condition cannot
+/// name matches nothing, which is the safe direction: a rule nobody can
+/// evaluate hides its item rather than showing it on a guess.
+#[must_use]
+pub fn matches(wanted: &Prefill, entered: &Datum) -> bool {
+    match (wanted, entered) {
+        (&Prefill::Boolean(wanted), &Datum::Boolean(entered)) => wanted == entered,
+        (&Prefill::Integer(wanted), &Datum::Count(entered)) => wanted == entered,
+        (
+            Prefill::Coded { code: wanted, .. },
+            Datum::Coded {
+                terminology, code, ..
+            },
+        ) => wanted.terminology.as_str() == terminology && wanted.code == *code,
+        (
+            Prefill::Ordinal { symbol, .. },
+            Datum::Ordinal {
+                terminology, code, ..
+            },
+        ) => symbol.terminology.as_str() == terminology && symbol.code == *code,
+        (&Prefill::Text(ref wanted), &Datum::Text(ref entered))
+        | (
+            &Prefill::Temporal(ref wanted),
+            &Datum::Date(ref entered)
+            | &Datum::Time(ref entered)
+            | &Datum::DateTime(ref entered)
+            | &Datum::Duration(ref entered),
+        ) => wanted == entered,
+        _ => false,
+    }
+}
+
+/// How a condition reads the values a form holds.
+///
+/// A condition names a node, and a form holds that node once per occurrence of
+/// every repeating group above it, so the reader answers for the address the
+/// item being judged sits at rather than for the node in the abstract.
+///
+/// The answer is owned rather than borrowed, because a renderer holds its
+/// values behind a signal that lends nothing across a read. A condition names
+/// a handful of nodes, so the clone is bounded by the rule rather than by the
+/// form.
+pub trait Answers {
+    /// What was entered at `node`, where anything was.
+    fn entered(&self, node: &NodeKey) -> Option<Entered>;
+}
+
+impl Condition {
+    /// Whether the condition holds over `answers`.
+    ///
+    /// No specification governs this: our own design. ADL 1.4 section 8.5 and
+    /// the AOM 2 Rules package evaluate an assertion after entry rather than
+    /// deciding what a person sees, so both the rule and its evaluation are
+    /// ours.
+    ///
+    /// A null flavour is not an answer. openEHR RM Release-1.1.0
+    /// `data_structures.html` section 5.2.3 makes a null flavour the record
+    /// that there is no value, so a field carrying one is not answered and
+    /// equals nothing.
+    #[must_use]
+    pub fn holds<A: Answers + ?Sized>(&self, answers: &A) -> bool {
+        match *self {
+            Self::Answered { ref node } => {
+                matches!(answers.entered(node), Some(Entered::Value(_)))
+            }
+            Self::NotAnswered { ref node } => {
+                !matches!(answers.entered(node), Some(Entered::Value(_)))
+            }
+            Self::Equals {
+                ref node,
+                ref value,
+            } => match answers.entered(node) {
+                Some(Entered::Value(ref datum)) => matches(value, datum),
+                _ => false,
+            },
+            Self::NotEquals {
+                ref node,
+                ref value,
+            } => match answers.entered(node) {
+                Some(Entered::Value(ref datum)) => !matches(value, datum),
+                // Nothing entered is not the value, so the rule holds.
+                _ => true,
+            },
+            Self::All { ref conditions } => conditions.iter().all(|inner| inner.holds(answers)),
+            Self::Any { ref conditions } => conditions.iter().any(|inner| inner.holds(answers)),
+        }
+    }
+}
+
+impl Visibility {
+    /// Whether an item under this rule is shown, given `answers`.
+    #[must_use]
+    pub fn shows<A: Answers + ?Sized>(&self, answers: &A) -> bool {
+        match *self {
+            Self::Always => true,
+            Self::Never => false,
+            Self::When { ref condition } => condition.holds(answers),
+        }
+    }
+}
+
 /// What a person authored about one node of a form.
 ///
 /// No specification governs any member of this record: it is the half of a
@@ -564,6 +671,90 @@ impl Layout {
     }
 }
 
+/// The version of the layout document format this crate defines.
+///
+/// Its own number rather than [`crate::definition::FORMAT_VERSION`], because
+/// the two documents change for different reasons: a form definition changes
+/// when the derivation does, and a layout changes when what a person may
+/// author does. What the number covers, and what is and is not a bump, is the
+/// same contract that constant states.
+pub const LAYOUT_FORMAT_VERSION: u32 = 1;
+
+/// One item's layout, keyed by the node it decorates.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct LayoutItem {
+    /// What names the node this layout decorates.
+    pub key: NodeKey,
+    /// What the person authored for it.
+    pub layout: Layout,
+}
+
+/// The layout a person authored over one form, as a renderer reads it.
+///
+/// No specification governs this: our own design. The form definition is a
+/// projection of the operational template and carries no layout
+/// (`crate::definition::FormDefinition`), so everything a person decided
+/// travels beside it rather than inside it. A renderer that fetches no layout
+/// draws the form in template order, which is what it did before there was
+/// one.
+///
+/// It is a separate document rather than a definition the server has already
+/// laid out, because the authoring surface has to show the template's own
+/// label beside the one a person wrote over it. A definition with the
+/// overrides baked in could not tell the two apart.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FormLayout {
+    /// The version of the format this document is written in.
+    pub format_version: u32,
+    /// The template the layout was authored against.
+    pub template_id: TemplateId,
+    /// The sections a person grouped items into, in authored order.
+    pub sections: Vec<Section>,
+    /// One entry per node a person decided anything about, in key order.
+    pub items: Vec<LayoutItem>,
+}
+
+impl FormLayout {
+    /// An empty layout over `template_id`, which decides nothing.
+    #[must_use]
+    pub fn new(template_id: TemplateId) -> Self {
+        Self {
+            format_version: LAYOUT_FORMAT_VERSION,
+            template_id,
+            sections: Vec::new(),
+            items: Vec::new(),
+        }
+    }
+
+    /// Whether this document is written in the format version this crate
+    /// defines.
+    #[must_use]
+    pub const fn is_current_format(&self) -> bool {
+        self.format_version == LAYOUT_FORMAT_VERSION
+    }
+
+    /// What the person authored for `key`, where they authored anything.
+    #[must_use]
+    pub fn of(&self, key: &NodeKey) -> Option<&Layout> {
+        self.items
+            .iter()
+            .find(|item| item.key == *key)
+            .map(|item| &item.layout)
+    }
+
+    /// When the item at `key` is shown.
+    ///
+    /// [`Visibility::Always`] where the person decided nothing, which is what
+    /// a form with no layout does everywhere.
+    #[must_use]
+    pub fn visibility(&self, key: &NodeKey) -> &Visibility {
+        self.of(key)
+            .map_or(&Visibility::Always, |layout| &layout.visibility)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -580,12 +771,14 @@ mod tests {
     }
 
     use super::{
-        CharacterWidth, ColumnCount, ColumnSpan, Condition, Geometry, HintName, Layout, Section,
-        SectionId, Visibility,
+        Answers, CharacterWidth, ColumnCount, ColumnSpan, Condition, FormLayout, Geometry,
+        HintName, Layout, LayoutItem, Section, SectionId, Visibility,
     };
-    use crate::ids::{RmAttributeName, RmTypeName};
+    use crate::ids::{RmAttributeName, RmTypeName, TemplateId};
     use crate::key::{KeyStep, NodeKey};
     use crate::text::Localized;
+    use crate::value::{Code, Prefill};
+    use crate::values::{Datum, Entered};
 
     fn columns(count: u8) -> ColumnCount {
         ColumnCount::try_from(count).unwrap()
@@ -680,5 +873,145 @@ mod tests {
             Some(span(6)),
             "clamping is the renderer's, so nothing stored is discarded"
         );
+    }
+    /// The answers a form holds, for a test that needs no form.
+    struct Held(std::collections::BTreeMap<NodeKey, Entered>);
+
+    impl Answers for Held {
+        fn entered(&self, node: &NodeKey) -> Option<Entered> {
+            self.0.get(node).cloned()
+        }
+    }
+
+    fn held(pairs: Vec<(NodeKey, Entered)>) -> Held {
+        Held(pairs.into_iter().collect())
+    }
+
+    #[test]
+    fn an_item_with_no_rule_is_always_shown() {
+        assert!(Visibility::Always.shows(&held(vec![])));
+        assert!(!Visibility::Never.shows(&held(vec![])));
+    }
+
+    #[test]
+    fn a_rule_reading_an_unanswered_node_hides_its_item() {
+        let deceased = key("deceased");
+        let rule = Visibility::When {
+            condition: Condition::Equals {
+                node: deceased.clone(),
+                value: Prefill::Boolean(true),
+            },
+        };
+        assert!(!rule.shows(&held(vec![])));
+        assert!(!rule.shows(&held(vec![(
+            deceased.clone(),
+            Entered::Value(Datum::Boolean(false)),
+        )])));
+        assert!(rule.shows(&held(vec![(
+            deceased,
+            Entered::Value(Datum::Boolean(true)),
+        )])));
+    }
+
+    #[test]
+    fn a_null_flavour_is_not_an_answer() {
+        // openEHR RM Release-1.1.0 `data_structures.html` section 5.2.3 makes
+        // a null flavour the record that there is no value, so a field
+        // carrying one has not been answered.
+        let node = key("asked");
+        let null = Entered::Null {
+            code: crate::ids::LocalCode::new("271"),
+            reason: None,
+        };
+        let answered = Visibility::When {
+            condition: Condition::Answered { node: node.clone() },
+        };
+        assert!(!answered.shows(&held(vec![(node.clone(), null.clone())])));
+        let not_answered = Visibility::When {
+            condition: Condition::NotAnswered { node: node.clone() },
+        };
+        assert!(not_answered.shows(&held(vec![(node, null)])));
+    }
+
+    #[test]
+    fn a_value_of_another_shape_matches_nothing() {
+        // A rule nobody can evaluate hides its item rather than showing it on
+        // a guess.
+        let node = key("count");
+        let rule = Visibility::When {
+            condition: Condition::Equals {
+                node: node.clone(),
+                value: Prefill::Boolean(true),
+            },
+        };
+        assert!(!rule.shows(&held(vec![(node, Entered::Value(Datum::Count(1)))])));
+    }
+
+    #[test]
+    fn a_code_matches_by_its_code_and_never_by_its_rubric() {
+        let node = key("coded");
+        let wanted = Prefill::Coded {
+            code: Code::new(crate::ids::local_terminology(), "at0007"),
+            rubric: Some("Yes".to_owned()),
+        };
+        let entered = |code: &str, rubric: &str| {
+            Entered::Value(Datum::Coded {
+                terminology: "local".to_owned(),
+                code: code.to_owned(),
+                rubric: rubric.to_owned(),
+            })
+        };
+        let rule = Visibility::When {
+            condition: Condition::Equals {
+                node: node.clone(),
+                value: wanted,
+            },
+        };
+        // A terminology server may return another rubric for the same code.
+        assert!(rule.shows(&held(vec![(node.clone(), entered("at0007", "Ja"))])));
+        assert!(!rule.shows(&held(vec![(node, entered("at0008", "Yes"))])));
+    }
+
+    #[test]
+    fn all_and_any_read_the_way_they_are_named() {
+        let one = key("one");
+        let two = key("two");
+        let both = vec![
+            Condition::Answered { node: one.clone() },
+            Condition::Answered { node: two.clone() },
+        ];
+        let only_one = held(vec![(one, Entered::Value(Datum::Count(1)))]);
+        assert!(
+            !Condition::All {
+                conditions: both.clone()
+            }
+            .holds(&only_one)
+        );
+        assert!(Condition::Any { conditions: both }.holds(&only_one));
+    }
+
+    #[test]
+    fn a_layout_that_says_nothing_about_a_node_shows_it() {
+        let layout = FormLayout::new(TemplateId::new("x"));
+        assert_eq!(layout.visibility(&key("anything")), &Visibility::Always);
+        assert!(layout.is_current_format());
+    }
+
+    #[test]
+    fn a_layout_document_round_trips() {
+        let mut layout = FormLayout::new(TemplateId::new("vital_signs.v1"));
+        let node = key("systolic");
+        let mut item = Layout::new();
+        item.visibility = Visibility::When {
+            condition: Condition::Answered { node: node.clone() },
+        };
+        layout.items.push(LayoutItem {
+            key: node.clone(),
+            layout: item,
+        });
+        let json = serde_json::to_string(&layout).expect("serialises");
+        let read: FormLayout = serde_json::from_str(&json).expect("reads back");
+        assert_eq!(read, layout);
+        assert!(matches!(read.visibility(&node), &Visibility::When { .. }));
     }
 }

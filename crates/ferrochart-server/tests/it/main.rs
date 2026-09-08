@@ -18,5 +18,6 @@ mod api;
 mod filler;
 mod gate;
 mod live;
+mod overlays;
 mod store;
 mod support;

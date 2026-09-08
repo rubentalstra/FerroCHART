@@ -323,6 +323,67 @@ impl FieldKind {
             Self::Choice(_) => "choice",
         }
     }
+
+    /// The one value the constraint admits, where it admits exactly one.
+    ///
+    /// openEHR AM Release-2.3.0 `AOM1.4.html` section 6.2.2 is where the rule
+    /// is visible in the specification: a `C_BOOLEAN` with one of
+    /// `true_valid` and `false_valid` set has fixed the value. No
+    /// specification governs the same reading of a one-member list, and
+    /// FerroCHART applies it: a field with one admitted value collects no
+    /// decision about WHICH value it carries.
+    ///
+    /// It still collects a decision about whether the element is there at
+    /// all, wherever the template says the node may be absent, which is why
+    /// the value is named here rather than only counted. The derivation that
+    /// flags a field fixed and the renderer that draws one both read this
+    /// answer, so neither carries a second copy of the rule.
+    #[must_use]
+    pub fn only_admitted(&self) -> Option<Prefill> {
+        match *self {
+            Self::Boolean(field) => match (field.true_allowed, field.false_allowed) {
+                (true, false) => Some(Prefill::Boolean(true)),
+                (false, true) => Some(Prefill::Boolean(false)),
+                _ => None,
+            },
+            Self::Text(ref field) => {
+                if !field.options_closed || !field.patterns.is_empty() {
+                    return None;
+                }
+                match *field.options.as_slice() {
+                    [ref only] => Some(Prefill::Text(only.clone())),
+                    _ => None,
+                }
+            }
+            Self::Coded(ref field) => match field.value_set {
+                ValueSet::Enumerated(ref set) => match *set.options.as_slice() {
+                    [ref only] => Some(Prefill::Coded {
+                        code: only.code.clone(),
+                        rubric: None,
+                    }),
+                    _ => None,
+                },
+                _ => None,
+            },
+            Self::Count(ref field) => {
+                if !field.ranges.is_empty() {
+                    return None;
+                }
+                match *field.options.as_slice() {
+                    [only] => Some(Prefill::Integer(only)),
+                    _ => None,
+                }
+            }
+            Self::Ordinal(ref field) => match *field.options.as_slice() {
+                [ref only] => Some(Prefill::Ordinal {
+                    value: only.score,
+                    symbol: only.symbol.clone(),
+                }),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
 }
 
 /// A two-way control over `DV_BOOLEAN.value`.
@@ -779,9 +840,11 @@ pub fn null_flavour_options() -> Vec<NullFlavourOption> {
 #[cfg(test)]
 mod tests {
     use super::{
-        BooleanField, FieldKind, ProportionKind, ReferenceRange, ReferenceRanges,
-        null_flavour_options,
+        BooleanField, CountField, FieldKind, ProportionKind, ReferenceRange, ReferenceRanges,
+        TextField, null_flavour_options,
     };
+    use crate::range::Range;
+    use crate::value::Prefill;
 
     #[test]
     fn a_band_set_is_empty_only_while_the_template_states_no_band() {
@@ -835,5 +898,88 @@ mod tests {
         for code in [0, 1, 2, 3, 4, 9, -1] {
             assert_eq!(ProportionKind::from_code(code).code(), code);
         }
+    }
+
+    #[test]
+    fn a_boolean_the_template_narrowed_to_one_value_names_that_value() {
+        // openEHR AM Release-2.3.0 `AOM1.4.html` section 6.2.2: a `C_BOOLEAN`
+        // with one of `true_valid` and `false_valid` set has fixed the value,
+        // and the family history template uses that as a flag (issue #207).
+        let only_true = FieldKind::Boolean(BooleanField {
+            true_allowed: true,
+            false_allowed: false,
+        });
+        assert_eq!(only_true.only_admitted(), Some(Prefill::Boolean(true)));
+        let only_false = FieldKind::Boolean(BooleanField {
+            true_allowed: false,
+            false_allowed: true,
+        });
+        assert_eq!(only_false.only_admitted(), Some(Prefill::Boolean(false)));
+    }
+
+    #[test]
+    fn a_boolean_that_admits_both_values_or_neither_fixes_nothing() {
+        for (true_allowed, false_allowed) in [(true, true), (false, false)] {
+            let kind = FieldKind::Boolean(BooleanField {
+                true_allowed,
+                false_allowed,
+            });
+            assert_eq!(kind.only_admitted(), None, "{true_allowed} {false_allowed}");
+        }
+    }
+
+    #[test]
+    fn a_closed_one_member_list_fixes_its_member_and_an_open_one_does_not() {
+        let closed = FieldKind::Text(TextField {
+            patterns: Vec::new(),
+            options: vec!["only".to_owned()],
+            options_closed: true,
+        });
+        assert_eq!(
+            closed.only_admitted(),
+            Some(Prefill::Text("only".to_owned()))
+        );
+        let open = FieldKind::Text(TextField {
+            patterns: Vec::new(),
+            options: vec!["only".to_owned()],
+            options_closed: false,
+        });
+        assert_eq!(open.only_admitted(), None);
+    }
+
+    #[test]
+    fn a_one_member_list_beside_a_pattern_or_a_range_fixes_nothing() {
+        // The list is one way of stating the constraint and the pattern is
+        // another, so a value has to satisfy both and the list is not the
+        // whole answer.
+        let masked = FieldKind::Text(TextField {
+            patterns: vec!["[0-9]+".to_owned()],
+            options: vec!["only".to_owned()],
+            options_closed: true,
+        });
+        assert_eq!(masked.only_admitted(), None);
+        let ranged = FieldKind::Count(CountField {
+            options: vec![4],
+            ranges: vec![Range::new(Some(1), Some(9), true, true)],
+        });
+        assert_eq!(ranged.only_admitted(), None);
+    }
+
+    #[test]
+    fn a_count_narrowed_to_one_number_names_it() {
+        let kind = FieldKind::Count(CountField {
+            options: vec![4],
+            ranges: Vec::new(),
+        });
+        assert_eq!(kind.only_admitted(), Some(Prefill::Integer(4)));
+    }
+
+    #[test]
+    fn a_kind_that_enumerates_nothing_fixes_nothing() {
+        assert_eq!(
+            FieldKind::Count(CountField::default()).only_admitted(),
+            None
+        );
+        assert_eq!(FieldKind::Text(TextField::default()).only_admitted(), None);
     }
 }

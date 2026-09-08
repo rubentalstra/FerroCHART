@@ -41,6 +41,7 @@ use crate::kit::field::{FIELD_LABEL, HINT};
 use crate::kit::notice::Notice;
 use crate::kit::surface::WELL;
 use crate::kit::tone::Tone;
+use crate::overlay::Laid;
 use crate::state::{FormState, Path};
 
 /// The control the field's kind calls for.
@@ -176,6 +177,30 @@ fn temporal(kind: &FieldKind, slot: Slot) -> AnyView {
     }
 }
 
+/// The name over one field, the text under it, and the value it starts with.
+///
+/// What a person authored wins over the archetype rubric, and a layout that
+/// says nothing leaves the rubric exactly where it was. The authored default
+/// is returned beside them because it comes from the same record.
+fn words(field: &FormField, language: &LanguageTag) -> (String, String, Option<Prefill>) {
+    let laid = Laid::from_context();
+    let label = laid.label(&field.key, language).unwrap_or_else(|| {
+        crate::label::of(
+            &field.label,
+            language,
+            &field.key,
+            crate::plain::of_kind(&field.kind),
+        )
+    });
+    let help = laid
+        .help(&field.key, language)
+        .unwrap_or_else(|| localized(&field.help, language));
+    let authored = laid
+        .at(&field.key)
+        .and_then(|layout| layout.default.clone());
+    (label, help, authored)
+}
+
 /// One field of a form, with everything the template said about it.
 #[component]
 #[expect(
@@ -192,13 +217,7 @@ pub(crate) fn FieldView(
     /// The language a label is shown in.
     language: LanguageTag,
 ) -> impl IntoView {
-    let label = crate::label::of(
-        &field.label,
-        &language,
-        &field.key,
-        crate::plain::of_kind(&field.kind),
-    );
-    let help = localized(&field.help, &language);
+    let (label, help, authored) = words(&field, &language);
     let repeatable = field.occurrences.is_repeatable();
     let mandatory = field.occurrences.is_mandatory();
     let deprecated = field.is_deprecated;
@@ -221,6 +240,7 @@ pub(crate) fn FieldView(
         let language = language.clone();
         let path = path.clone();
         let label = label.clone();
+        let authored = authored.clone();
         move || {
             repeats()
                 .into_iter()
@@ -231,7 +251,7 @@ pub(crate) fn FieldView(
                         language.clone(),
                         label.clone(),
                     );
-                    view! { <Occurrence field=field.clone() at=slot repeatable=repeatable /> }
+                    view! { <Occurrence field=field.clone() at=slot repeatable=repeatable authored=authored.clone() /> }
                 })
                 .collect::<Vec<_>>()
         }
@@ -323,6 +343,80 @@ fn fixed_as_text(prefill: &Prefill) -> String {
     }
 }
 
+/// The value the template fixed for `field`, in words, where it fixed one.
+///
+/// The template states the value two ways and either one is the answer: a
+/// `default_value`, which reaches the definition as a prefill, and a
+/// constraint that admits exactly one value, which
+/// [`ferrochart_form::field::FieldKind::only_admitted`] reads. A field the
+/// second way used to draw the sentence "The template fixed this value",
+/// which named an answer it then declined to show (issue #207).
+fn fixed(field: &FormField) -> Option<String> {
+    if !field.is_fixed {
+        return None;
+    }
+    field
+        .prefill
+        .clone()
+        .or_else(|| field.kind.only_admitted())
+        .as_ref()
+        .map(fixed_as_text)
+}
+
+/// A field whose value the template fixed and whose element it says may be
+/// absent.
+///
+/// The question is not which value the field carries, because the template
+/// answered that. It is whether the element is recorded at all: openEHR AM
+/// Release-2.3.0 `AOM1.4.html` section 4.3.6 makes `occurrences` the count a
+/// node may appear in data, so a lower bound of zero leaves that decision to
+/// the person. Ticking records the value the template fixed and clearing
+/// leaves the element out.
+#[component]
+fn FixedOptIn(
+    /// The field, as the compiler derived it.
+    field: FormField,
+    /// Where the value goes.
+    at: Slot,
+    /// The fixed value, in words.
+    said: String,
+) -> impl IntoView {
+    let slot = at;
+    let id = slot.part("fixed");
+    let recorded = {
+        let slot = slot.clone();
+        Signal::derive(move || matches!(slot.entered(), Some(Entered::Value(_))))
+    };
+    let on_change = {
+        let slot = slot.clone();
+        let field = field.clone();
+        move |event: leptos::ev::Event| {
+            if !event_target_checked(&event) {
+                slot.clear();
+                return;
+            }
+            let Some(prefill) = field.prefill.clone().or_else(|| field.kind.only_admitted()) else {
+                return;
+            };
+            if let Some(datum) = prefill::datum(&prefill, &field.kind, &field.rm_type) {
+                slot.set(datum);
+            }
+        }
+    };
+    view! {
+        <label class="inline-flex items-center gap-2 text-sm text-ink" for=id.clone()>
+            <input
+                id=id.clone()
+                type="checkbox"
+                class="h-4 w-4 accent-accent"
+                prop:checked=move || recorded.get()
+                on:change=on_change
+            />
+            {said}
+        </label>
+    }
+}
+
 /// How wide a field of this kind is allowed to run.
 ///
 /// No specification governs this: our own design. A date, a count and a unit
@@ -363,9 +457,11 @@ fn Occurrence(
     /// Whether the field repeats, which decides whether the legend numbers
     /// this repeat.
     repeatable: bool,
+    /// The value a person authored for the field, where they authored one.
+    authored: Option<Prefill>,
 ) -> impl IntoView {
     let slot = at;
-    seed(&field, &slot);
+    seed(&field, authored.as_ref(), &slot);
     let legend = if repeatable {
         format!(
             "{}, {}",
@@ -394,14 +490,13 @@ fn Occurrence(
         let field = field.clone();
         let slot = slot.clone();
         move || {
-            let body = if field.is_fixed {
-                let said = field.prefill.as_ref().map_or_else(
-                    || "The template fixed this value.".to_owned(),
-                    fixed_as_text,
-                );
-                view! { <p class="text-sm text-ink">{said}</p> }.into_any()
-            } else {
-                control(&field.kind, &field.rm_type, &slot)
+            let body = match fixed(&field) {
+                Some(said) if field.occurrences.minimum == 0 => {
+                    view! { <FixedOptIn field=field.clone() at=slot.clone() said=said /> }
+                        .into_any()
+                }
+                Some(said) => view! { <p class="text-sm text-ink">{said}</p> }.into_any(),
+                None => control(&field.kind, &field.rm_type, &slot),
             };
             view! {
                 // `w-full` rather than `grow`, so a capped control is exactly
@@ -441,15 +536,32 @@ fn Occurrence(
     }
 }
 
-/// Writes the template's prefill into a slot nothing has been entered into.
-fn seed(field: &FormField, slot: &Slot) {
+/// Writes a prefill into a slot nothing has been entered into.
+///
+/// A value a person authored wins over the one the template states, because
+/// the authored one is the later decision and the layout exists to carry it.
+/// Neither can widen what the field admits: a prefill whose shape the kind
+/// does not name is written nowhere.
+///
+/// A field the template both fixed and requires is written too, from the one
+/// value its constraint admits. The template answered the question and the
+/// node has to be there, so leaving the document without it would commit a
+/// COMPOSITION the template refuses (issue #207). A fixed field the template
+/// says may be absent is NOT written: whether the element is there is the
+/// reader's decision, and [`FixedOptIn`] is where they make it.
+fn seed(field: &FormField, authored: Option<&Prefill>, slot: &Slot) {
     if slot.entered().is_some() {
         return;
     }
-    let Some(prefill) = field.prefill.as_ref() else {
+    let required = field.occurrences.minimum > 0;
+    let Some(prefill) = authored
+        .cloned()
+        .or_else(|| field.prefill.clone())
+        .or_else(|| required.then(|| field.kind.only_admitted()).flatten())
+    else {
         return;
     };
-    if let Some(datum) = prefill::datum(prefill, &field.kind, &field.rm_type) {
+    if let Some(datum) = prefill::datum(&prefill, &field.kind, &field.rm_type) {
         slot.set(datum);
     }
 }
@@ -576,6 +688,55 @@ mod tests {
                 alternatives: Vec::new(),
             }),
         ]
+    }
+
+    #[test]
+    fn a_field_the_constraint_fixed_shows_the_value_rather_than_a_sentence() {
+        // The template states the value as a constraint rather than as a
+        // `default_value`, so `prefill` is empty and the value is still
+        // knowable (issue #207).
+        let mut field = fixed_field();
+        field.prefill = None;
+        assert_eq!(super::fixed(&field).as_deref(), Some("Yes"));
+    }
+
+    #[test]
+    fn a_field_the_template_did_not_fix_shows_no_fixed_value() {
+        let mut field = fixed_field();
+        field.is_fixed = false;
+        assert_eq!(super::fixed(&field), None);
+    }
+
+    #[test]
+    fn a_stated_default_outranks_the_one_admitted_value() {
+        let mut field = fixed_field();
+        field.prefill = Some(ferrochart_form::value::Prefill::Text("Deceased".to_owned()));
+        assert_eq!(super::fixed(&field).as_deref(), Some("Deceased"));
+    }
+
+    /// A boolean field the template narrowed to `true` and says may be
+    /// absent, which is the flag idiom the family history template uses.
+    fn fixed_field() -> ferrochart_form::field::FormField {
+        let kind = FieldKind::Boolean(BooleanField {
+            true_allowed: true,
+            false_allowed: false,
+        });
+        ferrochart_form::field::FormField {
+            key: ferrochart_form::key::NodeKey::root(),
+            rm_type: RmTypeName::new("DV_BOOLEAN"),
+            label: ferrochart_form::text::Localized::empty(),
+            help: ferrochart_form::text::Localized::empty(),
+            occurrences: ferrochart_form::occurrences::Occurrences::bounded(0, 1),
+            kind,
+            name_constraint: None,
+            reference_ranges: None,
+            is_ordered: false,
+            is_unique: false,
+            null_flavour: ferrochart_form::field::NullFlavour::absent(),
+            prefill: None,
+            is_deprecated: false,
+            is_fixed: true,
+        }
     }
 
     #[test]

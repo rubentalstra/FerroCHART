@@ -16,6 +16,8 @@ variables and a second mechanism only creates a question about which one wins.
 | `FERROCHART_LISTEN` | no | `127.0.0.1:8080` | The address to bind. |
 | `FERROCHART_CDR_URL` | yes | | The openEHR CDR's ITS-REST base URL. |
 | `FERROCHART_TERM_URL` | yes | | The FHIR terminology server's base URL. |
+| `FERROCHART_TEMPLATES` | no | | A directory of `.opt` operational templates to compile at startup. |
+| `FERROCHART_OVERLAYS` | no | | A directory of layouts, at most one per template. |
 | `FERROCHART_UI` | no | `on` | Whether the server serves the renderer at `/ui`. Reads `on` or `off` (`true`/`false`, `1`/`0`, `yes`/`no`, in any case). |
 | `RUST_LOG` | no | `info` | The log filter. |
 
@@ -34,6 +36,30 @@ ferrochart: FERROCHART_CDR_URL is not set: the openEHR CDR's ITS-REST base URL
 $ echo $?
 1
 ```
+
+## The templates and their layouts
+
+`FERROCHART_TEMPLATES` names a directory of `.opt` operational templates. The
+server compiles each one at startup into a form and the validator that judges
+what is entered against it, keyed by the identifier the template states for
+itself. Compiling once is what keeps the request path cheap.
+
+`FERROCHART_OVERLAYS` names a directory of layouts, at most one per template.
+A layout is what a person decided about a form that no template states: the
+order of the items, the names and the help text over the archetype's own, the
+values a form starts with, and the rules that decide when an item is shown. A
+deployment with no layouts draws every form in template order.
+
+Both directories are optional. Unset means the server holds no template and
+serves no form, which is the honest reading of an operator who installed none.
+
+A directory that IS named has to hold nothing broken. A template that will not
+compile fails the startup, naming the file and the cause, and so does a layout
+that will not read. Two templates stating one identifier fail it too, and so
+do two layouts over one template: a server that served fewer forms than its
+operator installed, or picked between two by filesystem order, would be
+silently wrong, and a form drawn in template order because the server dropped
+a layout is the failure the overlay exists to prevent.
 
 ## The renderer
 

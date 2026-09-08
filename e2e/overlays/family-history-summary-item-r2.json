@@ -1,0 +1,499 @@
+{
+  "format_version": 2,
+  "template": {
+    "id": "Family history summary item R2",
+    "id_form": "legacy_name"
+  },
+  "sections": [],
+  "entries": [
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-EVALUATION.family_history.v2",
+            "rm_type": "EVALUATION",
+            "pinned_name": "Family history summary",
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0003",
+            "archetype_id": null,
+            "rm_type": "CLUSTER",
+            "pinned_name": null,
+            "sibling_ordinal": 1
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0008",
+            "archetype_id": null,
+            "rm_type": "CLUSTER",
+            "pinned_name": null,
+            "sibling_ordinal": 8
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0014",
+            "archetype_id": null,
+            "rm_type": "ELEMENT",
+            "pinned_name": null,
+            "sibling_ordinal": 3
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "DATA_VALUE",
+      "anchor": null,
+      "layout": {
+        "order": 7,
+        "section": null,
+        "label": {},
+        "help": {},
+        "default": null,
+        "visibility": {
+          "when": {
+            "condition": {
+              "equals": {
+                "node": {
+                  "steps": [
+                    {
+                      "rm_attribute": "",
+                      "node_id": "at0000",
+                      "archetype_id": "openEHR-EHR-EVALUATION.family_history.v2",
+                      "rm_type": "EVALUATION",
+                      "pinned_name": "Family history summary",
+                      "sibling_ordinal": 0
+                    },
+                    {
+                      "rm_attribute": "data",
+                      "node_id": "at0001",
+                      "archetype_id": null,
+                      "rm_type": "ITEM_TREE",
+                      "pinned_name": null,
+                      "sibling_ordinal": 0
+                    },
+                    {
+                      "rm_attribute": "items",
+                      "node_id": "at0003",
+                      "archetype_id": null,
+                      "rm_type": "CLUSTER",
+                      "pinned_name": null,
+                      "sibling_ordinal": 1
+                    },
+                    {
+                      "rm_attribute": "items",
+                      "node_id": "at0023",
+                      "archetype_id": null,
+                      "rm_type": "ELEMENT",
+                      "pinned_name": null,
+                      "sibling_ordinal": 5
+                    }
+                  ],
+                  "is_positional": false
+                },
+                "value": {
+                  "boolean": true
+                }
+              }
+            }
+          }
+        },
+        "widget": null,
+        "geometry": {
+          "span": null,
+          "break_before": false,
+          "width": null
+        },
+        "hints": {}
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-EVALUATION.family_history.v2",
+            "rm_type": "EVALUATION",
+            "pinned_name": "Family history summary",
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0003",
+            "archetype_id": null,
+            "rm_type": "CLUSTER",
+            "pinned_name": null,
+            "sibling_ordinal": 1
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0011",
+            "archetype_id": null,
+            "rm_type": "ELEMENT",
+            "pinned_name": null,
+            "sibling_ordinal": 6
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "DV_DURATION",
+      "anchor": null,
+      "layout": {
+        "order": 5,
+        "section": null,
+        "label": {},
+        "help": {},
+        "default": null,
+        "visibility": {
+          "when": {
+            "condition": {
+              "equals": {
+                "node": {
+                  "steps": [
+                    {
+                      "rm_attribute": "",
+                      "node_id": "at0000",
+                      "archetype_id": "openEHR-EHR-EVALUATION.family_history.v2",
+                      "rm_type": "EVALUATION",
+                      "pinned_name": "Family history summary",
+                      "sibling_ordinal": 0
+                    },
+                    {
+                      "rm_attribute": "data",
+                      "node_id": "at0001",
+                      "archetype_id": null,
+                      "rm_type": "ITEM_TREE",
+                      "pinned_name": null,
+                      "sibling_ordinal": 0
+                    },
+                    {
+                      "rm_attribute": "items",
+                      "node_id": "at0003",
+                      "archetype_id": null,
+                      "rm_type": "CLUSTER",
+                      "pinned_name": null,
+                      "sibling_ordinal": 1
+                    },
+                    {
+                      "rm_attribute": "items",
+                      "node_id": "at0023",
+                      "archetype_id": null,
+                      "rm_type": "ELEMENT",
+                      "pinned_name": null,
+                      "sibling_ordinal": 5
+                    }
+                  ],
+                  "is_positional": false
+                },
+                "value": {
+                  "boolean": true
+                }
+              }
+            }
+          }
+        },
+        "widget": null,
+        "geometry": {
+          "span": null,
+          "break_before": false,
+          "width": null
+        },
+        "hints": {}
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-EVALUATION.family_history.v2",
+            "rm_type": "EVALUATION",
+            "pinned_name": "Family history summary",
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0003",
+            "archetype_id": null,
+            "rm_type": "CLUSTER",
+            "pinned_name": null,
+            "sibling_ordinal": 1
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0016",
+            "archetype_id": null,
+            "rm_type": "ELEMENT",
+            "pinned_name": null,
+            "sibling_ordinal": 3
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "DV_TEXT",
+      "anchor": null,
+      "layout": {
+        "order": 1,
+        "section": null,
+        "label": {},
+        "help": {},
+        "default": null,
+        "visibility": "always",
+        "widget": null,
+        "geometry": {
+          "span": null,
+          "break_before": false,
+          "width": null
+        },
+        "hints": {}
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-EVALUATION.family_history.v2",
+            "rm_type": "EVALUATION",
+            "pinned_name": "Family history summary",
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0003",
+            "archetype_id": null,
+            "rm_type": "CLUSTER",
+            "pinned_name": null,
+            "sibling_ordinal": 1
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0020",
+            "archetype_id": null,
+            "rm_type": "ELEMENT",
+            "pinned_name": null,
+            "sibling_ordinal": 1
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "DV_TEXT",
+      "anchor": null,
+      "layout": {
+        "order": 20,
+        "section": null,
+        "label": {},
+        "help": {},
+        "default": null,
+        "visibility": "always",
+        "widget": null,
+        "geometry": {
+          "span": null,
+          "break_before": false,
+          "width": null
+        },
+        "hints": {}
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-EVALUATION.family_history.v2",
+            "rm_type": "EVALUATION",
+            "pinned_name": "Family history summary",
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0003",
+            "archetype_id": null,
+            "rm_type": "CLUSTER",
+            "pinned_name": null,
+            "sibling_ordinal": 1
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0023",
+            "archetype_id": null,
+            "rm_type": "ELEMENT",
+            "pinned_name": null,
+            "sibling_ordinal": 5
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "DV_BOOLEAN",
+      "anchor": null,
+      "layout": {
+        "order": 4,
+        "section": null,
+        "label": {
+          "en": "Has this family member died?"
+        },
+        "help": {
+          "en": "Answering yes asks for the date and the age at death."
+        },
+        "default": null,
+        "visibility": "always",
+        "widget": null,
+        "geometry": {
+          "span": null,
+          "break_before": false,
+          "width": null
+        },
+        "hints": {}
+      }
+    },
+    {
+      "key": {
+        "steps": [
+          {
+            "rm_attribute": "",
+            "node_id": "at0000",
+            "archetype_id": "openEHR-EHR-EVALUATION.family_history.v2",
+            "rm_type": "EVALUATION",
+            "pinned_name": "Family history summary",
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "data",
+            "node_id": "at0001",
+            "archetype_id": null,
+            "rm_type": "ITEM_TREE",
+            "pinned_name": null,
+            "sibling_ordinal": 0
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0003",
+            "archetype_id": null,
+            "rm_type": "CLUSTER",
+            "pinned_name": null,
+            "sibling_ordinal": 1
+          },
+          {
+            "rm_attribute": "items",
+            "node_id": "at0058",
+            "archetype_id": null,
+            "rm_type": "ELEMENT",
+            "pinned_name": null,
+            "sibling_ordinal": 7
+          }
+        ],
+        "is_positional": false
+      },
+      "rm_type": "DV_DATE_TIME",
+      "anchor": null,
+      "layout": {
+        "order": 6,
+        "section": null,
+        "label": {},
+        "help": {},
+        "default": null,
+        "visibility": {
+          "when": {
+            "condition": {
+              "equals": {
+                "node": {
+                  "steps": [
+                    {
+                      "rm_attribute": "",
+                      "node_id": "at0000",
+                      "archetype_id": "openEHR-EHR-EVALUATION.family_history.v2",
+                      "rm_type": "EVALUATION",
+                      "pinned_name": "Family history summary",
+                      "sibling_ordinal": 0
+                    },
+                    {
+                      "rm_attribute": "data",
+                      "node_id": "at0001",
+                      "archetype_id": null,
+                      "rm_type": "ITEM_TREE",
+                      "pinned_name": null,
+                      "sibling_ordinal": 0
+                    },
+                    {
+                      "rm_attribute": "items",
+                      "node_id": "at0003",
+                      "archetype_id": null,
+                      "rm_type": "CLUSTER",
+                      "pinned_name": null,
+                      "sibling_ordinal": 1
+                    },
+                    {
+                      "rm_attribute": "items",
+                      "node_id": "at0023",
+                      "archetype_id": null,
+                      "rm_type": "ELEMENT",
+                      "pinned_name": null,
+                      "sibling_ordinal": 5
+                    }
+                  ],
+                  "is_positional": false
+                },
+                "value": {
+                  "boolean": true
+                }
+              }
+            }
+          }
+        },
+        "widget": null,
+        "geometry": {
+          "span": null,
+          "break_before": false,
+          "width": null
+        },
+        "hints": {}
+      }
+    }
+  ]
+}

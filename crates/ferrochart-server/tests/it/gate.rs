@@ -127,3 +127,79 @@ async fn a_composition_the_template_admits_reaches_the_wire() {
         other => panic!("the outcome is {other:?}"),
     }
 }
+
+#[tokio::test]
+async fn a_fixed_element_a_reader_opted_into_reaches_the_document() {
+    // The family history template narrows "Deceased?" to `true` and leaves
+    // the element optional, so what a reader decides is whether the node is
+    // recorded at all (issue #207). The browser writes the one admitted value
+    // when they tick it, and this is the other half: the value the browser
+    // writes builds and validates.
+    let xml = support::xml_at(&support::corpus().join(LAID_OUT));
+    let (definition, validator, mut values) = support::case_at(&xml);
+    let envelope = support::envelope();
+
+    let field = definition
+        .fields()
+        .find(|field| {
+            field.is_fixed
+                && field.occurrences.minimum == 0
+                && matches!(field.kind, ferrochart_form::field::FieldKind::Boolean(_))
+        })
+        .expect("the template fixes an optional boolean");
+    let admitted = field
+        .kind
+        .only_admitted()
+        .expect("a fixed field names the value it fixed");
+    assert_eq!(admitted, ferrochart_form::value::Prefill::Boolean(true));
+
+    // Under the occurrence the filler reached the surrounding cluster by, so
+    // the value lands in a node the builder writes.
+    let group_path = values
+        .iter()
+        .find(|(slot, _)| slot.key == field.key)
+        .map_or_else(Vec::new, |(slot, _)| slot.group_path.clone());
+    values.set_in(
+        field.key.clone(),
+        group_path.clone(),
+        0,
+        Entered::Value(Datum::Boolean(true)),
+    );
+
+    let gate = Commit {
+        definition: &definition,
+        validator: &validator,
+        envelope: &envelope,
+    };
+    let built = gate
+        .validated(&values)
+        .expect("the opted-in element builds and conforms");
+    let written = serde_json::to_string(&built).expect("the document serializes");
+    assert!(
+        written.contains("at0023"),
+        "the opted-in element is not in the document"
+    );
+
+    // And the other direction: a reader who left it alone commits a document
+    // without the node, which is what an optional element means.
+    let everywhere: Vec<(Vec<usize>, usize)> = values
+        .iter()
+        .filter(|(slot, _)| slot.key == field.key)
+        .map(|(slot, _)| (slot.group_path.clone(), slot.occurrence))
+        .collect();
+    for (at, occurrence) in everywhere {
+        drop(values.remove_in(&field.key, &at, occurrence));
+    }
+    let without = gate
+        .validated(&values)
+        .expect("the element left out builds and conforms");
+    let written = serde_json::to_string(&without).expect("the document serializes");
+    assert!(
+        !written.contains("at0023"),
+        "an element nobody opted into reached the document"
+    );
+}
+
+/// The template that fixes an optional boolean, which is the shape #207 is
+/// about.
+const LAID_OUT: &str = "family-history-summary-item-r2.opt";

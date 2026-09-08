@@ -1359,6 +1359,7 @@ and a set of entered values are `ferrochart-form`'s published contract
 | `GET /health` | Reports that this process is up, without authentication. It says nothing about the CDR or the terminology server. |
 | `GET /api/templates` | The template identifiers this server holds. |
 | `GET /api/templates/{template_id}/definition` | The `FormDefinition` that template compiles to. |
+| `GET /api/templates/{template_id}/layout` | The `FormLayout` a person authored over that template. A template nobody laid out answers with a layout that decides nothing, so a client has no absent case to tell apart from the 404 an unknown template earns. |
 | `POST /api/templates/{template_id}/validation` | Judges entered values against the template and returns the failures keyed onto the definition. It makes no request to the CDR. |
 | `POST /api/ehrs/{ehr_id}/templates/{template_id}/compositions` | Builds, validates and commits, which is `Commit::create` behind a route. Answers 201 with the version uid. |
 | `GET /api/ehrs/{ehr_id}/compositions/{uid}/values?template={template_id}` | Reads a stored COMPOSITION back into the values of that form. |
@@ -1387,6 +1388,27 @@ too: a server serving fewer forms than its operator installed, or picking
 between two by filesystem order, is silently wrong. The variable is optional,
 and unset means the server holds no template at all, which is the honest
 reading of an operator who installed none.
+
+**The layouts a server holds come from a directory too.** `FERROCHART_OVERLAYS`
+names a directory of overlay documents, at most one per template, which the
+server reads at startup and keys by the template each was authored against. The
+refusals match the template directory's for the same reason: an overlay that
+will not read fails the startup naming the file, and two overlays over one
+template fail it too, because a form drawn in template order because the server
+quietly dropped the layout is the failure this design exists to avoid. The
+variable is optional, and unset means every form draws in template order.
+
+What the route serves is `ferrochart-form`'s `FormLayout` rather than the
+`ferrochart-overlay` document on disk. The two differ by the authoring
+bookkeeping: an entry's recorded Reference Model class and its positional
+anchor are what a replay compares against a revised template (section 6.5), and
+a renderer has no use for either. Keeping them off the wire is also what lets
+the browser link `ferrochart-form` and nothing else of this tree
+(`scripts/checks/crate-closure.sh`).
+
+A `FormLayout` states `LAYOUT_FORMAT_VERSION`, which is its own number rather
+than the form definition's: the two documents change for different reasons, so
+one version line for both would refuse a layout that is in its current format.
 
 **The entered values on the wire.** A `FormValues` is a JSON ARRAY, because its
 map is keyed by a `Slot` and a JSON object cannot be. Each element spells the
@@ -1435,8 +1457,11 @@ than in prose a renderer cannot place.
   `If-Match` on update.
 - **A FHIR terminology server to FerroCHART:** an expansion or a code
   validation, for the bindings of section 7 that name a target.
-- **FerroCHART to a renderer:** a form definition, and a validation result
-  keyed by node path, over the routes of section 11.1.
+- **FerroCHART to a renderer:** a form definition, the layout a person authored
+  over it, and a validation result keyed by node path, over the routes of
+  section 11.1. The definition says what the template admits and the layout
+  says how a person wants it presented, so the renderer fetches both and
+  neither can make a control admit what the template refuses.
 - **A renderer to FerroCHART:** the entered values, in the array of section
   11.1, with the envelope of section 5.3 beside them.
 - **A person to FerroCHART:** the overlay, which is the only artefact in this

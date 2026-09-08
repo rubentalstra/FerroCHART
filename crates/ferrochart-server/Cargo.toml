@@ -25,6 +25,7 @@ ferrochart-cdr.workspace = true
 ferrochart-compile.workspace = true
 ferrochart-compose.workspace = true
 ferrochart-form.workspace = true
+ferrochart-overlay.workspace = true
 ferrochart-validate.workspace = true
 openehr-rm.workspace = true
 serde.workspace = true

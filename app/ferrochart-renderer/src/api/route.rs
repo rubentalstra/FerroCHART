@@ -26,6 +26,11 @@ pub(crate) fn definition(template_id: &str) -> String {
     format!("{BASE}/templates/{}/definition", url::segment(template_id))
 }
 
+/// The layout a person authored over one template.
+pub(crate) fn layout(template_id: &str) -> String {
+    format!("{BASE}/templates/{}/layout", url::segment(template_id))
+}
+
 /// The judgement of entered values against one template.
 #[allow(
     dead_code,
@@ -64,13 +69,14 @@ pub(crate) fn values(ehr_id: &str, uid: &str, template_id: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{compositions, definition, templates, validation, values};
+    use super::{compositions, definition, layout, templates, validation, values};
 
     #[test]
     fn every_route_hangs_off_the_one_prefix() {
         for address in [
             templates(),
             definition("t"),
+            layout("t"),
             validation("t"),
             compositions("e", "t"),
             values("e", "u", "t"),
@@ -84,6 +90,14 @@ mod tests {
         assert_eq!(
             definition("IDCR - Adverse Reaction List.v1"),
             "/api/templates/IDCR%20-%20Adverse%20Reaction%20List.v1/definition"
+        );
+    }
+
+    #[test]
+    fn a_definition_and_a_layout_address_the_same_template() {
+        assert_eq!(
+            definition("a/b").trim_end_matches("definition"),
+            layout("a/b").trim_end_matches("layout")
         );
     }
 

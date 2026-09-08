@@ -261,6 +261,31 @@ impl Page {
             .unwrap_or_default()
     }
 
+    /// Fails when anything matches `selector`.
+    ///
+    /// The caller anchors on something the same render draws before calling
+    /// this, so an empty count is the screen having decided rather than the
+    /// screen not having drawn yet.
+    pub(crate) async fn none(&self, selector: By, what: &str) {
+        let found = self.count(selector).await;
+        if found > 0 {
+            let reason = format!("{found} of them are on the page, and none was wanted");
+            panic!("{}", self.failure(what, &reason).await);
+        }
+    }
+
+    /// The text of every element matching `selector`, in document order.
+    pub(crate) async fn texts(&self, selector: By) -> Vec<String> {
+        let Ok(found) = self.driver.find_all(selector).await else {
+            return Vec::new();
+        };
+        let mut read = Vec::with_capacity(found.len());
+        for element in found {
+            read.push(element.text().await.unwrap_or_default());
+        }
+        read
+    }
+
     /// The value of `attribute` on the first element matching `selector`.
     pub(crate) async fn attribute(&self, selector: By, attribute: &str, what: &str) -> String {
         let element = self.element(selector, what).await;

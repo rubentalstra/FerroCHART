@@ -17,6 +17,7 @@ pub mod api;
 pub mod commit;
 mod config;
 mod health;
+pub mod overlays;
 pub mod store;
 pub mod ui;
 
@@ -33,6 +34,7 @@ use tokio::net::TcpListener;
 pub use crate::api::ServerState;
 pub use crate::config::{Config, ConfigError};
 pub use crate::health::Health;
+use crate::overlays::{OverlayStore, OverlayStoreError};
 use crate::store::{StoreError, TemplateStore};
 
 /// Why the server never started, or stopped.
@@ -47,6 +49,16 @@ pub enum ServeError {
         /// Which template, and why.
         #[source]
         source: Box<StoreError>,
+    },
+
+    /// A layout the operator installed would not read.
+    #[error("the overlay directory {} cannot be served", directory.display())]
+    Overlays {
+        /// The directory as configured.
+        directory: PathBuf,
+        /// Which overlay, and why.
+        #[source]
+        source: Box<OverlayStoreError>,
     },
 
     /// The configured CDR base is not a URL.
@@ -119,13 +131,23 @@ pub fn router_with_bundle(state: ServerState, bundle: &'static [ui::Asset]) -> R
 ///
 /// # Errors
 /// Returns [`ServeError::Templates`] when a template the operator installed
-/// will not compile, [`ServeError::CdrUrl`] when the configured CDR base is
-/// not a URL, and [`ServeError::Cdr`] when no client can be built for it.
+/// will not compile, [`ServeError::Overlays`] when a layout they installed
+/// will not read, [`ServeError::CdrUrl`] when the configured CDR base is not a
+/// URL, and [`ServeError::Cdr`] when no client can be built for it.
 pub fn state(config: &Config) -> Result<ServerState, ServeError> {
     let templates = match config.templates {
         None => TemplateStore::new(),
         Some(ref directory) => {
             TemplateStore::load(directory).map_err(|source| ServeError::Templates {
+                directory: directory.clone(),
+                source: Box::new(source),
+            })?
+        }
+    };
+    let overlays = match config.overlays {
+        None => OverlayStore::new(),
+        Some(ref directory) => {
+            OverlayStore::load(directory).map_err(|source| ServeError::Overlays {
                 directory: directory.clone(),
                 source: Box::new(source),
             })?
@@ -138,7 +160,9 @@ pub fn state(config: &Config) -> Result<ServerState, ServeError> {
     let cdr = CdrClient::new(&base).map_err(|source| ServeError::Cdr {
         source: Box::new(source),
     })?;
-    Ok(ServerState::new(Arc::new(templates), cdr).with_ui(config.ui))
+    Ok(ServerState::new(Arc::new(templates), cdr)
+        .with_overlays(Arc::new(overlays))
+        .with_ui(config.ui))
 }
 
 /// Bind the configured address and serve until the process is asked to stop.
@@ -155,6 +179,7 @@ pub fn state(config: &Config) -> Result<ServerState, ServeError> {
 pub async fn serve(config: &Config) -> Result<(), ServeError> {
     let state = state(config)?;
     let held = state.templates().len();
+    let laid_out = state.overlays().len();
 
     let listener = TcpListener::bind(config.listen)
         .await
@@ -168,6 +193,7 @@ pub async fn serve(config: &Config) -> Result<(), ServeError> {
         cdr = %config.cdr_url,
         terminology = %config.term_url,
         templates = held,
+        layouts = laid_out,
         "FerroCHART is listening"
     );
 

@@ -126,11 +126,21 @@ impl Drop for Running {
 
 /// Serves the real router over `templates`, committing to `cdr`.
 pub(crate) async fn serve(templates: PathBuf, cdr: &str) -> Running {
+    serve_laid_out(templates, None, cdr).await
+}
+
+/// Serves the real router over `templates` and the layouts in `overlays`.
+pub(crate) async fn serve_laid_out(
+    templates: PathBuf,
+    overlays: Option<PathBuf>,
+    cdr: &str,
+) -> Running {
     let config = Config {
         listen: SocketAddr::from((Ipv4Addr::LOCALHOST, 0)),
         cdr_url: cdr.to_owned(),
         term_url: "http://127.0.0.1:9/r4".to_owned(),
         templates: Some(templates),
+        overlays,
         ui: true,
     };
     let state = ferrochart_server::state(&config).expect("the templates compile");

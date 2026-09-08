@@ -23,6 +23,25 @@ the build order.
 
 ### Added
 
+- The renderer reads the layout a person authored, which is half the product
+  and until now the browser read none of it (#201). A form is drawn in the
+  order they put its items in, under the names and the help text they wrote
+  over the archetype's, starting from the values they chose, and an item
+  behind a rule appears only while that rule holds. So a form grows as it is
+  answered instead of asking every question at once: the family history form
+  asks whether a family member has died, and the date and the age at death
+  arrive when the answer is yes. No specification governs any of that, and it
+  is what the overlay exists to carry.
+
+  The server reads the layouts from `FERROCHART_OVERLAYS`, a directory of at
+  most one overlay per template, and serves each as `FormLayout` at
+  `GET /api/templates/{template_id}/layout`. A template nobody laid out
+  answers with a layout that decides nothing, so a renderer has no absent case
+  to tell apart from an unknown template. An overlay that will not read fails
+  the startup, as a template that will not compile does, and so do two
+  overlays over one template. `e2e/overlays/` carries the one authored layout
+  this repository ships, and the browser battery drives it.
+
 - The browser battery opens a section the template says may be absent and
   proves the fields inside it arrive (#202). A form now opens with those
   sections closed, so a battery that stopped at the first screen would never
@@ -202,6 +221,18 @@ the build order.
   takes." (#178).
 
 ### Fixed
+
+- A field the template fixed drew the sentence "The template fixed this
+  value" instead of the value, and one the template also said may be absent
+  could not be answered at all (#207). A template can narrow a field to one
+  value and still leave the element optional, which is how the family history
+  template asks whether a family member has died: the question is whether the
+  element is recorded, and yes is the only answer it admits. The value the
+  constraint names is now read in one place, `FieldKind::only_admitted`, which
+  the derivation and the renderer both use. A fixed field shows the value it
+  fixed; an optional one draws a checkbox that records it or leaves the
+  element out; a required one is written into the document, so a COMPOSITION
+  cannot go out missing a node the template requires.
 
 - A repeating group inside an occurrence a reader added opened with one
   entry, whatever its template said (#202). The count of occurrences a form is

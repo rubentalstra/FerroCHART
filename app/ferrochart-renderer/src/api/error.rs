@@ -227,15 +227,25 @@ pub(crate) fn decoded<T: serde::de::DeserializeOwned>(
 }
 
 /// Refuses a document written in a format version this client does not read.
-pub(crate) fn format_checked(url: &str, status: u16, found: u32) -> Result<(), ApiError> {
-    if found == ferrochart_form::definition::FORMAT_VERSION {
+///
+/// `expected` is the version of THAT document rather than one number for the
+/// whole surface: a form definition and a layout are separate contracts with
+/// separate version lines, so a layout at version 1 beside a definition at
+/// version 2 is two documents both in their current format.
+pub(crate) fn format_checked(
+    url: &str,
+    status: u16,
+    found: u32,
+    expected: u32,
+) -> Result<(), ApiError> {
+    if found == expected {
         return Ok(());
     }
     Err(ApiError::UnsupportedFormat {
         url: url.to_owned(),
         status,
         found,
-        expected: ferrochart_form::definition::FORMAT_VERSION,
+        expected,
     })
 }
 
@@ -345,20 +355,14 @@ mod tests {
 
     #[test]
     fn a_document_in_another_format_version_is_refused_rather_than_guessed_at() {
-        let error = format_checked("/api/templates", 200, 99).unwrap_err();
+        let expected = ferrochart_form::definition::FORMAT_VERSION;
+        let error = format_checked("/api/templates", 200, 99, expected).unwrap_err();
         assert!(matches!(
             error,
             ApiError::UnsupportedFormat { found: 99, .. }
         ));
         // The constant rather than a literal, so a format bump does not need
         // this test edited to keep meaning what it says.
-        assert!(
-            format_checked(
-                "/api/templates",
-                200,
-                ferrochart_form::definition::FORMAT_VERSION
-            )
-            .is_ok()
-        );
+        assert!(format_checked("/api/templates", 200, expected, expected).is_ok());
     }
 }
