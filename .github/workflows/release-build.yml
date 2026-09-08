@@ -104,7 +104,7 @@ jobs:
         run: rustup target add wasm32-unknown-unknown
       - name: Build the renderer bundle
         working-directory: app/ferrochart-renderer
-        run: trunk build --release --locked
+        run: trunk build --release --locked --no-default-features
 
       # `cargo auditable` writes the compressed dependency list into the
       # binary's own `.dep-v0` section, under 4 KiB, so the SHIPPED artifact

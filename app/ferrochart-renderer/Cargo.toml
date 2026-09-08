@@ -17,6 +17,16 @@ publish.workspace = true
 name = "ferrochart-renderer"
 path = "src/main.rs"
 
+# The living style guide is a build-time surface for whoever works on the kit,
+# and it costs 51506 gzipped bytes of a clinician's download (#154), so a
+# release bundle is built --no-default-features and does not carry it. It is ON
+# by default because every other build wants it: a cargo build then draws every
+# affordance the kit defines, so an affordance nothing draws is a dead-code
+# error rather than a silence.
+[features]
+default = ["design"]
+design = []
+
 [dependencies]
 console_error_panic_hook.workspace = true
 ferrochart-form.workspace = true

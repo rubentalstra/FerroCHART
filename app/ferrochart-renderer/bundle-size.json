@@ -7,8 +7,12 @@
     "screens still to land, and that arithmetic was wrong: the three features it",
     "was guessing about (#101, #138, #137) came in at 441161 gzipped against a",
     "420000 guess. It is now set from MEASUREMENT of what is built plus a named",
-    "allowance, and issue #154 is the work that brings it back down. #27 must not",
-    "spend the allowance: #154 lands first.",
+    "allowance, and issue #154 is the work that brings it back down.",
+    "",
+    "Two reductions have landed: external tagging saved 33269 (#171) and the",
+    "living style guide left the release bundle for the `design` cargo feature,",
+    "saving 51506 (#154). Headroom is 110514, and the last feature of comparable",
+    "scale to #27 cost 173294, so #154 is not finished and #27 still waits.",
     "",
     "max_growth_gzip_bytes is what ONE change may add. measured_gzip_bytes is",
     "what CI last produced on main, and it is the baseline a pull request is",
@@ -24,7 +28,7 @@
       "glob": "*_bg.wasm",
       "max_gzip_bytes": 470000,
       "max_growth_gzip_bytes": 60000,
-      "measured_gzip_bytes": 410995
+      "measured_gzip_bytes": 359486
     },
     "js": {
       "glob": "*.js",

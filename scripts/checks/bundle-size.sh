@@ -29,7 +29,7 @@ base="${2:-}"
 
 if [[ ! -d "$dist" ]]; then
   echo "bundle-size: SKIPPED, which is NOT a pass: $dist does not exist."
-  echo "  Build it first: (cd app/ferrochart-renderer && trunk build --release --locked)"
+  echo "  Build it first: (cd app/ferrochart-renderer && trunk build --release --locked --no-default-features)"
   exit 0
 fi
 

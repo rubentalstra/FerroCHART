@@ -429,13 +429,23 @@ jobs:
           cargo clippy -p ferrochart-renderer --locked
           --target wasm32-unknown-unknown --all-targets --all-features
           -- -D warnings
+      # The configuration a release actually ships: without the style guide.
+      # The default build is the one linted above, so without this step the
+      # bundle a clinician downloads would be the one nothing lints.
+      - name: Clippy on the configuration a release ships
+        run: >-
+          cargo clippy -p ferrochart-renderer --locked
+          --target wasm32-unknown-unknown --all-targets --no-default-features
+          -- -D warnings
       - name: Tests, including the token contrast gate
         run: cargo nextest run -p ferrochart-renderer --locked --no-tests=pass
       - name: Every screen styles against the semantic tokens
         run: bash scripts/checks/palette-utilities.sh
+      # --no-default-features drops the living style guide, which a clinician
+      # does not download (#154).
       - name: Build the release bundle
         working-directory: app/ferrochart-renderer
-        run: trunk build --release --locked
+        run: trunk build --release --locked --no-default-features
       - name: The bundle is inside its ceiling and its per-change budget
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
