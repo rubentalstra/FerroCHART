@@ -44,8 +44,8 @@ pub(crate) fn PageHeader(
     /// One line under the title, or nothing.
     #[prop(optional, into)]
     subtitle: Option<Signal<String>>,
-    /// The trail above the title. Empty draws no breadcrumb at all rather
-    /// than an empty strip.
+    /// The trail above the title. Fewer than two entries draws no breadcrumb
+    /// at all: a trail of one names the screen its own heading names.
     #[prop(optional)]
     crumbs: Vec<Crumb>,
     /// Whether the title is an identifier and therefore monospace.
@@ -55,7 +55,9 @@ pub(crate) fn PageHeader(
     #[prop(optional)]
     children: Option<Children>,
 ) -> impl IntoView {
-    let trail = (!crumbs.is_empty()).then(|| {
+    // A trail of one entry is not a trail: it names the screen the heading
+    // under it already names, so Layout drew "Layout" twice (issue #193).
+    let trail = (crumbs.len() > 1).then(|| {
         let steps: Vec<_> = crumbs
             .into_iter()
             .map(|crumb| match crumb.href {

@@ -56,6 +56,21 @@ the build order.
 
 ### Changed
 
+- **The frame stops spending a fifth of the window on nothing** (#193). A
+  320-pixel Inspector panel reading "Select a node to edit its layout" was
+  drawn on every screen, including four that have no node to select and
+  Layout itself, which says the authoring surface is not built. It arrives
+  with the selection that drives it (#27). A breadcrumb of one entry is no
+  longer drawn: it named the screen its own heading names, so Layout read
+  "Layout" twice. And the three frames say what their screen will do rather
+  than citing a tracker issue number at the reader.
+- The README said the round trip had never run against a real CDR and to
+  treat the commit path as untested (#196). It runs on every pull request
+  (#195, #126). The README also promised a browser that posts what a
+  clinician entered, described the layout overlay as missing only its
+  authoring screen when the renderer honours none of it either, and gave a
+  `v0.0.5` asset name three releases out of date.
+
 - **An open archetype slot reads as a place to add content, not a warning**
   (#180). openEHR AM Release-2.3.0 `AOM2.html` section 4.5.8 gives
   `ARCHETYPE_SLOT` the attribute `is_closed`, "closed to further filling
