@@ -114,6 +114,16 @@ the build order.
 
 ### Changed
 
+- The envelope (`Envelope`, `Composer`, `Subject`, `Setting`) moved from
+  `ferrochart-compose` to `ferrochart-form` (#151), so the renderer can build
+  the value it has to submit. openEHR RM Release-1.1.0 `ehr.html` section
+  5.2.2 makes `COMPOSITION.composer` mandatory and nothing authorises a server
+  to invent it, and the renderer links `ferrochart-form` alone. The code that
+  turns one into a Reference Model `CODE_PHRASE` stays with the builder. The
+  serialised shape is unchanged, and the surface tests prove it.
+- `FormValues::remove_in` is `#[must_use]`. A caller that discards what was
+  forgotten now says so, and the attribute caught two sites that did not.
+
 - The entered-value types (`FormValues`, `Slot`, `Entered`, `Datum`) moved from
   `ferrochart-compose` to `ferrochart-form` (#139). A renderer collects values
   and links `ferrochart-form` alone, so leaving them behind the composition

@@ -462,7 +462,11 @@ mod tests {
         values.set_in(key("items"), vec![0], 0, text("first instance"));
         values.set_in(key("items"), vec![1], 0, text("second instance"));
         values.set_in(key("items"), vec![1], 1, text("second repeat"));
-        values.remove_in(&key("items"), &[1], 0);
+        assert_eq!(
+            values.remove_in(&key("items"), &[1], 0),
+            Some(text("second instance")),
+            "the address removed is the one asked for"
+        );
         assert_eq!(
             values.get_in(&key("items"), &[0], 0),
             Some(&text("first instance"))
