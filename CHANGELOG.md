@@ -23,6 +23,15 @@ the build order.
 
 ### Added
 
+- `scripts/checks/palette-utilities.sh` refuses a control that draws its own
+  focus ring or sets `outline-none` (#157). The stylesheet's base layer holds
+  one `:focus-visible` rule for the whole application, and that rule is what
+  guarantees every control has an indicator; a class that overrides it removes
+  one silently. The assertion existed in one kit module of eleven and now
+  covers every source file, including the ones nobody has written yet.
+
+### Added
+
 - The form screen draws the controls (#26). `/ui/forms/{template_id}` fetched
   a definition and rendered its group tree as headings and labels, because the
   request module and the controls were built in parallel and nothing joined

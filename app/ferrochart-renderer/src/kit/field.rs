@@ -77,29 +77,10 @@ mod tests {
         HINT,
     ];
 
-    #[test]
-    fn no_constant_draws_its_own_focus_ring() {
-        for class in ALL {
-            assert!(
-                !class.contains("focus:") && !class.contains("focus-visible:"),
-                "the stylesheet's base layer owns the focus indicator: {class}"
-            );
-            assert!(
-                !class.contains("outline-none"),
-                "removing the indicator leaves a control with none: {class}"
-            );
-        }
-    }
-
-    #[test]
-    fn no_constant_reaches_past_the_semantic_tokens() {
-        for class in ALL {
-            assert!(!class.contains("dark:"), "dark mode is the tokens: {class}");
-            for raw in ["slate-", "rose-", "gray-", "zinc-", "red-", "pink-"] {
-                assert!(!class.contains(raw), "raw palette `{raw}` in: {class}");
-            }
-        }
-    }
+    // The focus-ring and semantic-token rules were asserted here over these
+    // nine constants. `scripts/checks/palette-utilities.sh` now scans every
+    // source file for both, including the modules this test could never see,
+    // so the assertions moved rather than went away (issue #157).
 
     #[test]
     fn the_line_continuations_left_no_double_space_in_a_class_list() {
