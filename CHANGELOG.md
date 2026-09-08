@@ -65,6 +65,26 @@ the build order.
 
 ### Added
 
+- The server serves the renderer at `/ui/`, and `/ui` redirects onto it
+  (#166). The bundle Trunk builds rides inside the `ferrochart` binary as a
+  table of files the build script writes, so a release archive and the
+  container image behave the same and a request path never reaches the
+  filesystem. A path under `/ui` that names a file type the bundle does not
+  hold answers `404`, and any other path answers `index.html`, which is how a
+  client-side route deep-links. Content-hashed assets are served
+  `public, max-age=31536000, immutable` and `index.html` `no-cache`, each with
+  its own media type and `X-Content-Type-Options: nosniff`. `FERROCHART_UI=off`
+  drops the routes, and a binary built without the bundle serves no `/ui`
+  route. With the quickstart `compose.yaml` the address is
+  <http://127.0.0.1:8080/ui/>.
+- Every release carries a second CycloneDX document,
+  `ferrochart-renderer-<tag>-<target>.cdx.json`, attested against the same
+  archive (#166). The server's own document reaches none of `leptos`,
+  `wasm-bindgen` or `web-sys`, because the cargo feature that compiles the
+  bundle in is empty and there is no dependency edge to follow, so the
+  WebAssembly the binary serves to every reader was absent from the document
+  that claims to describe what shipped. The lane refuses to publish a renderer
+  document that lists none of those three.
 - `scripts/checks/palette-utilities.sh` refuses a control that draws its own
   focus ring or sets `outline-none` (#157). The stylesheet's base layer holds
   one `:focus-visible` rule for the whole application, and that rule is what
@@ -74,6 +94,22 @@ the build order.
 
 ### Added
 
+- The book shows the renderer, and a test takes the pictures (#93).
+  `scripts/ui-e2e.sh` stands up the form surface over two committed CKM
+  templates, serves the renderer bundle against it, and drives a pinned
+  headless Chromium through the template library, both forms and the design
+  system over WebDriver. `--docs-shots` walks the same screens again on both
+  grounds and writes one PNG each into
+  `website/book/src/operate/img/renderer`, which the new
+  `website/book/src/operate/renderer.md` page and the book's introduction
+  embed. The journeys and the capture share one definition of what a screen
+  must have drawn (`e2e/tests/it/screens.rs`), so a screenshot cannot outlive
+  the journey that proves it, and an ordinary run rewrites no tracked file.
+  A `ui-e2e` CI job runs the battery on every pull request, uploads what a
+  failed journey was looking at, and fails when a run changed a tracked file.
+  `scripts/checks/docs-shots.sh` refuses an image that is not a PNG, is small
+  enough to be a blank page, carries a name the capture does not write, or is
+  committed with no page embedding it.
 - The form screen draws the controls (#26). `/ui/forms/{template_id}` fetched
   a definition and rendered its group tree as headings and labels, because the
   request module and the controls were built in parallel and nothing joined
@@ -205,6 +241,15 @@ the build order.
   one instance of one group, which is what removing a repeat means.
 
 ### Fixed
+
+- The release lane builds and describes the binary it ships rather than every
+  binary the workspace declares (#166). `cargo auditable build --workspace
+  --bins` tried to link the renderer, which is a browser binary, for
+  `x86_64-unknown-linux-musl`, the Package step would have tarred it into the
+  archive, and the SBOM guard refused the whole lane because the workspace
+  declares a bin set it did not describe. The lane now builds `-p ferrochart`
+  with the renderer feature on, packages the released package's own bins, and
+  the guard names both bins and says which document covers which.
 
 - A repeatable group builds one instance per occurrence a clinician entered,
   and reads back into the instance it came from (#141). The composition

@@ -40,19 +40,38 @@ pub struct ServerState {
     templates: Arc<TemplateStore>,
     /// The client for the configured CDR.
     cdr: CdrClient,
+    /// Whether this deployment serves the renderer under `/ui`.
+    ui: bool,
 }
 
 impl ServerState {
     /// Holds `templates` and commits through `cdr`.
     #[must_use]
     pub fn new(templates: Arc<TemplateStore>, cdr: CdrClient) -> Self {
-        Self { templates, cdr }
+        Self {
+            templates,
+            cdr,
+            ui: true,
+        }
+    }
+
+    /// Serves the renderer under `/ui` when `ui` is true.
+    #[must_use]
+    pub fn with_ui(mut self, ui: bool) -> Self {
+        self.ui = ui;
+        self
     }
 
     /// The templates this server serves.
     #[must_use]
     pub fn templates(&self) -> &TemplateStore {
         &self.templates
+    }
+
+    /// Whether this deployment asked for the renderer.
+    #[must_use]
+    pub fn serves_ui(&self) -> bool {
+        self.ui
     }
 }
 

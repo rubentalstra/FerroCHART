@@ -9,3 +9,9 @@
 # (.claude/rules/vendored-inputs.md, .claude/rules/codegen.md).
 corpus/** linguist-vendored -text
 # **/generated/** linguist-generated
+
+# The book's screenshots, written by the end-to-end battery. Stated as binary
+# rather than left to the eol=lf rule above to detect, because a PNG that a
+# line-ending conversion touched is corrupt and looks like nothing until a
+# reader opens the page.
+website/book/src/**/img/**/*.png binary

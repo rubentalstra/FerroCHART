@@ -16,6 +16,10 @@ members = [
   "app/ferrochart-renderer",
   "app/ferrochart",
 ]
+# The browser journeys are excluded for the reason e2e/Cargo.toml records:
+# their WebDriver client changes how serde_json writes every object, and cargo
+# unifies features across one invocation.
+exclude = ["e2e"]
 
 [workspace.package]
 version = "0.0.5"

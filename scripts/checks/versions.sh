@@ -31,10 +31,14 @@
 #                          .github/actions/docs-toolchain/action.yml against
 #                          docs/VERSIONS.md.
 #   9. renderer toolchain the Trunk and Tailwind pins of
-#                          app/ferrochart-renderer/Trunk.toml and the trunk and
+#                          app/ferrochart-renderer/Trunk.toml, the trunk and
 #                          leptosfmt versions the ci.yml renderer job installs,
+#                          the trunk version the release lane installs, and the
+#                          wasm-bindgen requirement whose CLI Trunk downloads,
 #                          against docs/VERSIONS.md.
-#  10. licence             LICENSE is the Business Source License 1.1 and no
+#  10. browser journeys   the pinned Chromium image scripts/ui-e2e.sh runs,
+#                          against docs/VERSIONS.md.
+#  11. licence             LICENSE is the Business Source License 1.1 and no
 #                          first-party file claims MIT or Apache-2.0 as its own.
 #
 # Usage:
@@ -383,6 +387,31 @@ if [ -f "$ci" ] && [ -f "$trunk_toml" ]; then
   else
     note "OK: the renderer job installs trunk $found"
   fi
+  # The release lane builds the bundle it compiles into the binary it signs,
+  # so its Trunk has to be the same one CI gates against.
+  if [ -f "$release_build" ]; then
+    found_rel="$(sed -nE 's|.*tool:[[:space:]]*trunk@([^,[:space:]]+).*|\1|p' "$release_build" | head -n1)"
+    if [ -z "$found_rel" ]; then
+      bad "$release_build installs trunk without pinning a version"
+    elif [ "$found_rel" != "$want_trunk" ]; then
+      bad "trunk: $release_build installs $found_rel, docs/VERSIONS.md pins $want_trunk"
+    else
+      note "OK: the release lane installs trunk $found_rel"
+    fi
+  fi
+  # Trunk downloads the wasm-bindgen CLI of the version the lockfile resolves,
+  # so the matrix row and the workspace requirement have to name one version.
+  want_wb="$(pin_of "wasm-bindgen CLI" docs/VERSIONS.md)"
+  found_wb="$(manifest_req "wasm-bindgen")"
+  if [ -z "$want_wb" ]; then
+    bad "docs/VERSIONS.md has no 'wasm-bindgen CLI' row"
+  elif [ -z "$found_wb" ]; then
+    bad "root Cargo.toml has no wasm-bindgen requirement"
+  elif [ "$found_wb" != "$want_wb" ]; then
+    bad "wasm-bindgen: root Cargo.toml requires $found_wb, docs/VERSIONS.md pins $want_wb"
+  else
+    note "OK: wasm-bindgen $found_wb"
+  fi
   want_lf="$(pin_of "leptosfmt" docs/VERSIONS.md)"
   found_lf="$(sed -nE 's|.*cargo install leptosfmt --locked --version[[:space:]]+([^[:space:]]+).*|\1|p' "$ci" | head -n1)"
   if [ -z "$want_lf" ]; then
@@ -394,6 +423,29 @@ if [ -f "$ci" ] && [ -f "$trunk_toml" ]; then
   else
     note "OK: the renderer job installs leptosfmt $found_lf"
   fi
+fi
+
+echo "== browser journeys (scripts/ui-e2e.sh <-> docs/VERSIONS.md)"
+# The battery drives a pinned Chromium. A moving tag would change the browser
+# under a green lane, so the pin carries its index digest and both halves are
+# compared.
+ui_e2e=scripts/ui-e2e.sh
+if [ -f "$ui_e2e" ]; then
+  want_browser="$(pin_of "Selenium standalone Chromium" docs/VERSIONS.md)"
+  found_browser="$(sed -nE 's|^readonly BROWSER_IMAGE="selenium/standalone-chromium:([^"]+)".*|\1|p' "$ui_e2e" | head -n1)"
+  if [ -z "$want_browser" ]; then
+    bad "docs/VERSIONS.md has no 'Selenium standalone Chromium' row"
+  elif [ -z "$found_browser" ]; then
+    bad "$ui_e2e names no pinned selenium/standalone-chromium image"
+  elif [ "${found_browser#*@sha256:}" = "$found_browser" ]; then
+    bad "$ui_e2e pins the browser by tag alone; a tag is mutable"
+  elif [ "$found_browser" != "$want_browser" ]; then
+    bad "browser: $ui_e2e runs $found_browser, docs/VERSIONS.md pins $want_browser"
+  else
+    note "OK: the browser image is $found_browser"
+  fi
+else
+  note "no $ui_e2e yet, skipped"
 fi
 
 echo "== docs toolchain (.github/actions/docs-toolchain <-> docs/VERSIONS.md)"

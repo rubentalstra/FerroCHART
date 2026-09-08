@@ -124,13 +124,40 @@ binary itself, so there is no Node and no npm anywhere in this build.
 
 | Item | Pin | Repeated in |
 |---|---|---|
-| Trunk | 0.21.14 | `app/ferrochart-renderer/Trunk.toml` `trunk-version`, the `renderer` job of `ci.yml` |
+| Trunk | 0.21.14 | `app/ferrochart-renderer/Trunk.toml` `trunk-version`, the `renderer` job of `ci.yml`, `.github/workflows/release-build.yml` |
 | Tailwind CSS standalone CLI | 4.3.3 | `app/ferrochart-renderer/Trunk.toml` `[tools]` `tailwindcss` |
+| wasm-bindgen CLI | 0.2.128 | root `Cargo.toml` `[workspace.dependencies]` `wasm-bindgen`, which is the version Trunk downloads the CLI for |
+| wasm32-unknown-unknown | 1.98.1 | `rustup target add` in the `renderer` job of `ci.yml` and in `.github/workflows/release-build.yml` |
 | leptosfmt | 0.1.33 | the `renderer` job of `ci.yml` |
 
 `leptosfmt` is a `cargo install --locked --version` rather than a
 `taiki-e/install-action` entry: the action has no recipe for it and falls back
 to cargo-binstall guessing an asset name.
+
+The `wasm32-unknown-unknown` row pins the toolchain the target is added to,
+because rustup installs the standard library for a target at the channel
+`rust-toolchain.toml` names. The `wasm-bindgen` row is the crate requirement
+rather than a separately pinned tool: Trunk reads the resolved version out of
+the lockfile and downloads the CLI that matches it, so the crate pin is the
+CLI pin. Neither download carries a checksum this repository checks, which
+`docs/release.md` records as a gap in the SLSA claim.
+
+## Browser journeys
+
+The end-to-end battery (`scripts/ui-e2e.sh`) drives a headless Chromium over
+WebDriver. Selenium publishes the browser and its matching chromedriver in one
+image and keeps them in step, so the pin is that image, by tag and by index
+digest: a tag is mutable and a battery that changed browser without a commit
+would report a defect nobody introduced.
+
+| Item | Pin | Repeated in |
+|---|---|---|
+| Selenium standalone Chromium | `4.48.0-20260905@sha256:fcf9eef47b9546a2252937481a8298ce0958d20c9d91e040d480184e80b41c76` | `scripts/ui-e2e.sh` |
+
+The journeys themselves are a crate outside the workspace (`e2e/Cargo.toml`,
+which records why), so their WebDriver client and runtime are pinned in that
+manifest rather than here, the same way the workspace dependency table is the
+authority for every crate the product links.
 
 ## Documentation toolchain
 

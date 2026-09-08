@@ -10,19 +10,26 @@ review, and editing.
 It runs as its own server beside any openEHR CDR, and uses any FHIR
 terminology server to expand the value sets behind coded fields.
 
-## Nothing renders a form yet
+## What a template becomes
 
 The compiler works. It reads both ADL generations, and 121 of the 123
 committed CKM templates derive a form definition, 2658 fields across 1789
-groups. The overlay replays hand-authored layout onto a recompiled form and
-reports what changed. Releases publish binaries for four Linux targets and a
-container image.
+groups. The server publishes that definition and a browser draws it, with a
+control for every field kind the derivation produces, each admitting what its
+template admits and refusing the rest.
 
-What the binary does today is read its configuration, bind, and answer a
-health probe. There is no renderer, so no clinician sees a form; nothing
-builds a COMPOSITION or commits one to a CDR; there is no authoring surface
-for the layout; and no round trip has been proven against a running CDR. What
-each release adds is the [build order](evaluate/build-order.md).
+![A form the compiler derived from an operational template](operate/img/renderer/form-family-history-summary-item-r2.png)
+
+That picture was taken by the end-to-end battery rather than by hand, and
+[the renderer](operate/renderer.md) has the rest of the screens.
+
+Two things do not work yet. The layout overlay's authoring surface is not
+built, so a form is drawn in template order; the overlay itself is, including
+its replay across a template revision and its report of what matched, moved or
+disappeared. And the round trip has never run against a real CDR: the whole
+build, validate, post and accept path is exercised against a mock, and the
+test that would prove the claim is [issue #126][live]. What each release adds
+is the [build order](evaluate/build-order.md).
 
 The design of record is [`docs/architecture.md`][arch] in the repository,
 where every decision carries a citation to a primary source or an explicit
@@ -41,3 +48,4 @@ form at a time, or go without. That gap is the reason for this project, and it
 was named by the openEHR community rather than invented here.
 
 [arch]: https://github.com/rubentalstra/FerroCHART/blob/main/docs/architecture.md
+[live]: https://github.com/rubentalstra/FerroCHART/issues/126
