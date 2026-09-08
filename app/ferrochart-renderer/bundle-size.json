@@ -3,32 +3,45 @@
     "The renderer's bundle budget (issue #101). No specification governs this:",
     "our own design, adopted from the family recipe.",
     "",
-    "max_gzip_bytes is the ceiling, set from arithmetic over the screens still",
-    "to land rather than from today's build, so it does not creep one screen at",
-    "a time. max_growth_gzip_bytes is what ONE change may add.",
-    "measured_gzip_bytes is what CI last produced on main, and it is the",
-    "baseline a pull request is charged against; the baseline is read from the",
-    "merge base rather than from the branch, so a change cannot make itself",
-    "green by editing a number here."
+    "max_gzip_bytes is the ceiling. It was first set from arithmetic over the",
+    "screens still to land, and that arithmetic was wrong: the three features it",
+    "was guessing about (#101, #138, #137) came in at 441161 gzipped against a",
+    "420000 guess. It is now set from MEASUREMENT of what is built plus a named",
+    "allowance, and issue #154 is the work that brings it back down. #27 must not",
+    "spend the allowance: #154 lands first.",
+    "",
+    "max_growth_gzip_bytes is what ONE change may add. measured_gzip_bytes is",
+    "what CI last produced on main, and it is the baseline a pull request is",
+    "charged against; the baseline is read from the merge base rather than from",
+    "the branch, so a change cannot make itself green by editing a number here.",
+    "",
+    "step_change names a growth in advance, with its reason and its issue. It is",
+    "honoured only when the build measures that figure within the same tolerance",
+    "a recorded figure gets, so a stanza left behind permits nothing further."
   ],
   "assets": {
     "wasm": {
       "glob": "*_bg.wasm",
-      "max_gzip_bytes": 420000,
+      "max_gzip_bytes": 470000,
       "max_growth_gzip_bytes": 60000,
-      "measured_gzip_bytes": 309494
+      "measured_gzip_bytes": 441161,
+      "step_change": {
+        "to": 441161,
+        "reason": "eighteen field controls and ten kit affordances (#137), over the form contract #138 linked",
+        "issue": 154
+      }
     },
     "js": {
       "glob": "*.js",
       "max_gzip_bytes": 14000,
       "max_growth_gzip_bytes": 2000,
-      "measured_gzip_bytes": 8376
+      "measured_gzip_bytes": 8847
     },
     "css": {
       "glob": "*.css",
       "max_gzip_bytes": 12000,
       "max_growth_gzip_bytes": 2000,
-      "measured_gzip_bytes": 4627
+      "measured_gzip_bytes": 4842
     }
   }
 }

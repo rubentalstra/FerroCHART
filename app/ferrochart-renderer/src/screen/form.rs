@@ -22,9 +22,10 @@ use leptos::prelude::*;
 use leptos_router::hooks::use_params_map;
 
 use crate::api;
-use crate::kit::notice::{Notice, Tone};
+use crate::kit::notice::Notice;
 use crate::kit::page_header::{Crumb, PageHeader};
 use crate::kit::surface::{CARD_PAD, CODE};
+use crate::kit::tone::Tone;
 use crate::label;
 use crate::nav;
 use crate::screen::inline::{Failed, detail};
@@ -55,7 +56,7 @@ pub(crate) fn Form() -> impl IntoView {
     let body = move || {
         if wanted().is_empty() {
             return view! {
-                <Notice tone=Tone::Info title="No template is named.">
+                <Notice tone=Tone::Neutral title="No template is named.">
                     <a href=nav::href(nav::TEMPLATES) class="text-accent hover:underline">
                         "Choose one from the template library."
                     </a>

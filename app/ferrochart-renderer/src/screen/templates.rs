@@ -10,9 +10,10 @@
 use leptos::prelude::*;
 
 use crate::api;
-use crate::kit::notice::{Notice, Tone};
+use crate::kit::notice::Notice;
 use crate::kit::page_header::{Crumb, PageHeader};
 use crate::kit::surface::{CARD_PAD, CODE};
+use crate::kit::tone::Tone;
 use crate::nav;
 use crate::screen::inline::{Failed, detail};
 
@@ -55,7 +56,7 @@ pub(crate) fn Templates() -> impl IntoView {
 fn listed(list: &api::TemplateList) -> AnyView {
     if list.templates.is_empty() {
         return view! {
-            <Notice tone=Tone::Info title="This server holds no template.">
+            <Notice tone=Tone::Neutral title="This server holds no template.">
                 "Compile one and it appears here."
             </Notice>
         }
