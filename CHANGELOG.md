@@ -162,6 +162,21 @@ the build order.
 
 ### Fixed
 
+- The synthetic fixtures stated two shapes the Reference Model does not admit
+  (#127), both invisible until the commit gate landed something that judges an
+  instance. Ten `.opt` fixtures gave an `archetype_id` a three-part version,
+  which is the template identifier's form: openEHR BASE Release-1.2.0
+  `base_types.html` section 5.5 gives an `archetype_id` a single version
+  number, and section 5.4.11 leaves `TEMPLATE_ID` with no lexical form at all.
+  Twelve `OBSERVATION`-rooted fixtures put an `ITEM_STRUCTURE`, a `CLUSTER` or
+  an `ELEMENT` straight under `OBSERVATION.data`, where RM Release-1.1.0
+  `ehr.html` section 8.3.4 types that attribute `HISTORY<ITEM_STRUCTURE>`, so
+  a `HISTORY` and an `EVENT` belong between; all 118 `OBSERVATION.data`
+  attributes of the vendored CKM pack already state it that way. Anything
+  those fixtures proved about an `OBSERVATION` was proved about a structure no
+  CDR would accept. A new check over every committed `.opt` fixture holds all
+  three shapes, so the next one fails at the fixture rather than at a CDR.
+
 - `docs/architecture.md` section 6.2 recorded a corpus split that does not
   sum: "87 single-purpose conformance templates plus 16 CKM clinical
   templates" for a total of 102. The total is consistent everywhere and is

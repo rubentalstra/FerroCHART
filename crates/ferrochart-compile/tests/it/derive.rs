@@ -697,9 +697,13 @@ fn the_root_group_carries_the_archetype_and_the_template_identity() {
     );
     assert_eq!(form.default_language, english());
     assert_eq!(form.languages, [english()]);
+    // The two identifiers differ in their version part: openEHR BASE
+    // Release-1.2.0 `base_types.html` section 5.5 gives an `archetype_id` a
+    // single version number, and section 5.4.11 leaves `TEMPLATE_ID` with no
+    // lexical form at all.
     assert_eq!(
         form.root.archetype_id.as_ref().map(ArchetypeId::as_str),
-        Some("openEHR-EHR-OBSERVATION.ferro_test.v1.0.0")
+        Some("openEHR-EHR-OBSERVATION.ferro_test.v1")
     );
     let tree = form
         .groups()

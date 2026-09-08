@@ -13,34 +13,42 @@ description
 definition
     OBSERVATION[id1] occurrences matches {1..1} matches {
         data matches {
-            ITEM_TREE[id2] occurrences matches {1..1} matches {
-                items existence matches {0..1} cardinality matches {0..*; ordered} matches {
-                    ELEMENT[id3] occurrences matches {0..1} matches {
-                        value matches {
-                            DV_QUANTITY[id4] occurrences matches {1..1} matches {
-                                [magnitude, units] matches {
-                                    [{|>=0.0|}, {"mm[Hg]"}]
+            HISTORY[id11] occurrences matches {1..1} matches {
+                events existence matches {1..1} cardinality matches {1..1; ordered} matches {
+                    POINT_EVENT[id12] occurrences matches {1..1} matches {
+                        data existence matches {1..1} matches {
+                            ITEM_TREE[id2] occurrences matches {1..1} matches {
+                                items existence matches {0..1} cardinality matches {0..*; ordered} matches {
+                                    ELEMENT[id3] occurrences matches {0..1} matches {
+                                        value matches {
+                                            DV_QUANTITY[id4] occurrences matches {1..1} matches {
+                                                [magnitude, units] matches {
+                                                    [{|>=0.0|}, {"mm[Hg]"}]
+                                                }
+                                            }
+                                        }
+                                    }
+                                    ELEMENT[id5] occurrences matches {0..1} matches {
+                                        value matches {
+                                            DV_CODED_TEXT[id6] occurrences matches {1..1} matches {
+                                                defining_code matches {[ac1]}
+                                            }
+                                        }
+                                    }
+                                    ELEMENT[id7] occurrences matches {0..*} matches {
+                                        value matches {
+                                            DV_TEXT[id8] occurrences matches {1..1} matches {
+                                                value matches {"one"}
+                                            }
+                                        }
+                                    }
+                                    ELEMENT[id9] occurrences matches {0} matches {
+                                        value matches {
+                                            DV_TEXT[id10] occurrences matches {1..1} matches {*}
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
-                    ELEMENT[id5] occurrences matches {0..1} matches {
-                        value matches {
-                            DV_CODED_TEXT[id6] occurrences matches {1..1} matches {
-                                defining_code matches {[ac1]}
-                            }
-                        }
-                    }
-                    ELEMENT[id7] occurrences matches {0..*} matches {
-                        value matches {
-                            DV_TEXT[id8] occurrences matches {1..1} matches {
-                                value matches {"one"}
-                            }
-                        }
-                    }
-                    ELEMENT[id9] occurrences matches {0} matches {
-                        value matches {
-                            DV_TEXT[id10] occurrences matches {1..1} matches {*}
                         }
                     }
                 }
@@ -61,6 +69,8 @@ terminology
             ["id8"] = < text = <"Comment value"> description = <"The comment text."> >
             ["id9"] = < text = <"Withdrawn"> description = <"A node the template removes."> >
             ["id10"] = < text = <"Withdrawn value"> description = <"The removed node's value."> >
+            ["id11"] = < text = <"History"> description = <"The event history."> >
+            ["id12"] = < text = <"Any event"> description = <"A point in time."> >
             ["at1"] = < text = <"Sitting"> description = <"Seated."> >
             ["at2"] = < text = <"Standing"> description = <"Upright."> >
             ["ac1"] = < text = <"Position choice"> description = <"The permitted positions."> >
