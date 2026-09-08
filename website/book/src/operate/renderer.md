@@ -87,11 +87,16 @@ screens above consistent by construction rather than by review.
 
 ## What is not built
 
-**No published artefact serves these screens yet.** The container image a
-release publishes carries the server binary, and the server answers `/api` and
-`/health` and nothing under `/ui`, so `compose.yaml` brings up the form surface
-without the renderer in front of it. Building the bundle and serving it is
-[issue #166][ship]. Until it lands, the battery above is how the screens run.
+**The published image serves these screens**, at `/ui/`, with `/ui` redirecting
+onto it. The bundle is compiled into the `ferrochart` binary, so a release
+archive and the container image behave the same, and `compose.yaml` brings the
+renderer up at <http://127.0.0.1:8080/ui/>
+([Configuration](configuration.md)).
+
+**No lane drives the published artefacts yet.** The battery above builds the
+bundle and the server out of the tree under test, so it says nothing about the
+image a release pushed. A lane that pulls the published image and runs the same
+journeys against it is the open half of [issue #166][ship].
 
 The rail also carries entries whose screens have their frame and not yet their
 content. The layout overlay's authoring surface is [issue #27][overlay]; a

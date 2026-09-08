@@ -38,6 +38,13 @@ pub struct Config {
     /// IS named has to exist and every template in it has to compile, or the
     /// server refuses to start.
     pub templates: Option<PathBuf>,
+
+    /// Whether the server serves the renderer under `/ui`.
+    ///
+    /// On by default, and `FERROCHART_UI=off` drops the routes for a
+    /// deployment that wants an API-only surface. A binary built without the
+    /// renderer bundle serves no `/ui` route whatever this says.
+    pub ui: bool,
 }
 
 /// Why the configuration could not be read.
@@ -62,6 +69,15 @@ pub enum ConfigError {
         /// The parse failure underneath.
         #[source]
         source: std::net::AddrParseError,
+    },
+
+    /// A switch variable names neither state.
+    #[error("{PREFIX}{name} is neither `on` nor `off`: {value:?}")]
+    Switch {
+        /// The variable's name without its prefix.
+        name: &'static str,
+        /// What was read.
+        value: String,
     },
 
     /// A variable holds bytes that are not UTF-8.
@@ -89,14 +105,35 @@ fn required(name: &'static str, hint: &'static str) -> Result<String, ConfigErro
     }
 }
 
+/// Read one prefixed variable naming an on or off state.
+///
+/// `on`, `true`, `1` and `yes` are on, and `off`, `false`, `0` and `no` are
+/// off, in any case. An unset variable keeps `default`.
+fn switch(name: &'static str, default: bool) -> Result<bool, ConfigError> {
+    let Some(value) = var(name)? else {
+        return Ok(default);
+    };
+    switch_of(&value).ok_or(ConfigError::Switch { name, value })
+}
+
+/// The state `value` names, or `None` when it names neither.
+fn switch_of(value: &str) -> Option<bool> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "on" | "true" | "1" | "yes" => Some(true),
+        "off" | "false" | "0" | "no" => Some(false),
+        _ => None,
+    }
+}
+
 impl Config {
     /// Read the configuration from the process environment.
     ///
     /// # Errors
     ///
     /// Returns [`ConfigError`] when a required variable is absent or empty,
-    /// when `FERROCHART_LISTEN` does not parse as a socket address, or when a
-    /// variable holds bytes that are not UTF-8.
+    /// when `FERROCHART_LISTEN` does not parse as a socket address, when
+    /// `FERROCHART_UI` names neither state, or when a variable holds bytes
+    /// that are not UTF-8.
     pub fn from_env() -> Result<Self, ConfigError> {
         let listen = match var("LISTEN")? {
             Some(value) => value,
@@ -117,6 +154,7 @@ impl Config {
             cdr_url: required("CDR_URL", "the openEHR CDR's ITS-REST base URL")?,
             term_url: required("TERM_URL", "the FHIR terminology server's base URL")?,
             templates,
+            ui: switch("UI", true)?,
         })
     }
 }
@@ -140,6 +178,29 @@ mod tests {
         let message = err.to_string();
         assert!(message.contains("FERROCHART_CDR_URL"), "{message}");
         assert!(message.contains("ITS-REST base URL"), "{message}");
+    }
+
+    #[test]
+    fn a_switch_reads_both_states_in_any_spelling() {
+        for on in ["on", "ON", " true ", "1", "yes"] {
+            assert_eq!(switch_of(on), Some(true), "{on}");
+        }
+        for off in ["off", "OFF", " false ", "0", "no"] {
+            assert_eq!(switch_of(off), Some(false), "{off}");
+        }
+        assert_eq!(switch_of("maybe"), None);
+        assert_eq!(switch_of(""), None);
+    }
+
+    #[test]
+    fn a_switch_that_names_neither_state_names_itself() {
+        let err = ConfigError::Switch {
+            name: "UI",
+            value: "maybe".to_owned(),
+        };
+        let message = err.to_string();
+        assert!(message.contains("FERROCHART_UI"), "{message}");
+        assert!(message.contains("maybe"), "{message}");
     }
 
     #[test]

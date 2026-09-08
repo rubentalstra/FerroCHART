@@ -387,11 +387,16 @@ jobs:
               ".tar.gz.sha256sum" \
               ".tar.gz.sigstore.json" \
               ".tar.gz.sbom.sigstore.json" \
+              ".tar.gz.renderer-sbom.sigstore.json" \
               ".tar.gz.intoto.jsonl" \
               ".cdx.json"; do
               printf '%s\n' "$assets" | grep -Fxq "ferrochart-${TAG}-${target}${suffix}" \
                 || missing="$missing ferrochart-${TAG}-${target}${suffix}"
             done
+            # The renderer's own dependency document, named after the browser
+            # binary it describes rather than after the archive.
+            renderer="ferrochart-renderer-${TAG}-${target}.cdx.json"
+            printf '%s\n' "$assets" | grep -Fxq "$renderer" || missing="$missing $renderer"
           done < <(printf '%s' "$TARGETS" | jq -r '.include[].target')
           # The release-wide assets the image lane attaches: the quickstart
           # compose file, its checksum, and its provenance bundle.

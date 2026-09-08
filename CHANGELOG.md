@@ -51,6 +51,26 @@ the build order.
 
 ### Added
 
+- The server serves the renderer at `/ui/`, and `/ui` redirects onto it
+  (#166). The bundle Trunk builds rides inside the `ferrochart` binary as a
+  table of files the build script writes, so a release archive and the
+  container image behave the same and a request path never reaches the
+  filesystem. A path under `/ui` that names a file type the bundle does not
+  hold answers `404`, and any other path answers `index.html`, which is how a
+  client-side route deep-links. Content-hashed assets are served
+  `public, max-age=31536000, immutable` and `index.html` `no-cache`, each with
+  its own media type and `X-Content-Type-Options: nosniff`. `FERROCHART_UI=off`
+  drops the routes, and a binary built without the bundle serves no `/ui`
+  route. With the quickstart `compose.yaml` the address is
+  <http://127.0.0.1:8080/ui/>.
+- Every release carries a second CycloneDX document,
+  `ferrochart-renderer-<tag>-<target>.cdx.json`, attested against the same
+  archive (#166). The server's own document reaches none of `leptos`,
+  `wasm-bindgen` or `web-sys`, because the cargo feature that compiles the
+  bundle in is empty and there is no dependency edge to follow, so the
+  WebAssembly the binary serves to every reader was absent from the document
+  that claims to describe what shipped. The lane refuses to publish a renderer
+  document that lists none of those three.
 - `scripts/checks/palette-utilities.sh` refuses a control that draws its own
   focus ring or sets `outline-none` (#157). The stylesheet's base layer holds
   one `:focus-visible` rule for the whole application, and that rule is what
@@ -207,6 +227,15 @@ the build order.
   one instance of one group, which is what removing a repeat means.
 
 ### Fixed
+
+- The release lane builds and describes the binary it ships rather than every
+  binary the workspace declares (#166). `cargo auditable build --workspace
+  --bins` tried to link the renderer, which is a browser binary, for
+  `x86_64-unknown-linux-musl`, the Package step would have tarred it into the
+  archive, and the SBOM guard refused the whole lane because the workspace
+  declares a bin set it did not describe. The lane now builds `-p ferrochart`
+  with the renderer feature on, packages the released package's own bins, and
+  the guard names both bins and says which document covers which.
 
 - A repeatable group builds one instance per occurrence a clinician entered,
   and reads back into the instance it came from (#141). The composition

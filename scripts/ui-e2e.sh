@@ -35,10 +35,11 @@
 # and FERROCHART_UI_E2E_FORMS has to name them, or the journeys fail on a
 # library that lists something else.
 #
-# The published container image carries the server binary and no bundle, and
-# the server serves no /ui route, so there is no released artefact that answers
-# the addresses below. That is issue #166, and it is why this script serves the
-# renderer with Trunk rather than running compose.yaml.
+# This script drives the tree under test, so it builds the server and serves
+# the renderer with Trunk rather than running compose.yaml: a pull request has
+# to be judged on its own bundle, not on the image the last release pushed. The
+# published image does answer /ui, and a lane that runs these journeys against
+# it is the open half of issue #166.
 #
 # No CDR and no terminology server are started. Every screen the battery drives
 # is a pure read of the form surface: the template library, the forms those
