@@ -1210,7 +1210,7 @@ the manifest rather than by habit.
 
 | Crate | Role |
 |---|---|
-| `ferrochart-form` | The form definition type, the overlay's layout types, the entered-value types, and their serialisations. No I/O, and nothing else from this tree; `thiserror` for its one error type is the only dependency. |
+| `ferrochart-form` | The form definition type, the overlay's layout types, the entered-value types, and their serialisations. No I/O, and nothing else from this tree; `serde` for the published documents and `thiserror` for its one error type. |
 | `ferrochart-compile` | Operational template to form definition. Owns the internal constraint model of section 3 and the derivation of section 5. |
 | `ferrochart-webtemplate` | The web template compatibility surface of section 4: reading one into a form definition, and writing one out. Links `ferrochart-form` and nothing else of this tree. |
 | `ferrochart-overlay` | Overlay storage, the key normalization of section 6.2, replay, and the differential report. Not the layout types themselves. |
