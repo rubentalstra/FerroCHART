@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!-- SPDX-FileCopyrightText: Ruben Talstra -->
+<!-- SPDX-License-Identifier: BUSL-1.1 -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- The theme class lands on <html> after mount. This meta gets the user
+         agent's own surfaces right in the gap before that, so the scrollbar
+         and the canvas behind the app do not flash the wrong ground. -->
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="Build and fill openEHR forms compiled from an operational template."
+    />
+    <title>FerroCHART</title>
+    <link data-trunk rel="icon" href="../../assets/brand/favicon.svg" />
+    <link
+      data-trunk
+      rel="rust"
+      data-wasm-opt="z"
+      data-cargo-profile-release="wasm-release"
+    />
+    <link data-trunk rel="tailwind-css" href="style/tailwind.css" />
+  </head>
+  <body></body>
+</html>

@@ -1162,6 +1162,47 @@ link an engine crate, which landed with issue #72 as
 definition, which is the reason section 4 owns the type rather than
 publishing a web template.
 
+### 10.1 The design system
+
+Issue #101 landed the frame before the renderer, so #26 does not invent a look
+from nothing. No specification governs any of it: our own design, taking the
+token names and the proportions of FerroEHR's viewer so the two products read
+as one family, and taking the accent from the Rose & Iron palette of
+`assets/brand/README.md`.
+
+**Every screen styles against semantic tokens.** `surface`, `raised`,
+`sunken`, `edge`, `edge-strong`, `ink`, `ink-muted`, `ink-faint`, `accent`,
+`accent-hover`, `accent-subtle`, `accent-ink`, `on-accent`, `ok`, `warn`,
+`danger` with their subtle fills, and `scrim`. Dark mode is the same names
+redefined under `.dark` on the document element, never a per-element `dark:`
+override, and `scripts/checks/palette-utilities.sh` fails the build when a
+source file reaches past them. Shape and elevation are three tokens:
+`--radius-card`, `--radius-control`, and one `--shadow-card`.
+
+**The contrast claim is measured rather than asserted.** The stylesheet is the
+one place a colour is written, and `src/tokens.rs` parses it at test time and
+re-measures every pair the design depends on, in both themes, against WCAG 2.2
+success criteria 1.4.3 and 1.4.11. Three consequences worth recording, because
+each departs from the sibling: the dark accent is blush rather than rose-light,
+because rose-light reads 3.92 against a raised panel and the token has to carry
+text; `--edge-strong` is darkened until a control boundary clears 3:1; and a
+placeholder takes `--ink-muted` rather than `--ink-faint`, because 1.4.3
+exempts an inactive control and does not exempt a placeholder.
+
+**The shell is three columns.** A 56px topbar over a 208px rail, a canvas, and
+a persistent inspector. The inspector is the one structural departure from the
+sibling, whose right-hand panel is a transient drawer: a viewer only reads,
+where a builder selects a node and edits its layout. Below the breakpoint the
+rail becomes an overlay over the scrim with focus trapped, Escape closing it,
+and focus returned to the control that opened it.
+
+**Gates.** The `renderer` job of `ci.yml` runs `cargo fmt` plus `leptosfmt`,
+clippy on `wasm32-unknown-unknown` (the only place a dependency that cannot
+compile for a browser shows up), the tests, the palette check, a release
+bundle build, and `scripts/checks/bundle-size.sh`, which charges a change
+against the baseline recorded in the MERGE BASE rather than in the branch
+under judgement.
+
 ## 11. Workspace layout
 
 The crate names are reserved before code lands, so the layering is fixed by

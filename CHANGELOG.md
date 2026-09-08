@@ -21,6 +21,42 @@ the build order.
 
 ## [Unreleased]
 
+### Added
+
+- The design system (#101): the renderer is a Leptos client-side binary built
+  by Trunk, and it lands with its frame before its content. Every screen
+  styles against semantic tokens, dark mode is the same token names redefined
+  under `.dark`, and the accent is the Rose & Iron palette
+  (`assets/brand/README.md`). The shell is three columns, a 56px topbar over a
+  208px rail, a canvas, and a persistent inspector, with the rail becoming a
+  focus-trapped overlay below the breakpoint. A living style guide at
+  `/ui/design` draws every affordance the kit defines.
+- The token contrast gate: the stylesheet is the one place a colour is
+  written, and the renderer's tests parse it and re-measure every pair the
+  design depends on, in both themes, against WCAG 2.2 success criteria 1.4.3
+  and 1.4.11. Three values differ from the sibling viewer as a result: the
+  dark accent is blush rather than rose-light, a control boundary is darkened
+  until it clears 3:1, and a placeholder takes the muted step rather than the
+  faint one.
+- `scripts/checks/palette-utilities.sh`: a raw palette utility, a per-element
+  `dark:` override, or a hex colour outside the stylesheet fails the build.
+  Neither sibling enforces this rule, and both state it in prose.
+- `scripts/checks/bundle-size.sh` and `app/ferrochart-renderer/bundle-size.json`:
+  a ceiling and a per-change budget per asset. A pull request is charged
+  against the baseline recorded in the merge base rather than in the branch,
+  so a change cannot pass itself by editing the number.
+- The `renderer` job in CI: `cargo fmt` plus `leptosfmt`, clippy on
+  `wasm32-unknown-unknown`, the tests, the palette check, a release bundle
+  build, and the bundle budget.
+
+### Changed
+
+- `deny.toml` ignores two RustSec unmaintained advisories, `RUSTSEC-2024-0436`
+  (`paste`) and `RUSTSEC-2026-0173` (`proc-macro-error2`). Both crates are
+  build-time proc-macro dependencies of Leptos, neither is a vulnerability,
+  and no code from either reaches the bundle a reader downloads. Tracked as
+  #135.
+
 ## [0.0.5] - 2026-09-08
 
 ### Added

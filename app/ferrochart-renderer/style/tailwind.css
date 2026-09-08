@@ -1,0 +1,161 @@
+/* SPDX-FileCopyrightText: Ruben Talstra */
+/* SPDX-License-Identifier: BUSL-1.1 */
+
+/* Every screen styles against the SEMANTIC tokens below (bg-surface,
+   bg-raised, text-ink, border-edge, text-accent), never against a raw palette
+   utility (slate-, rose-) and never with a per-element `dark:` override. Dark
+   mode is the same token names redefined under `.dark`, so both themes stay
+   in lockstep and a screen cannot come out half light and half dark.
+   `scripts/checks/palette-utilities.sh` fails the build when a source file
+   reaches past this file.
+
+   The token names are FerroEHR's viewer's, so the two products read as one
+   family. The accent hue is FerroCHART's own: the Rose & Iron palette of
+   `assets/brand/README.md`, which is the authority for every rose value and
+   for the contrast each pair carries. The figure beside a token is its
+   measured ratio against the WORST of the three grounds it can land on, and
+   `src/tokens.rs` re-measures every pair from this file at test time, so a
+   number here is checked rather than claimed. */
+
+@import "tailwindcss" source(none);
+@source "../src/**/*.rs";
+@source "../index.html";
+
+/* Tailwind 4's stock `dark` variant follows `prefers-color-scheme`, which an
+   in-app toggle cannot drive. `:where()` keeps the variant at zero
+   specificity, so a `dark:` utility does not outrank an unprefixed one. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --surface: #f8fafc; /* page ground */
+  --raised: #ffffff; /* cards, panels, the topbar, the rail */
+  --sunken: #f1f5f9; /* wells, table header rows, code panes */
+  --edge: #e2e8f0; /* hairline, decorative, carries no meaning alone */
+  --edge-strong: #7d8796; /* control borders. 3.32, WCAG 1.4.11 */
+  --ink: #0f172a; /* primary text. 16.30 */
+  --ink-muted: #475569; /* secondary text, labels, placeholders. 6.92 */
+  --ink-faint: #64748b; /* disabled and decorative only. 4.34 */
+  --accent: #C2185B; /* rose. 5.61 on surface, per the brand README */
+  --accent-hover: #9D1E52; /* rose-deep. 7.32 on surface, per the brand README */
+  --accent-subtle: #FCE4EC; /* tinted fill behind accent-ink */
+  --accent-ink: #9D1E52; /* text on accent-subtle. 6.37 */
+  --on-accent: #ffffff; /* text on solid accent. 5.87 */
+  --ok: #047857; /* 5.01 */
+  --ok-subtle: #d1fae5; /* ok on it: 4.84 */
+  --warn: #b45309; /* 4.58 */
+  --warn-subtle: #fef3c7; /* warn on it: 4.51 */
+  --danger: #b91c1c; /* 5.91 */
+  --danger-subtle: #fee2e2; /* danger on it: 5.30 */
+  --scrim: rgb(2 6 23 / 0.4);
+}
+
+.dark {
+  --surface: #0f172a;
+  --raised: #1e293b;
+  --sunken: #0b1220;
+  --edge: #334155;
+  --edge-strong: #6b7a91; /* 3.36 */
+  --ink: #f1f5f9; /* 13.35 */
+  --ink-muted: #94a3b8; /* 5.71 */
+  --ink-faint: #748196; /* 3.71 */
+  /* Blush rather than rose-light. The brand README measures rose-light at
+     5.01 against the iron tile, but this theme raises panels to #1e293b,
+     where the same value reads 3.92 and can no longer carry text. */
+  --accent: #F48FB1; /* blush. 6.56 */
+  --accent-hover: #F8B4CB; /* 8.63 */
+  --accent-subtle: #4a0f27;
+  --accent-ink: #F48FB1; /* text on accent-subtle. 6.78 */
+  --on-accent: #3f0d22; /* text on solid accent. 7.28 */
+  --ok: #34d399; /* 7.61 */
+  --ok-subtle: #064e3b; /* ok on it: 5.06 */
+  --warn: #fbbf24; /* 8.76 */
+  --warn-subtle: #78350f; /* warn on it: 5.43 */
+  --danger: #fca5a5; /* 7.71 */
+  --danger-subtle: #7f1d1d; /* danger on it: 5.28 */
+  /* At 0.40 a scrim barely separates a raised panel from a dark ground. */
+  --scrim: rgb(2 6 23 / 0.6);
+}
+
+/* `inline` is load-bearing: without it Tailwind resolves the var() when it
+   builds the utility, and the `.dark` redefinition never reaches the page. */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-sunken: var(--sunken);
+  --color-edge: var(--edge);
+  --color-edge-strong: var(--edge-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-ink: var(--accent-ink);
+  --color-on-accent: var(--on-accent);
+  --color-ok: var(--ok);
+  --color-ok-subtle: var(--ok-subtle);
+  --color-warn: var(--warn);
+  --color-warn-subtle: var(--warn-subtle);
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-scrim: var(--scrim);
+
+  /* Shape and elevation are three tokens. Depth is `raised` against `sunken`
+     plus a hairline, so there is no elevation scale to climb. */
+  --radius-card: 0.5rem;
+  --radius-control: 0.375rem;
+  --shadow-card: 0 1px 2px 0 rgb(2 6 23 / 0.06);
+
+  /* The rail is the sibling's 208px. The inspector is FerroCHART's own
+     column: a builder selects a node and edits its layout, so the panel is
+     persistent rather than a drawer. */
+  --spacing-rail: 13rem;
+  --spacing-inspector: 20rem;
+}
+
+@layer base {
+  html {
+    background-color: var(--surface);
+    color: var(--ink);
+  }
+
+  /* A placeholder is text and WCAG 1.4.3 does not exempt it, so it takes the
+     muted step rather than the faint one. `--ink-faint` is for a disabled
+     control, which the same success criterion does exempt. */
+  ::placeholder {
+    color: var(--ink-muted);
+  }
+
+  /* One focus indicator for the whole app, so a control cannot ship without
+     one and no class constant has to remember it. `:focus-visible` rather
+     than `:focus`, so a pointer click does not draw a ring. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* A canvas with drag and resize cannot skip this one. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* The theme class lands on <html> after the module boots, so between parse
+     and mount neither class is present. These two tokens are the only ones
+     that paint in that gap, and matching them to the system preference is
+     what keeps a dark-preferring reader from a white flash. Everything else
+     waits for the class. A reader whose STORED choice contradicts their
+     system preference still sees the ground correct itself once; closing that
+     needs a blocking script in <head>, which this project does not ship. */
+  @media (prefers-color-scheme: dark) {
+    :root:not(.light):not(.dark) {
+      --surface: #0f172a;
+      --ink: #f1f5f9;
+    }
+  }
+}

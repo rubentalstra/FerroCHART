@@ -13,7 +13,17 @@ version = 2
 # Fail on any RustSec advisory. Add exceptions explicitly, dated, and each
 # naming the event that deletes it.
 yanked = "deny"
-ignore = []
+# Two build-time proc-macro crates the Leptos chain pulls in, both marked
+# unmaintained and neither a vulnerability. No code from either reaches the
+# bundle a reader downloads, nothing in this repository names either crate,
+# and the fix belongs upstream. Tracked as #135, which deletes an entry the
+# moment its advisory stops firing.
+ignore = [
+  # paste 1.0.15, via either_of -> tachys -> leptos.
+  { id = "RUSTSEC-2024-0436", reason = "unmaintained proc-macro dependency of leptos; see #135" },
+  # proc-macro-error2 2.0.1, via leptos_macro and rstml.
+  { id = "RUSTSEC-2026-0173", reason = "unmaintained proc-macro dependency of leptos; see #135" },
+]
 
 [licenses]
 version = 2

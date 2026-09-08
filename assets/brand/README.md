@@ -56,6 +56,30 @@ which is why `tokens.css` carries `--ferrochart-brand` and
 colour a link on a light ground gives 5.61 and is fine; doing it on a dark
 ground gives 3.19 and is not.
 
+### The interface tokens derived from it
+
+The renderer's stylesheet (`app/ferrochart-renderer/style/tailwind.css`) takes
+its accent from the four values above and derives the pairs an interface
+needs: a tinted fill with text on it, and a solid fill with text on it. Those
+derived values are measured the same way, and
+`app/ferrochart-renderer/src/tokens.rs` re-measures every one of them from the
+stylesheet at test time, so a figure here cannot drift from the colour that
+ships.
+
+| Pair | Light | Dark | Bar |
+|---|---|---|---|
+| accent on the page ground | `#C2185B` on `#f8fafc`, 5.61 | `#F48FB1` on `#0f172a`, 8.00 | text |
+| accent on a raised panel | `#C2185B` on `#ffffff`, 5.87 | `#F48FB1` on `#1e293b`, 6.56 | text |
+| accent-ink on accent-subtle | `#9D1E52` on `#FCE4EC`, 6.37 | `#F48FB1` on `#4a0f27`, 6.78 | text |
+| on-accent on solid accent | `#ffffff` on `#C2185B`, 5.87 | `#3f0d22` on `#F48FB1`, 7.28 | text |
+
+**The dark accent is blush, not rose-light.** The table above measures
+rose-light at 5.01 against the iron tile, and that figure holds. The interface
+raises its panels to `#1e293b`, where the same value reads 3.92 and can no
+longer carry text, so the dark theme spends blush where the brand spends
+rose-light. A mark drawn on the tile still uses rose-light; a token that has
+to carry a word does not.
+
 ## Files
 
 | File | What it is |

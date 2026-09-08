@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: Ruben Talstra
+# SPDX-License-Identifier: BUSL-1.1
+# The renderer's build. `docs/VERSIONS.md` records the Trunk and Tailwind pins
+# and `scripts/checks/versions.sh` fails when this file and that table
+# disagree.
+trunk-version = ">=0.21.14"
+
+[build]
+target = "index.html"
+dist = "dist"
+public_url = "/ui/"
+filehash = true
+# CI builds from the committed lockfile, so a registry publish never changes
+# what a release bundle contains.
+locked = true
+minify = "on_release"
+
+[serve]
+port = 8081
+
+# `trunk serve` proxies the server surface, so a local session runs the real
+# API rather than a mock of it.
+[[proxy]]
+backend = "http://127.0.0.1:8080/health"
+
+[tools]
+# Trunk downloads the official standalone binary, so there is no Node and no
+# npm anywhere in this build.
+tailwindcss = "4.3.3"
