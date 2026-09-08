@@ -16,6 +16,7 @@ variables and a second mechanism only creates a question about which one wins.
 | `FERROCHART_LISTEN` | no | `127.0.0.1:8080` | The address to bind. |
 | `FERROCHART_CDR_URL` | yes | | The openEHR CDR's ITS-REST base URL. |
 | `FERROCHART_TERM_URL` | yes | | The FHIR terminology server's base URL. |
+| `FERROCHART_UI` | no | `on` | Whether the server serves the renderer at `/ui`. Reads `on` or `off` (`true`/`false`, `1`/`0`, `yes`/`no`, in any case). |
 | `RUST_LOG` | no | `info` | The log filter. |
 
 **The default bind is loopback.** A container publishes a port by widening it
@@ -33,6 +34,26 @@ ferrochart: FERROCHART_CDR_URL is not set: the openEHR CDR's ITS-REST base URL
 $ echo $?
 1
 ```
+
+## The renderer
+
+The published image serves the form renderer at `/ui/`, and `/ui` redirects
+onto it. With the quickstart `compose.yaml` that address is
+<http://127.0.0.1:8080/ui/>; change the host and port with
+`FERROCHART_BIND_HOST` and `FERROCHART_PORT`.
+
+The bundle is compiled into the `ferrochart` binary rather than copied into
+the image as files, so the release archive and the container image behave the
+same and a request path never reaches the filesystem. A path under `/ui` that
+names a file type the bundle does not hold answers `404`; any other path
+answers the single-page document, which is how a client-side route deep-links.
+Content-hashed assets are served `public, max-age=31536000, immutable` and
+`index.html` `no-cache`, each with its own media type and
+`X-Content-Type-Options: nosniff`.
+
+`FERROCHART_UI=off` drops the `/ui` routes for a deployment that wants an
+API-only surface. A binary built without the renderer bundle serves no `/ui`
+route whatever the variable says.
 
 ## The health probe
 

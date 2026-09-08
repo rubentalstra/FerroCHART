@@ -48,6 +48,14 @@ on:
 
 permissions: {}
 
+# The server feature that compiles app/ferrochart-renderer/dist into the
+# binary. It is off by default so an ordinary `cargo build` never needs a
+# bundle, and on here so a release carries the renderer. This is the release
+# lane's only reference to the name: rename the feature in
+# crates/ferrochart-server/Cargo.toml and here, and nowhere else.
+env:
+  RENDERER_FEATURE: ferrochart-server/ui
+
 jobs:
   build:
     runs-on: ${{ inputs.runner }}
@@ -81,6 +89,23 @@ jobs:
         if: ${{ contains(inputs.target, 'musl') }}
         run: sudo apt-get update && sudo apt-get install -y musl-tools
 
+      # The renderer bundle is architecture-independent, and it is built HERE
+      # rather than handed to this lane by its caller. A bundle produced in an
+      # ordinary caller job would put bytes this lane did not build inside the
+      # binary it signs, and that isolation is what SLSA Build L3 buys
+      # (https://slsa.dev/spec/v1.2/build-requirements). Building it once per
+      # target costs a few minutes and adds no attestation subject: the bundle
+      # rides inside the binary this lane already signs.
+      - name: Install Trunk
+        uses: taiki-e/install-action@0758d235715de2f3551eacc980d9ae8fce9342c3 # v2.87.3
+        with:
+          tool: trunk@0.21.14
+      - name: Add the WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
+      - name: Build the renderer bundle
+        working-directory: app/ferrochart-renderer
+        run: trunk build --release --locked
+
       # `cargo auditable` writes the compressed dependency list into the
       # binary's own `.dep-v0` section, under 4 KiB, so the SHIPPED artifact
       # self-describes to syft, trivy, grype and osv-scanner even when the
@@ -91,10 +116,21 @@ jobs:
         with:
           tool: cargo-auditable@0.7.5
 
-      - name: Build the release binaries
+      - name: Build the release binary
         env:
           TARGET: ${{ inputs.target }}
-        run: cargo auditable build --release --locked --workspace --bins --target "$TARGET"
+        # Naming the bundle directory is what makes a missing bundle fail the
+        # build: the server's build script refuses when the variable names a
+        # directory that does not read, and only warns when it falls back to
+        # the default. Without it a release would ship a renderer-less binary
+        # and nothing would say so. `-p ferrochart` because the workspace also
+        # declares the renderer's own bin, which is a browser binary Trunk
+        # builds for wasm32 and this lane never links natively.
+        run: |
+          set -euo pipefail
+          FERROCHART_UI_BUNDLE="${GITHUB_WORKSPACE}/app/ferrochart-renderer/dist" \
+            cargo auditable build --release --locked --target "$TARGET" \
+            -p ferrochart --features "$RENDERER_FEATURE"
 
       - name: Package the binaries with their checksum
         env:
@@ -102,15 +138,18 @@ jobs:
           TARGET: ${{ inputs.target }}
         run: |
           set -euo pipefail
-          # The binary names come from the workspace itself, so this step needs
-          # no edit when a binary is added or renamed.
+          # The binary names come from the released package itself, so this
+          # step needs no edit when a binary is added to it or renamed. The
+          # workspace's other bin is the renderer, which is a browser binary
+          # and rides inside this one rather than beside it.
           bins=()
           while IFS= read -r name; do
             if [ -n "$name" ]; then
               bins+=("$name")
             fi
           done < <(cargo metadata --format-version 1 --no-deps --locked \
-            | jq -r '.packages[].targets[] | select(.kind | index("bin")) | .name' | sort -u)
+            | jq -r '.packages[] | select(.name == "ferrochart") | .targets[]
+                     | select(.kind | index("bin")) | .name' | sort -u)
           if [ "${#bins[@]}" -eq 0 ]; then
             echo "::error::the workspace declares no bin target, so this release can attach no binary." >&2
             exit 1
@@ -149,16 +188,18 @@ jobs:
           TARGET: ${{ inputs.target }}
         run: |
           set -euo pipefail
-          # One document per released binary, and each one is attested below by
-          # a step of its own, which no loop can express. So the lane names the
-          # binaries it describes and refuses a workspace that declares another
-          # one, rather than shipping a binary with no SBOM. A new binary joins
-          # here, with its own generate and attest steps.
+          # One document per graph that reaches the artifact, and each one is
+          # attested below by a step of its own, which no loop can express. So
+          # the lane names the bin set it knows and refuses a workspace that
+          # declares another one, rather than shipping a binary with no SBOM.
+          # `ferrochart` is the released binary and `ferrochart-renderer` is
+          # the browser binary compiled into it, each with its own document. A
+          # new binary joins here, with its own generate and attest steps.
           declared="$(cargo metadata --format-version 1 --no-deps --locked \
             | jq -r '.packages[].targets[] | select(.kind | index("bin")) | .name' \
             | sort -u | paste -sd, -)"
-          if [ "$declared" != "ferrochart" ]; then
-            echo "::error::the workspace declares the bin set '${declared}'; this lane describes 'ferrochart' and would ship the rest with no SBOM." >&2
+          if [ "$declared" != "ferrochart,ferrochart-renderer" ]; then
+            echo "::error::the workspace declares the bin set '${declared}'; this lane describes 'ferrochart,ferrochart-renderer' and would ship the rest with no SBOM." >&2
             exit 1
           fi
           # `--spec-version 1.5` is the highest cargo-cyclonedx emits and its
@@ -180,6 +221,31 @@ jobs:
           fi
           mv "$src" "$sbom"
           echo "SBOM=$sbom" >> "$GITHUB_ENV"
+          # The renderer gets its own document. The `ui` feature is empty and
+          # there is no dependency edge from the server to the renderer, so
+          # the graph above reaches none of leptos, wasm-bindgen or web-sys,
+          # and the WebAssembly this binary serves to every reader would
+          # otherwise be absent from the document that describes what shipped.
+          cargo cyclonedx \
+            --manifest-path app/ferrochart-renderer/Cargo.toml \
+            --format json --describe binaries --spec-version 1.5
+          renderer_sbom="ferrochart-renderer-${TAG}-${TARGET}.cdx.json"
+          src="$(find app/ferrochart-renderer -maxdepth 1 -name '*.cdx.json' | head -n1)"
+          if [ -z "$src" ]; then
+            echo "::error::cargo-cyclonedx produced no .cdx.json for the renderer" >&2
+            exit 1
+          fi
+          mv "$src" "$renderer_sbom"
+          # The document is worth nothing if it lists none of what the bundle
+          # is made of, so the lane checks its own output.
+          for crate in leptos wasm-bindgen web-sys; do
+            jq -e --arg crate "$crate" \
+              '[.components[]?.name] | index($crate)' "$renderer_sbom" >/dev/null || {
+              echo "::error::the renderer SBOM lists no ${crate}, so it does not describe the bundle." >&2
+              exit 1
+            }
+          done
+          echo "RENDERER_SBOM=$renderer_sbom" >> "$GITHUB_ENV"
 
       # `actions/attest` is the one attestation action, in both modes: no
       # `sbom-path` is provenance mode, `sbom-path` is SBOM mode. Signing is
@@ -196,6 +262,14 @@ jobs:
         with:
           subject-path: ${{ env.ASSET }}
           sbom-path: ${{ env.SBOM }}
+      # The renderer rides inside the same archive, so its document is
+      # attested against the same subject.
+      - name: Attest the renderer SBOM
+        id: renderer-sbom-attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ env.ASSET }}
+          sbom-path: ${{ env.RENDERER_SBOM }}
 
       # The attestations live in GitHub's attestations API, which is what
       # `gh attestation verify` reads with no --bundle flag. Publishing them as
@@ -208,10 +282,12 @@ jobs:
         env:
           PROVENANCE_BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
           SBOM_BUNDLE: ${{ steps.sbom-attestation.outputs.bundle-path }}
+          RENDERER_SBOM_BUNDLE: ${{ steps.renderer-sbom-attestation.outputs.bundle-path }}
         run: |
           set -euo pipefail
           cp "$PROVENANCE_BUNDLE" "${ASSET}.sigstore.json"
           cp "$SBOM_BUNDLE" "${ASSET}.sbom.sigstore.json"
+          cp "$RENDERER_SBOM_BUNDLE" "${ASSET}.renderer-sbom.sigstore.json"
           jq -c '.dsseEnvelope' "$PROVENANCE_BUNDLE" > "${ASSET}.intoto.jsonl"
           # Refuse to publish a malformed provenance line rather than attach a
           # file that looks like provenance and is not.
@@ -228,6 +304,7 @@ jobs:
           {
             echo "PROVENANCE_BUNDLE_ASSET=${ASSET}.sigstore.json"
             echo "SBOM_BUNDLE_ASSET=${ASSET}.sbom.sigstore.json"
+            echo "RENDERER_SBOM_BUNDLE_ASSET=${ASSET}.renderer-sbom.sigstore.json"
             echo "PROVENANCE_JSONL_ASSET=${ASSET}.intoto.jsonl"
           } >> "$GITHUB_ENV"
 
@@ -252,5 +329,6 @@ jobs:
           # assets. Publishing freezes the release, so flipping it here would
           # lock the other targets out.
           gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber \
-            "$ASSET" "$CHECKSUM" "$SBOM" \
-            "$PROVENANCE_BUNDLE_ASSET" "$SBOM_BUNDLE_ASSET" "$PROVENANCE_JSONL_ASSET"
+            "$ASSET" "$CHECKSUM" "$SBOM" "$RENDERER_SBOM" \
+            "$PROVENANCE_BUNDLE_ASSET" "$SBOM_BUNDLE_ASSET" \
+            "$RENDERER_SBOM_BUNDLE_ASSET" "$PROVENANCE_JSONL_ASSET"

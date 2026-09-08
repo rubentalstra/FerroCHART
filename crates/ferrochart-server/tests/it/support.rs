@@ -131,6 +131,7 @@ pub(crate) async fn serve(templates: PathBuf, cdr: &str) -> Running {
         cdr_url: cdr.to_owned(),
         term_url: "http://127.0.0.1:9/r4".to_owned(),
         templates: Some(templates),
+        ui: true,
     };
     let state = ferrochart_server::state(&config).expect("the templates compile");
     let listener = tokio::net::TcpListener::bind(config.listen)

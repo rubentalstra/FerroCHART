@@ -54,33 +54,44 @@ slow one.
 
 ## What a release publishes
 
-Per target, six assets on the archive's name, where `<target>` is one of
+Per target, eight assets, where `<target>` is one of
 `x86_64-unknown-linux-gnu`, `x86_64-unknown-linux-musl`,
 `aarch64-unknown-linux-gnu` and `aarch64-unknown-linux-musl`:
 
 | Asset | What it is |
 |---|---|
-| `ferrochart-<tag>-<target>.tar.gz` | the binaries, built with `cargo auditable` |
+| `ferrochart-<tag>-<target>.tar.gz` | the binary, built with `cargo auditable` |
 | `ferrochart-<tag>-<target>.tar.gz.sha256sum` | a `sha256sum -c` line, bare filename |
 | `ferrochart-<tag>-<target>.tar.gz.sigstore.json` | the build-provenance bundle |
 | `ferrochart-<tag>-<target>.tar.gz.sbom.sigstore.json` | the SBOM-attestation bundle |
+| `ferrochart-<tag>-<target>.tar.gz.renderer-sbom.sigstore.json` | the renderer SBOM-attestation bundle |
 | `ferrochart-<tag>-<target>.tar.gz.intoto.jsonl` | the provenance DSSE envelope, one per line |
 | `ferrochart-<tag>-<target>.cdx.json` | a CycloneDX 1.5 SBOM of the binary |
+| `ferrochart-renderer-<tag>-<target>.cdx.json` | a CycloneDX 1.5 SBOM of the renderer bundle inside it |
 
 Plus three release-wide assets: `compose.yaml`, `compose.yaml.sha256sum`, and
-`compose.yaml.sigstore.json`. That is 27 assets, and `finalize-release`
+`compose.yaml.sigstore.json`. That is 35 assets, and `finalize-release`
 refuses to publish a draft missing any one of them.
+
+**The renderer has a document of its own because the server's does not reach
+it.** The bundle rides inside the `ferrochart` binary as bytes the build
+script compiled in, and the cargo feature that switches that on is empty, so
+there is no dependency edge from the server to the renderer and the server's
+graph lists none of `leptos`, `wasm-bindgen` or `web-sys`. The second document
+is generated over `app/ferrochart-renderer`, attested against the same archive,
+and the lane refuses to publish it when it lists none of those three.
 
 The `.sha256sum` is not a signature. It detects a corrupt or truncated
 download and nothing else; only the Sigstore bundle answers who built the file.
 
-Four kinds of dependency document are produced, and they answer different
+Five kinds of dependency document are produced, and they answer different
 questions:
 
 | Document | Tool | Where it lives |
 |---|---|---|
 | the binary's own `.dep-v0` section | `cargo-auditable` | inside every shipped binary |
 | `ferrochart-<tag>-<target>.cdx.json` | `cargo-cyclonedx`, CycloneDX 1.5 | a release asset, and an attested subject |
+| `ferrochart-renderer-<tag>-<target>.cdx.json` | `cargo-cyclonedx`, CycloneDX 1.5 | a release asset, and an attested subject |
 | `ferrochart-<tag>-image-<arch>.spdx.json` | syft, SPDX 2.3 | an OCI referrer attestation only, never a release asset |
 | BuildKit's own provenance | buildx `provenance: mode=max` | attestation manifests inside the image index |
 
@@ -152,6 +163,16 @@ What is deliberately not claimed:
   verification step in any deployment path.
 - **Anything about the sibling images the compose file's demo profile pulls.**
   They are other products' releases, verified against their own repositories.
+
+**One known gap in the claim.** The build lane runs `trunk build` to produce
+the renderer bundle it compiles into the binary it signs, and Trunk downloads
+two tools of its own while it does that: the Tailwind standalone CLI at the
+version `app/ferrochart-renderer/Trunk.toml` names, and the `wasm-bindgen` CLI
+at the version the lockfile resolves. Both are pinned by version string, and
+neither download is checked against a checksum this repository holds. Every
+other tool in the lane arrives through `taiki-e/install-action`, which
+verifies the upstream release checksum, so these two are the exception inside
+a lane whose premise is that nothing it did not build gets in. The gap is open.
 
 Signing is keyless Sigstore OIDC through `actions/attest`, which is the one
 attestation action used here, in both of its modes: no `sbom-path` is
