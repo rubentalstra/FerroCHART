@@ -137,8 +137,13 @@ impl FormState {
     }
 
     /// Whether the last occurrence of `key` may be taken away.
+    ///
+    /// Down to what the template requires, which for a section it says may be
+    /// absent is none. The floor used to be one whatever the template said,
+    /// so a person who added an optional section could never put it back
+    /// (issue #202).
     pub(crate) fn can_remove(&self, key: &NodeKey, path: &Path, minimum: u32) -> bool {
-        self.shown(key, path) > minimum.max(1) as usize
+        self.shown(key, path) > minimum as usize
     }
 
     /// Shows one more occurrence of `key`, up to what the template admits.
@@ -232,7 +237,15 @@ fn seed(group: &FormGroup, path: &[usize], shown: &mut Vec<(NodeKey, Vec<usize>,
             continue;
         };
         if child.occurrences.is_repeatable() {
-            let count = (child.occurrences.minimum as usize).max(1);
+            // Exactly what the template requires, and a template that requires
+            // none opens with none. Opening one anyway overrode the only
+            // statement the template makes about how much of itself applies,
+            // and turned a form of optional sections into a wall of them
+            // (issue #202). openEHR AM Release-2.3.0 `AOM1.4.html` section
+            // 4.3.6 makes `occurrences` the count a node may appear in data,
+            // so a lower bound of zero is the template saying none is a
+            // complete answer.
+            let count = child.occurrences.minimum as usize;
             shown.push((child.key.clone(), path.to_vec(), count));
             for index in 0..count {
                 let mut inside = path.to_vec();
@@ -242,5 +255,79 @@ fn seed(group: &FormGroup, path: &[usize], shown: &mut Vec<(NodeKey, Vec<usize>,
         } else {
             seed(child, path, shown);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ferrochart_form::group::{FormGroup, FormItem, GroupShape};
+    use ferrochart_form::ids::{RmAttributeName, RmTypeName};
+    use ferrochart_form::key::{KeyStep, NodeKey};
+    use ferrochart_form::occurrences::Occurrences;
+    use ferrochart_form::text::Localized;
+
+    use super::seed;
+
+    /// A group of `occurrences`, named by `step`, holding nothing.
+    fn group(step: &str, occurrences: Occurrences) -> FormGroup {
+        FormGroup {
+            key: NodeKey::root().child(KeyStep {
+                rm_attribute: RmAttributeName::new("items"),
+                node_id: None,
+                archetype_id: None,
+                rm_type: RmTypeName::new("CLUSTER"),
+                pinned_name: Some(step.to_owned()),
+                sibling_ordinal: 0,
+            }),
+            rm_type: RmTypeName::new("CLUSTER"),
+            archetype_id: None,
+            label: Localized::empty(),
+            help: Localized::empty(),
+            occurrences,
+            shape: GroupShape::Tree,
+            name_constraint: None,
+            is_ordered: false,
+            is_unique: false,
+            is_deprecated: false,
+            items: Vec::new(),
+            undetermined: Vec::new(),
+        }
+    }
+
+    /// A root holding `child`.
+    fn holding(child: FormGroup) -> FormGroup {
+        let mut root = group("root", Occurrences::bounded(1, 1));
+        root.items = vec![FormItem::Group(Box::new(child))];
+        root
+    }
+
+    #[test]
+    fn a_group_the_template_says_may_be_absent_opens_with_none() {
+        // openEHR AM Release-2.3.0 `AOM1.4.html` section 4.3.6: a lower bound
+        // of zero is the template saying none of this section is a complete
+        // answer, and the form used to open one anyway (#202).
+        let root = holding(group("optional", Occurrences::unbounded_from(0)));
+        let mut shown = Vec::new();
+        seed(&root, &[], &mut shown);
+        assert_eq!(shown.len(), 1);
+        assert_eq!(shown[0].2, 0, "an optional section opened with content");
+    }
+
+    #[test]
+    fn a_group_the_template_requires_opens_with_what_it_requires() {
+        let root = holding(group("required", Occurrences::unbounded_from(2)));
+        let mut shown = Vec::new();
+        seed(&root, &[], &mut shown);
+        assert_eq!(shown[0].2, 2);
+    }
+
+    #[test]
+    fn a_group_that_never_repeats_is_not_counted_at_all() {
+        // A group of 1..1 is drawn once whatever the count says, so it needs
+        // no entry here and gets none.
+        let root = holding(group("single", Occurrences::bounded(1, 1)));
+        let mut shown = Vec::new();
+        seed(&root, &[], &mut shown);
+        assert!(shown.is_empty(), "{shown:?}");
     }
 }

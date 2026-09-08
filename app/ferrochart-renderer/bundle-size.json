@@ -28,7 +28,7 @@
       "glob": "*_bg.wasm",
       "max_gzip_bytes": 470000,
       "max_growth_gzip_bytes": 60000,
-      "measured_gzip_bytes": 381211
+      "measured_gzip_bytes": 381167
     },
     "js": {
       "glob": "*.js",

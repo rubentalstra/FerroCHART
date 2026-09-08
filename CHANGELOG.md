@@ -149,6 +149,19 @@ the build order.
 
 ### Fixed
 
+- **A section the template says may be absent opens with none of it** (#202).
+  A repeatable group opened showing `max(1)` occurrences, so a group whose
+  template says `0..*` opened one, expanded, with every field inside it drawn.
+  openEHR AM Release-2.3.0 `AOM1.4.html` section 4.3.6 makes `occurrences` the
+  count a node may appear in the data, so a lower bound of zero is the
+  template saying none of that section is a complete answer, and the renderer
+  was discarding the only statement a template makes about how much of itself
+  applies. The family history form met a reader with a family member they had
+  not said existed and a clinical history for them. It now opens as a heading,
+  a description and "Add one". The floor on removing followed the same rule
+  and used to be one whatever the template said, so an optional section, once
+  added, could never be put back.
+
 - A field the template fixed showed no value and offered "No value" beside it
   (#190). "Deceased?" asked a question, answered "The template fixed this
   value, so nothing is entered", and then invited the reader to say there was
