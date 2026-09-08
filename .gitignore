@@ -51,3 +51,7 @@ website/book/theme/
 # The renderer's build output. Trunk regenerates it, and its size is
 # gated by scripts/checks/bundle-size.sh rather than by a committed copy.
 app/ferrochart-renderer/dist
+
+# The renderer configuration scripts/ui-e2e.sh writes for one battery run,
+# with that run's own ports in it. The script removes it on the way out.
+app/ferrochart-renderer/Trunk.ui-e2e.toml

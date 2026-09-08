@@ -99,9 +99,18 @@ flags verbatim: `cargo fmt --all --check`; `cargo clippy --workspace
 `RUSTDOCFLAGS=-D warnings`; `cargo deny check` (advisories, licences, bans,
 sources, which subsumes cargo-audit); MSRV via `cargo hack check
 --rust-version`; `dependency-review-action` on pull requests; and the
-`comment-style.sh`, `crate-closure.sh` and `serde-json-features.sh` guards
-(`comment-style.sh` at `--all`). **Always `--locked`**, so CI fails on
-lockfile drift rather than on registry drift. Commit `Cargo.lock`.
+`comment-style.sh`, `crate-closure.sh`, `serde-json-features.sh` and
+`docs-shots.sh` guards (`comment-style.sh` at `--all`). **Always `--locked`**,
+so CI fails on lockfile drift rather than on registry drift. Commit
+`Cargo.lock`.
+
+The browser journeys are their own lane, `ui-e2e`, running
+`scripts/ui-e2e.sh`. They live outside the workspace (`e2e/Cargo.toml` records
+why), so `cargo fmt --manifest-path e2e/Cargo.toml --check` and
+`cargo clippy --manifest-path e2e/Cargo.toml --locked --all-targets --
+-D warnings` run in that lane rather than with the workspace ones. The lane
+also fails when a battery run changed a tracked file: only
+`scripts/ui-e2e.sh --docs-shots` may write the book's screenshots.
 
 ## Supply chain (the rules the release lane holds to)
 

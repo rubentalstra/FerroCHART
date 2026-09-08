@@ -132,6 +132,23 @@ binary itself, so there is no Node and no npm anywhere in this build.
 `taiki-e/install-action` entry: the action has no recipe for it and falls back
 to cargo-binstall guessing an asset name.
 
+## Browser journeys
+
+The end-to-end battery (`scripts/ui-e2e.sh`) drives a headless Chromium over
+WebDriver. Selenium publishes the browser and its matching chromedriver in one
+image and keeps them in step, so the pin is that image, by tag and by index
+digest: a tag is mutable and a battery that changed browser without a commit
+would report a defect nobody introduced.
+
+| Item | Pin | Repeated in |
+|---|---|---|
+| Selenium standalone Chromium | `4.48.0-20260905@sha256:fcf9eef47b9546a2252937481a8298ce0958d20c9d91e040d480184e80b41c76` | `scripts/ui-e2e.sh` |
+
+The journeys themselves are a crate outside the workspace (`e2e/Cargo.toml`,
+which records why), so their WebDriver client and runtime are pinned in that
+manifest rather than here, the same way the workspace dependency table is the
+authority for every crate the product links.
+
 ## Documentation toolchain
 
 The book under `website/book` is rendered by the pinned mdBook toolchain that

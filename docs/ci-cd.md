@@ -34,6 +34,7 @@ itself when the workspace landed.
 | `hadolint` | every tracked Dockerfile under `.hadolint.yaml` (`failure-threshold: warning`) |
 | `comment-style` | `scripts/checks/comment-style.sh --all` |
 | `versions` | `scripts/checks/versions.sh` |
+| `docs-shots` | `scripts/checks/docs-shots.sh`, over the book's committed screenshots |
 
 Each of these was in place before the file it guards, which is the point.
 `hadolint` lints `docker/Dockerfile`, `comment-style` reads the workspace's
@@ -49,7 +50,9 @@ has no manifest. Every Rust job carries
 clippy at `-D warnings`, nextest plus doctests, rustdoc at `-D warnings`,
 `cargo deny check`, the `crate-closure` and `serde-json-features` guards over
 the resolved dependency graph, MSRV through `cargo hack check --rust-version`,
-and `dependency-review-action` on pull requests. Each lane mirrors the local
+the `renderer` lane on `wasm32-unknown-unknown` with its bundle budget, the
+`ui-e2e` battery driving a headless Chromium over the served renderer, and
+`dependency-review-action` on pull requests. Each lane mirrors the local
 command in `.claude/rules/ci-cd.md` verbatim. The workspace pull request
 therefore changes nothing in CI; the lanes activate by themselves.
 
