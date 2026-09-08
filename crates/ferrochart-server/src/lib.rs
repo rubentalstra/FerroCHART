@@ -18,6 +18,7 @@ pub mod commit;
 mod config;
 mod health;
 pub mod store;
+pub mod ui;
 
 use std::io;
 use std::path::PathBuf;
@@ -85,14 +86,33 @@ pub enum ServeError {
     },
 }
 
-/// Build the router over `state`.
+/// Build the router over `state`, serving the renderer this binary carries.
 ///
 /// Kept separate from [`serve`] so a test can drive the routes over a listener
 /// of its own.
 pub fn router(state: ServerState) -> Router {
-    Router::new()
+    router_with_bundle(state, ui::BUNDLE)
+}
+
+/// Build the router over `state`, serving `bundle` as the renderer.
+///
+/// The renderer is mounted when the deployment asked for it and the bundle is
+/// not empty; otherwise `/ui` is the `404` every unknown path answers. Taking
+/// the bundle as an argument is what lets a test drive the renderer routes
+/// without a `trunk build` behind them.
+pub fn router_with_bundle(state: ServerState, bundle: &'static [ui::Asset]) -> Router {
+    let renderer = state.serves_ui() && !bundle.is_empty();
+    let app = Router::new()
         .route("/health", get(health::probe))
-        .merge(api::routes(state))
+        .merge(api::routes(state));
+    // NOTE: axum applies a layer only to the routes already added, so merging
+    // the renderer last keeps its assets outside whatever wraps the API
+    // (<https://docs.rs/axum/0.8/axum/struct.Router.html#method.layer>).
+    if renderer {
+        app.merge(ui::router(bundle))
+    } else {
+        app
+    }
 }
 
 /// Compile the configured templates and connect to the configured CDR.
@@ -118,7 +138,7 @@ pub fn state(config: &Config) -> Result<ServerState, ServeError> {
     let cdr = CdrClient::new(&base).map_err(|source| ServeError::Cdr {
         source: Box::new(source),
     })?;
-    Ok(ServerState::new(Arc::new(templates), cdr))
+    Ok(ServerState::new(Arc::new(templates), cdr).with_ui(config.ui))
 }
 
 /// Bind the configured address and serve until the process is asked to stop.

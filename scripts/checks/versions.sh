@@ -31,8 +31,10 @@
 #                          .github/actions/docs-toolchain/action.yml against
 #                          docs/VERSIONS.md.
 #   9. renderer toolchain the Trunk and Tailwind pins of
-#                          app/ferrochart-renderer/Trunk.toml and the trunk and
+#                          app/ferrochart-renderer/Trunk.toml, the trunk and
 #                          leptosfmt versions the ci.yml renderer job installs,
+#                          the trunk version the release lane installs, and the
+#                          wasm-bindgen requirement whose CLI Trunk downloads,
 #                          against docs/VERSIONS.md.
 #  10. browser journeys   the pinned Chromium image scripts/ui-e2e.sh runs,
 #                          against docs/VERSIONS.md.
@@ -384,6 +386,31 @@ if [ -f "$ci" ] && [ -f "$trunk_toml" ]; then
     bad "trunk: $ci installs $found, docs/VERSIONS.md pins $want_trunk"
   else
     note "OK: the renderer job installs trunk $found"
+  fi
+  # The release lane builds the bundle it compiles into the binary it signs,
+  # so its Trunk has to be the same one CI gates against.
+  if [ -f "$release_build" ]; then
+    found_rel="$(sed -nE 's|.*tool:[[:space:]]*trunk@([^,[:space:]]+).*|\1|p' "$release_build" | head -n1)"
+    if [ -z "$found_rel" ]; then
+      bad "$release_build installs trunk without pinning a version"
+    elif [ "$found_rel" != "$want_trunk" ]; then
+      bad "trunk: $release_build installs $found_rel, docs/VERSIONS.md pins $want_trunk"
+    else
+      note "OK: the release lane installs trunk $found_rel"
+    fi
+  fi
+  # Trunk downloads the wasm-bindgen CLI of the version the lockfile resolves,
+  # so the matrix row and the workspace requirement have to name one version.
+  want_wb="$(pin_of "wasm-bindgen CLI" docs/VERSIONS.md)"
+  found_wb="$(manifest_req "wasm-bindgen")"
+  if [ -z "$want_wb" ]; then
+    bad "docs/VERSIONS.md has no 'wasm-bindgen CLI' row"
+  elif [ -z "$found_wb" ]; then
+    bad "root Cargo.toml has no wasm-bindgen requirement"
+  elif [ "$found_wb" != "$want_wb" ]; then
+    bad "wasm-bindgen: root Cargo.toml requires $found_wb, docs/VERSIONS.md pins $want_wb"
+  else
+    note "OK: wasm-bindgen $found_wb"
   fi
   want_lf="$(pin_of "leptosfmt" docs/VERSIONS.md)"
   found_lf="$(sed -nE 's|.*cargo install leptosfmt --locked --version[[:space:]]+([^[:space:]]+).*|\1|p' "$ci" | head -n1)"

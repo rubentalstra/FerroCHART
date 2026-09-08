@@ -124,13 +124,23 @@ binary itself, so there is no Node and no npm anywhere in this build.
 
 | Item | Pin | Repeated in |
 |---|---|---|
-| Trunk | 0.21.14 | `app/ferrochart-renderer/Trunk.toml` `trunk-version`, the `renderer` job of `ci.yml` |
+| Trunk | 0.21.14 | `app/ferrochart-renderer/Trunk.toml` `trunk-version`, the `renderer` job of `ci.yml`, `.github/workflows/release-build.yml` |
 | Tailwind CSS standalone CLI | 4.3.3 | `app/ferrochart-renderer/Trunk.toml` `[tools]` `tailwindcss` |
+| wasm-bindgen CLI | 0.2.128 | root `Cargo.toml` `[workspace.dependencies]` `wasm-bindgen`, which is the version Trunk downloads the CLI for |
+| wasm32-unknown-unknown | 1.98.1 | `rustup target add` in the `renderer` job of `ci.yml` and in `.github/workflows/release-build.yml` |
 | leptosfmt | 0.1.33 | the `renderer` job of `ci.yml` |
 
 `leptosfmt` is a `cargo install --locked --version` rather than a
 `taiki-e/install-action` entry: the action has no recipe for it and falls back
 to cargo-binstall guessing an asset name.
+
+The `wasm32-unknown-unknown` row pins the toolchain the target is added to,
+because rustup installs the standard library for a target at the channel
+`rust-toolchain.toml` names. The `wasm-bindgen` row is the crate requirement
+rather than a separately pinned tool: Trunk reads the resolved version out of
+the lockfile and downloads the CLI that matches it, so the crate pin is the
+CLI pin. Neither download carries a checksum this repository checks, which
+`docs/release.md` records as a gap in the SLSA claim.
 
 ## Browser journeys
 
