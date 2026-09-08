@@ -14,8 +14,15 @@
 
 use ferrochart_form::definition::FormDefinition;
 use ferrochart_form::field::{DurationComponent, FieldKind, FormField};
+use ferrochart_form::group::{FormGroup, FormItem};
 use ferrochart_form::value::ValueSet;
 use ferrochart_form::values::{Datum, FormValues};
+
+/// How many occurrences of a repeating group the filler enters.
+///
+/// More than one, so a builder that ignored the occurrence path would drop a
+/// value the round trip then reports as lost.
+const REPEATS: usize = 2;
 
 /// Fills every field of `definition` with a value its template permits.
 ///
@@ -23,15 +30,46 @@ use ferrochart_form::values::{Datum, FormValues};
 /// builder sees the same shape a clinician would leave behind.
 pub(crate) fn fill(definition: &FormDefinition) -> FormValues {
     let mut values = FormValues::new();
-    for field in definition.fields() {
-        if let Some(datum) = datum_for(field) {
-            values.set(
-                field.key.clone(),
-                ferrochart_form::values::Entered::Value(datum),
-            );
+    fill_group(&definition.root, &[], &mut values);
+    values
+}
+
+/// Fills one group, once per occurrence path its repeating ancestors name.
+fn fill_group(group: &FormGroup, path: &[usize], values: &mut FormValues) {
+    for item in &group.items {
+        match *item {
+            FormItem::Field(ref field) => {
+                if let Some(datum) = datum_for(field) {
+                    values.set_in(
+                        field.key.clone(),
+                        path.to_vec(),
+                        0,
+                        ferrochart_form::values::Entered::Value(datum),
+                    );
+                }
+            }
+            FormItem::Group(ref child) => {
+                for inner in instances(child, path) {
+                    fill_group(child, &inner, values);
+                }
+            }
+            _ => {}
         }
     }
-    values
+}
+
+/// The occurrence paths one child group is filled under.
+fn instances(group: &FormGroup, path: &[usize]) -> Vec<Vec<usize>> {
+    if !group.occurrences.is_repeatable() {
+        return vec![path.to_vec()];
+    }
+    (0..REPEATS)
+        .map(|index| {
+            let mut grown = path.to_vec();
+            grown.push(index);
+            grown
+        })
+        .collect()
 }
 
 /// A value the field's own constraint admits, where one can be chosen.

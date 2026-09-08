@@ -15,6 +15,8 @@
 use std::collections::BTreeMap;
 
 use ferrochart_compose::{build, read};
+use ferrochart_form::field::{FieldKind, FormField};
+use ferrochart_form::group::{FormGroup, FormItem};
 use ferrochart_form::ids::LocalCode;
 use ferrochart_form::values::{Datum, Entered, FormValues};
 
@@ -68,13 +70,16 @@ fn every_value_entered_comes_back_against_its_own_field() {
         }
         checked += 1;
         for (slot, entered) in trip.entered.iter() {
-            let returned = trip.returned.get_at(&slot.key, slot.occurrence);
+            let returned = trip
+                .returned
+                .get_in(&slot.key, &slot.group_path, slot.occurrence);
             assert_eq!(
                 returned,
                 Some(entered),
-                "{}: the value at {} occurrence {} did not come back",
+                "{}: the value at {} group path {:?} occurrence {} did not come back",
                 path.display(),
                 slot.key,
+                slot.group_path,
                 slot.occurrence
             );
             fields += 1;
@@ -154,10 +159,15 @@ fn a_null_flavour_survives_both_directions() {
         panic!("no template in the pack builds a composition");
     };
 
-    let field = form.fields().next().expect("the form has a field");
     let mut values = filler::fill(&form);
-    values.set(
-        field.key.clone(),
+    let (key, group_path, occurrence) = {
+        let (slot, _) = values.iter().next().expect("the filler entered a value");
+        (slot.key.clone(), slot.group_path.clone(), slot.occurrence)
+    };
+    values.set_in(
+        key.clone(),
+        group_path.clone(),
+        occurrence,
         Entered::Null {
             code: LocalCode::new("273"),
             reason: Some("a synthetic reason".to_owned()),
@@ -167,7 +177,7 @@ fn a_null_flavour_survives_both_directions() {
     let trip = round_trip(&form, values);
     let back = trip
         .returned
-        .get(&field.key)
+        .get_in(&key, &group_path, occurrence)
         .expect("the null-flavoured field came back");
     match *back {
         Entered::Null {
@@ -281,10 +291,17 @@ fn a_repeated_field_reads_back_into_the_right_occurrence() {
         .find(|field| field.occurrences.maximum != Some(1))
         .expect("the form has a repeatable field");
     let mut values = filler::fill(&form);
+    // The occurrence path the filler reached that field by, so the repeats
+    // land in one instance of whatever repeating group holds it.
+    let group_path = values
+        .iter()
+        .find(|(slot, _)| slot.key == repeatable.key)
+        .map_or_else(Vec::new, |(slot, _)| slot.group_path.clone());
     // Three distinct values in a known order, so a reordering is visible.
     for (index, text) in ["first", "second", "third"].iter().enumerate() {
-        values.set_at(
+        values.set_in(
             repeatable.key.clone(),
+            group_path.clone(),
             index,
             Entered::Value(Datum::Text((*text).to_owned())),
         );
@@ -295,9 +312,111 @@ fn a_repeated_field_reads_back_into_the_right_occurrence() {
     };
     let back = read::values(&form, &composition).expect("the composition reads back");
     for (index, text) in ["first", "second", "third"].iter().enumerate() {
-        match back.values.get_at(&repeatable.key, index) {
+        match back.values.get_in(&repeatable.key, &group_path, index) {
             Some(&Entered::Value(Datum::Text(ref returned))) => assert_eq!(returned, text),
             other => panic!("occurrence {index} came back as {other:?}"),
         }
     }
+}
+
+/// The committed template the nested-repeat case is measured on.
+///
+/// It carries exactly one repeating `CLUSTER` inside another repeating
+/// `CLUSTER`, so the pair the test needs is the only one in the tree and
+/// nothing else in the document can account for the nodes it counts.
+const NESTED_REPEAT: &str = "family-history-summary-item-r2.opt";
+
+#[test]
+fn a_repeat_inside_a_repeat_keeps_all_four_instances_apart() {
+    // The case a flat slot cannot address. Two occurrences of an outer group,
+    // each carrying two of an inner group, are four places one field holds
+    // four different clinical statements, and openEHR BASE Release-1.2.0
+    // `architecture_overview.html` section 10.4 says all four share one
+    // `archetype_node_id`: "a single archetype node may be replicated in the
+    // data".
+    let Some((_, form)) = forms()
+        .into_iter()
+        .find(|(path, _)| path.file_name().is_some_and(|name| name == NESTED_REPEAT))
+    else {
+        panic!("the committed pack no longer carries {NESTED_REPEAT}");
+    };
+    let Some(field) = nested_repeat_field(&form.root) else {
+        panic!("{NESTED_REPEAT} no longer carries a repeat inside a repeat");
+    };
+
+    let mut values = filler::fill(&form);
+    let paths: Vec<Vec<usize>> = values
+        .iter()
+        .filter(|(slot, _)| slot.key == field.key)
+        .map(|(slot, _)| slot.group_path.clone())
+        .collect();
+    assert_eq!(
+        paths,
+        vec![vec![0, 0], vec![0, 1], vec![1, 0], vec![1, 1]],
+        "the field sits in one instance of each pair of repeats"
+    );
+
+    // A different value in each of the four, so a slot that lost its place
+    // comes back as the wrong text rather than as a missing one.
+    for (index, path) in paths.iter().enumerate() {
+        values.set_in(
+            field.key.clone(),
+            path.clone(),
+            0,
+            Entered::Value(Datum::Text(format!("statement {index}"))),
+        );
+    }
+
+    let composition =
+        build::composition(&form, &values, &envelope()).expect("the form builds a composition");
+    let json = serde_json::to_string(&composition).expect("a composition serialises");
+    for index in 0..paths.len() {
+        assert_eq!(
+            json.matches(&format!("\"statement {index}\"")).count(),
+            1,
+            "the value entered in instance {index} is not in exactly one data node"
+        );
+    }
+
+    let back = read::values(&form, &composition).expect("the composition reads back");
+    assert!(back.uncovered.is_empty(), "{:?}", back.uncovered);
+    assert!(back.ambiguous.is_empty(), "{:?}", back.ambiguous);
+    for (index, path) in paths.iter().enumerate() {
+        match back.values.get_in(&field.key, path, 0) {
+            Some(&Entered::Value(Datum::Text(ref returned))) => {
+                assert_eq!(*returned, format!("statement {index}"));
+            }
+            other => panic!("the value at {path:?} came back as {other:?}"),
+        }
+    }
+}
+
+/// A text field inside a repeating group that is itself inside a repeating
+/// group.
+fn nested_repeat_field(group: &FormGroup) -> Option<&FormField> {
+    for item in &group.items {
+        let FormItem::Group(ref child) = *item else {
+            continue;
+        };
+        if child.occurrences.is_repeatable() {
+            let found = child.items.iter().find_map(|item| match *item {
+                FormItem::Group(ref inner) if inner.occurrences.is_repeatable() => {
+                    inner.items.iter().find_map(|item| match *item {
+                        FormItem::Field(ref field) if matches!(field.kind, FieldKind::Text(_)) => {
+                            Some(&**field)
+                        }
+                        _ => None,
+                    })
+                }
+                _ => None,
+            });
+            if found.is_some() {
+                return found;
+            }
+        }
+        if let Some(found) = nested_repeat_field(child) {
+            return Some(found);
+        }
+    }
+    None
 }
