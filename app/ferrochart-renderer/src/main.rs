@@ -54,6 +54,7 @@ mod storage;
 mod theme;
 mod tokens;
 mod url;
+mod zone;
 
 fn main() {
     console_error_panic_hook::set_once();

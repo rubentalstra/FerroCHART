@@ -21,7 +21,52 @@ the build order.
 
 ## [Unreleased]
 
+### Added
+
+- `scripts/checks/changelog.sh`, which refuses a release section with two
+  headings of one change type (#184). Every pull request adds an entry under
+  `[Unreleased]`, and the quick way to do that is to paste a fresh
+  `### Changed` above the old one; three of those and one release has three
+  Changed sections and a reader can no longer find anything. It also checks
+  the headings are the six Keep a Changelog names, in the order that
+  specification lists them, and that none is empty. Every section in the file
+  is normalised to that shape, with no entry reworded.
+
+- **The round trip against a real CDR runs on every pull request** (#28). The
+  live cases of `ferrochart-cdr` and `ferrochart-server` commit a COMPOSITION
+  FerroCHART built and validated to a FerroEHR started from the release's own
+  `compose.yaml`, read it back, and compare. They existed, and ran only when
+  somebody remembered `scripts/test-cdr.sh`, so the one lane that can falsify
+  the product's central promise was the one lane nothing enforced. A failure
+  now prints what the CDR logged, because the container is gone by the time
+  anybody looks.
+- The browser battery drives and photographs **every** screen, not three of
+  eight (#192). The form screen with no template named, the three frames on
+  the rail whose content is still to come, and an address no route owns are
+  all covered, each with a proof of its own: the way out of a dead end, the
+  heading and the line under it, and the way back. The first run of the new
+  coverage found #191.
+
 ### Changed
+
+- **A timezone is chosen from the list the platform carries, and resolved to
+  the offset at the instant entered** (#197). It was a free-text field with a
+  regular expression, so a person had to know their UTC offset and today's
+  daylight-saving state and type `+02:00` in a shape the pattern accepted.
+  The list is the IANA Time Zone Database, whose registry RFC 6557 puts with
+  IANA and which every current browser already carries: ECMA-402 publishes the
+  identifiers as `Intl.supportedValuesOf('timeZone')`. Nothing is vendored,
+  so the bundle carries no table. openEHR RM Release-1.1.0 `data_types.html`
+  section 7.2.4 types `DV_DATE_TIME` on `Iso8601_date_time`, so the value
+  carries an offset rather than a zone name, and `Europe/Amsterdam` is
+  `+01:00` in January and `+02:00` in July; the offset is resolved for the
+  instant the reader entered rather than for today. A platform that does not
+  publish the list still gets the offset field.
+- A field that admits several precisions asked for `YYYY[-MM[-DD]]`, which is
+  ADL notation printed at a clinician (#197). It now asks for "A year, and a
+  month and day if you have them". The pattern still gates what the browser
+  accepts; only what a person reads changed.
+
 
 - **A duration is a number and a unit** (#198). "Age at death" drew Years,
   Months, Weeks, Days, Hours, Minutes and Seconds as seven number boxes plus a
@@ -36,7 +81,6 @@ the build order.
 - Two parts of a duration naming one unit are refused. `assemble` writes the
   first match per unit, so the second was being dropped without a word.
 
-### Changed
 
 - **A form is a list of questions with answers, and most of what it drew was
   neither** (#190). Four of the five lines a field drew were not the value.
@@ -66,24 +110,6 @@ the build order.
   prints the height of every screen it photographs, so the figure is read from
   a run rather than estimated.
 
-### Added
-
-- **The round trip against a real CDR runs on every pull request** (#28). The
-  live cases of `ferrochart-cdr` and `ferrochart-server` commit a COMPOSITION
-  FerroCHART built and validated to a FerroEHR started from the release's own
-  `compose.yaml`, read it back, and compare. They existed, and ran only when
-  somebody remembered `scripts/test-cdr.sh`, so the one lane that can falsify
-  the product's central promise was the one lane nothing enforced. A failure
-  now prints what the CDR logged, because the container is gone by the time
-  anybody looks.
-- The browser battery drives and photographs **every** screen, not three of
-  eight (#192). The form screen with no template named, the three frames on
-  the rail whose content is still to come, and an address no route owns are
-  all covered, each with a proof of its own: the way out of a dead end, the
-  heading and the line under it, and the way back. The first run of the new
-  coverage found #191.
-
-### Changed
 
 - **The living style guide is no longer in a clinician's download**, and the
   renderer bundle fell from 410995 to 359486 gzipped, a saving of 51506 bytes
@@ -123,6 +149,13 @@ the build order.
 
 ### Fixed
 
+- A field the template fixed showed no value and offered "No value" beside it
+  (#190). "Deceased?" asked a question, answered "The template fixed this
+  value, so nothing is entered", and then invited the reader to say there was
+  no value. It shows what the template fixed it to now, and a fixed field
+  offers no null flavour, because a value the template gave is not one a
+  person can decline to give.
+
 - An address no route owns lost the whole application (#193). It was drawn
   outside the shell, so a reader who mistyped one had no rail, no theme
   control and one link. It is a route inside the shell now, and it points at
@@ -144,64 +177,6 @@ the build order.
   inside a repeating group, where a refusal is drawn and where it is not, and
   which two changes are deliberately not a version bump.
 
-### Changed
-
-- **The published documents are externally tagged, and `FORMAT_VERSION` is 2**
-  (#154). A variant is spelled `{"quantity": {…}}` where version 1 wrote
-  `{"kind": "quantity", …}`. The reason is measured rather than aesthetic: an
-  internally or adjacently tagged enum cannot be deserialised in one pass, so
-  serde buffers the input through `Content` and monomorphises the whole subtree
-  twice. Over the renderer that cost **33269 gzipped bytes, 7.6% of the bundle
-  a reader downloads**, confirmed by building both ways. The same buffer is
-  what #103 broke against, when a dependency enabling
-  `serde_json/arbitrary_precision` stopped these documents deserialising with
-  no line changed in this tree. An externally tagged enum never enters that
-  code path, so the change removes a hazard class as well as the bytes.
-
-### Fixed
-
-- A refusal from the composition builder is drawn on the repeat it came from
-  (#152). A validation failure carried no occurrence, so a form with a
-  repeating group showed "this value is out of range" under every repeat of
-  the field rather than the one that was wrong, and 67 of the 121 forms the
-  committed pack derives to carry a repeating group. The builder walks a form
-  with the occurrence of every repeating group above each field, so it knows
-  the address and now states it.
-- A refusal from the operational template still states no occurrence and is
-  still drawn on every repeat. Its Reference Model path carries positional
-  predicates into attribute arrays, and nothing establishes their
-  correspondence to a form's occurrence path, so an address there would
-  sometimes be invented. The type says which judgements know and which do not.
-
-### Fixed
-
-- A COMPOSITION built around a template rooted below COMPOSITION states its
-  template identifier where the template is active, and a real CDR now accepts
-  it (#163). It was written at the wrapper COMPOSITION, a document FerroCHART
-  supplies from configuration and where no template is active, so FerroEHR
-  4.1.1 refused **66 of 66** such templates with `expected RM type conforming
-  to OBSERVATION but found COMPOSITION`. Every one had passed FerroCHART's own
-  gate first, which is the failure this project is least allowed to have.
-  openEHR RM Release-1.1.0 `common.html` section 3.2.3 makes the identifier
-  conditional: it is stated "if a template was active at this point in the
-  structure".
-- The read-back looks for the template identifier wherever it legitimately
-  sits, rather than at the document root alone, so the guard that refuses a
-  composition from another template keeps working for the 113 templates whose
-  identifier moved.
-
-### Changed
-
-- The tied-sibling fold cites ADL 1.4 section 5.3.4.2 rule VCOC rather than
-  AOM 2's VSONCO (#142). Four places in this repository said VSONCO was "the
-  only definition of collective sibling occurrences openEHR publishes; AOM 1.4
-  defines none", and that is false: ADL 1.4 publishes VCOC, in the generation
-  these templates are written in, and it states the sum of upper bounds, which
-  is the bound that was in dispute. The arithmetic is unchanged, because it
-  was already what VCOC requires. The upstream-report register loses a
-  consequence it should never have carried.
-
-### Added
 
 - The server serves the renderer at `/ui/`, and `/ui` redirects onto it
   (#166). The bundle Trunk builds rides inside the `ferrochart` binary as a
@@ -230,7 +205,6 @@ the build order.
   one silently. The assertion existed in one kit module of eleven and now
   covers every source file, including the ones nobody has written yet.
 
-### Added
 
 - The book shows the renderer, and a test takes the pictures (#93).
   `scripts/ui-e2e.sh` stands up the form surface over two committed CKM
@@ -258,7 +232,6 @@ the build order.
 - `trunk serve` proxies `/api` as well as `/health`, so a local session runs
   the whole surface rather than half of it.
 
-### Added
 
 - The renderer's conversation with the server (#138). One module,
   `app/ferrochart-renderer/src/api`, owns every request the browser makes over
@@ -351,6 +324,29 @@ the build order.
 
 ### Changed
 
+- **The published documents are externally tagged, and `FORMAT_VERSION` is 2**
+  (#154). A variant is spelled `{"quantity": {…}}` where version 1 wrote
+  `{"kind": "quantity", …}`. The reason is measured rather than aesthetic: an
+  internally or adjacently tagged enum cannot be deserialised in one pass, so
+  serde buffers the input through `Content` and monomorphises the whole subtree
+  twice. Over the renderer that cost **33269 gzipped bytes, 7.6% of the bundle
+  a reader downloads**, confirmed by building both ways. The same buffer is
+  what #103 broke against, when a dependency enabling
+  `serde_json/arbitrary_precision` stopped these documents deserialising with
+  no line changed in this tree. An externally tagged enum never enters that
+  code path, so the change removes a hazard class as well as the bytes.
+
+
+- The tied-sibling fold cites ADL 1.4 section 5.3.4.2 rule VCOC rather than
+  AOM 2's VSONCO (#142). Four places in this repository said VSONCO was "the
+  only definition of collective sibling occurrences openEHR publishes; AOM 1.4
+  defines none", and that is false: ADL 1.4 publishes VCOC, in the generation
+  these templates are written in, and it states the sum of upper bounds, which
+  is the bound that was in dispute. The arithmetic is unchanged, because it
+  was already what VCOC requires. The upstream-report register loses a
+  consequence it should never have carried.
+
+
 - The envelope (`Envelope`, `Composer`, `Subject`, `Setting`) moved from
   `ferrochart-compose` to `ferrochart-form` (#151), so the renderer can build
   the value it has to submit. openEHR RM Release-1.1.0 `ehr.html` section
@@ -379,6 +375,36 @@ the build order.
   one instance of one group, which is what removing a repeat means.
 
 ### Fixed
+
+- A refusal from the composition builder is drawn on the repeat it came from
+  (#152). A validation failure carried no occurrence, so a form with a
+  repeating group showed "this value is out of range" under every repeat of
+  the field rather than the one that was wrong, and 67 of the 121 forms the
+  committed pack derives to carry a repeating group. The builder walks a form
+  with the occurrence of every repeating group above each field, so it knows
+  the address and now states it.
+- A refusal from the operational template still states no occurrence and is
+  still drawn on every repeat. Its Reference Model path carries positional
+  predicates into attribute arrays, and nothing establishes their
+  correspondence to a form's occurrence path, so an address there would
+  sometimes be invented. The type says which judgements know and which do not.
+
+
+- A COMPOSITION built around a template rooted below COMPOSITION states its
+  template identifier where the template is active, and a real CDR now accepts
+  it (#163). It was written at the wrapper COMPOSITION, a document FerroCHART
+  supplies from configuration and where no template is active, so FerroEHR
+  4.1.1 refused **66 of 66** such templates with `expected RM type conforming
+  to OBSERVATION but found COMPOSITION`. Every one had passed FerroCHART's own
+  gate first, which is the failure this project is least allowed to have.
+  openEHR RM Release-1.1.0 `common.html` section 3.2.3 makes the identifier
+  conditional: it is stated "if a template was active at this point in the
+  structure".
+- The read-back looks for the template identifier wherever it legitimately
+  sits, rather than at the document root alone, so the guard that refuses a
+  composition from another template keeps working for the 113 templates whose
+  identifier moved.
+
 
 - The release lane builds and describes the binary it ships rather than every
   binary the workspace declares (#166). `cargo auditable build --workspace
@@ -540,6 +566,24 @@ the build order.
   line is left alone: FerroCHART is a client of a terminology server rather
   than one. `docs/architecture.md` section 7.3 records both decisions.
 
+### Changed
+
+- The hard rule about the non-canonical formats now names the two of them
+  separately, because openEHR only specified one (#104). ITS-REST
+  Release-1.1.0 publishes `simplified_formats.html`, "Simplified Formats for
+  openEHR Data", in the STABLE state, so that document is the authority for
+  the FLAT and structured formats: their media types (section 2.3), their
+  field identifiers (section 4.2), level removal (section 4.6), the `|other`
+  suffix (section 4.7), and the Reference Model mapping class by class
+  (section 5). The web template stays a compatibility target, on the same
+  document's word: section 2.2 puts "Web Template itself as a resource" under
+  what the specification does not cover. Where the Reference Model and
+  `simplified_formats.html` disagree, no specification settles it, so the two
+  divide by subject and a real contradiction is filed upstream.
+  `CLAUDE.md`, `.claude/rules/spec-adherence.md`, `.claude/rules/testing.md`,
+  the `spec-researcher` agent, the `/spec-lookup` skill, the contributor book
+  and the `compat` label all carry the corrected split.
+
 ### Fixed
 
 - The last hand-built archetype identifier in the three-part `template_id`
@@ -601,25 +645,6 @@ the build order.
   stays at the document root alone, which is what `common.html` section 3.2.3
   says. The pre-post gate of #24 is what found it.
 
-### Changed
-
-- The hard rule about the non-canonical formats now names the two of them
-  separately, because openEHR only specified one (#104). ITS-REST
-  Release-1.1.0 publishes `simplified_formats.html`, "Simplified Formats for
-  openEHR Data", in the STABLE state, so that document is the authority for
-  the FLAT and structured formats: their media types (section 2.3), their
-  field identifiers (section 4.2), level removal (section 4.6), the `|other`
-  suffix (section 4.7), and the Reference Model mapping class by class
-  (section 5). The web template stays a compatibility target, on the same
-  document's word: section 2.2 puts "Web Template itself as a resource" under
-  what the specification does not cover. Where the Reference Model and
-  `simplified_formats.html` disagree, no specification settles it, so the two
-  divide by subject and a real contradiction is filed upstream.
-  `CLAUDE.md`, `.claude/rules/spec-adherence.md`, `.claude/rules/testing.md`,
-  the `spec-researcher` agent, the `/spec-lookup` skill, the contributor book
-  and the `compat` label all carry the corrected split.
-
-### Fixed
 
 - `docs/VERSIONS.md` said "Nothing is vendored yet" twelve lines above the
   table of what is vendored, and carried two headings for one subject (#112).
@@ -903,6 +928,12 @@ the build order.
   `scripts/checks/versions.sh` stops skipping that check.
 - The vendored openEHR CKM template corpus, licence by licence (#12).
 
+### Changed
+
+- `.claude/rules/ci-cd.md` and `docs/ci-cd.md` describe the pipeline that
+  exists rather than the one that was waiting for a workspace, and drop a
+  stale issue reference carried over from another repository.
+
 ### Fixed
 
 - Status text that had gone stale as the repository gained code: the README no
@@ -910,12 +941,6 @@ the build order.
   the Rust tier gated off, `scripts/checks/versions.sh` and four `.claude`
   rules no longer describe a design phase that closed, and a reference to
   issue #20 that meant a different repository's issue now names #33.
-
-### Changed
-
-- `.claude/rules/ci-cd.md` and `docs/ci-cd.md` describe the pipeline that
-  exists rather than the one that was waiting for a workspace, and drop a
-  stale issue reference carried over from another repository.
 
 ## [0.0.1] - 2026-09-06
 

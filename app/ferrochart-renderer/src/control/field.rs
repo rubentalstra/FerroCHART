@@ -10,6 +10,7 @@
 
 use ferrochart_form::field::{FieldKind, FormField, ReferenceRanges};
 use ferrochart_form::ids::{LanguageTag, RmTypeName};
+use ferrochart_form::value::Prefill;
 use ferrochart_form::values::Entered;
 use leptos::prelude::*;
 
@@ -290,6 +291,35 @@ pub(crate) fn FieldView(
     }
 }
 
+/// The value the template fixed, in words a person reads.
+///
+/// A fixed field is not a question: the template already answered it, and
+/// showing the answer is more use than saying that one exists (issue #190).
+/// A shape this build cannot say keeps its own text, for the reason
+/// `crate::plain` gives.
+fn fixed_as_text(prefill: &Prefill) -> String {
+    match *prefill {
+        Prefill::Boolean(value) => (if value { "Yes" } else { "No" }).to_owned(),
+        Prefill::Integer(value) => value.to_string(),
+        Prefill::Real(value) => value.to_string(),
+
+        Prefill::Coded {
+            ref code,
+            ref rubric,
+        } => rubric.clone().unwrap_or_else(|| code.code.clone()),
+        Prefill::Quantity {
+            magnitude,
+            ref units,
+            ..
+        } => format!("{magnitude} {units}"),
+        Prefill::Ordinal { value, ref symbol } => format!("{value} ({})", symbol.code),
+        Prefill::Text(ref value) | Prefill::Temporal(ref value) | Prefill::Opaque(ref value) => {
+            value.clone()
+        }
+        _ => "a value this build cannot show".to_owned(),
+    }
+}
+
 /// How wide a field of this kind is allowed to run.
 ///
 /// No specification governs this: our own design. A date, a count and a unit
@@ -342,7 +372,11 @@ fn Occurrence(
     } else {
         slot.label.clone()
     };
-    let offered = field.null_flavour.is_offered;
+    // A value the template fixed is not one a person can decline to give, so
+    // a fixed field offers no null flavour whatever the affordance says. The
+    // screen was asking "is the family member deceased?", answering it itself,
+    // and then offering "No value" beside the answer.
+    let offered = field.null_flavour.is_offered && !field.is_fixed;
     // Whether the reader asked for the flavour picker before choosing one.
     // The stored value answers every other case, so this signal is only ever
     // true between the click and the choice.
@@ -358,12 +392,11 @@ fn Occurrence(
         let slot = slot.clone();
         move || {
             let body = if field.is_fixed {
-                view! {
-                    <p class="text-sm text-ink-muted">
-                        "The template fixed this value, so nothing is entered."
-                    </p>
-                }
-                .into_any()
+                let said = field.prefill.as_ref().map_or_else(
+                    || "The template fixed this value.".to_owned(),
+                    fixed_as_text,
+                );
+                view! { <p class="text-sm text-ink">{said}</p> }.into_any()
             } else {
                 control(&field.kind, &field.rm_type, &slot)
             };
