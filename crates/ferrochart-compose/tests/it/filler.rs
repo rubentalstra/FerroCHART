@@ -12,10 +12,10 @@
 //! of the inverse test is that a legitimate entry survives, not that an
 //! illegitimate one is caught.
 
-use ferrochart_compose::values::{Datum, FormValues};
 use ferrochart_form::definition::FormDefinition;
 use ferrochart_form::field::{DurationComponent, FieldKind, FormField};
 use ferrochart_form::value::ValueSet;
+use ferrochart_form::values::{Datum, FormValues};
 
 /// Fills every field of `definition` with a value its template permits.
 ///
@@ -27,7 +27,7 @@ pub(crate) fn fill(definition: &FormDefinition) -> FormValues {
         if let Some(datum) = datum_for(field) {
             values.set(
                 field.key.clone(),
-                ferrochart_compose::values::Entered::Value(datum),
+                ferrochart_form::values::Entered::Value(datum),
             );
         }
     }

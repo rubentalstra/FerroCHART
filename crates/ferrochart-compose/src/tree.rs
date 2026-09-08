@@ -41,7 +41,7 @@ use crate::build::{
 use crate::datum;
 use crate::envelope::{ACTIVE, Envelope, OPENEHR, Subject};
 use crate::error::BuildError;
-use crate::values::{Entered, FormValues};
+use ferrochart_form::values::{Entered, FormValues};
 
 /// Everything under a composition group's `content` attribute.
 ///
@@ -428,7 +428,7 @@ fn ism_transition(group: &FormGroup, values: &FormValues, language: &LanguageTag
                     entered_for(values, &field.key)
                         .first()
                         .and_then(|entry| match **entry {
-                            Entered::Value(crate::values::Datum::Coded {
+                            Entered::Value(ferrochart_form::values::Datum::Coded {
                                 ref terminology,
                                 ref code,
                                 ref rubric,

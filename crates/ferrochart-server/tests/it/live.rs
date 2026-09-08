@@ -124,7 +124,7 @@ async fn a_real_cdr_never_sees_a_composition_the_gate_refused() {
 
     // No entries at all. The template makes nodes mandatory, so the gate has
     // something to refuse, and a CDR would refuse the same document.
-    let values = ferrochart_compose::values::FormValues::new();
+    let values = ferrochart_form::values::FormValues::new();
 
     let ehr = client.create_ehr().await.expect("the CDR creates an EHR");
     let gate = Commit {

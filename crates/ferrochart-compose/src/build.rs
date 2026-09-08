@@ -32,7 +32,7 @@ use crate::datum;
 use crate::envelope::{Composer, Envelope, OPENEHR, RM_VERSION, code_phrase};
 use crate::error::BuildError;
 use crate::tree;
-use crate::values::{Datum, Entered, FormValues};
+use ferrochart_form::values::{Datum, Entered, FormValues};
 
 /// The four codes the openEHR `null flavours` group carries.
 ///

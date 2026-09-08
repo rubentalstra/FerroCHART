@@ -27,7 +27,7 @@ use openehr_rm::v1_2::data_types::text::dv_text::DvText;
 
 use crate::datum;
 use crate::error::ReadError;
-use crate::values::{Entered, FormValues};
+use ferrochart_form::values::{Entered, FormValues};
 
 /// How many data nodes of one identity have been seen under one parent.
 ///
@@ -108,7 +108,7 @@ pub fn values(
     if let Some(field) = crate::build::category_field(root) {
         found.values.set(
             field.key.clone(),
-            Entered::Value(crate::values::Datum::Coded {
+            Entered::Value(ferrochart_form::values::Datum::Coded {
                 terminology: composition
                     .category
                     .defining_code
