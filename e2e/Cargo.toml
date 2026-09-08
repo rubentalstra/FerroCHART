@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: Ruben Talstra
+# SPDX-License-Identifier: BUSL-1.1
+
+[package]
+name = "ferrochart-e2e"
+description = "The browser journeys over the FerroCHART renderer, and the book's screenshots"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.98"
+publish = false
+license = "BUSL-1.1"
+
+# This crate sits OUTSIDE the workspace, and the root manifest excludes it.
+# `thirtyfour` pulls serde_json with `preserve_order`, and cargo unifies
+# features across every package built in one invocation
+# (https://doc.rust-lang.org/cargo/reference/features.html#feature-unification),
+# so a dev-dependency on it from inside the workspace would turn every JSON
+# document the suite writes from sorted keys into insertion order. The form
+# definition and the overlay both ship as sorted JSON and both carry a golden
+# wire snapshot, so the workspace tests would then be checking a serializer
+# the product does not ship.
+
+# Its own workspace root, so the exclusion holds wherever the checkout sits
+# (https://doc.rust-lang.org/cargo/reference/workspaces.html).
+[workspace]
+
+# One integration-test binary, one module per topic
+# (.claude/rules/testing.md).
+[[test]]
+name = "it"
+path = "tests/it/main.rs"
+
+[dev-dependencies]
+percent-encoding = "2.3.2"
+thirtyfour = { version = "0.37.5", default-features = false, features = [
+  "reqwest",
+  "rustls",
+] }
+tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread", "time"] }
+
+# The workspace lint table cannot be inherited across the exclusion, so the
+# core of the bar is respelled here. The root clippy.toml still applies:
+# clippy reads it from the repository root.
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "deny"
+missing_debug_implementations = "deny"
+ambiguous_negative_literals = "deny"
+let_underscore_drop = "deny"
+unknown_lints = "deny"
+unused_must_use = "deny"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+unreachable = "deny"
+unimplemented = "deny"
+todo = "deny"
+indexing_slicing = "deny"
+string_slice = "deny"
+lossy_float_literal = "deny"
+as_underscore = "deny"
+fn_to_numeric_cast_any = "deny"
+let_underscore_lock = "deny"
+unused_result_ok = "deny"
+iter_over_hash_type = "deny"
+allow_attributes_without_reason = "deny"
+unnecessary_safety_comment = "deny"
+unnecessary_safety_doc = "deny"
+disallowed_methods = "deny"
+disallowed_types = "deny"
+await_holding_lock = "deny"

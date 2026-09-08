@@ -6,8 +6,9 @@
 #   1. The workflow, shell, container and guard tier runs NOW, on a repository
 #      with no code: zizmor over .github, actionlint over .github/workflows,
 #      shellcheck over the tracked shell programs, hadolint over any
-#      Dockerfile, and the committed comment-style and versions guards. These
-#      keep this very file honest, so none of them may depend on Rust existing.
+#      Dockerfile, and the committed comment-style, versions and docs-shots
+#      guards. These keep this very file honest, so none of them may depend on
+#      Rust existing.
 #   2. The Rust tier is gated behind a detection job that looks for a root
 #      Cargo.toml. Every cargo lane is skipped cleanly until the workspace
 #      lands and then activates by itself, with no workflow edit. hashFiles()
@@ -201,6 +202,22 @@ jobs:
         with:
           persist-credentials: false
       - run: bash scripts/checks/versions.sh
+
+  # The book's screenshots. They are written by the end-to-end battery, and
+  # this guard is what stops a blank, stray or orphaned one from being
+  # committed. It reads the committed images and the book's markdown, so it
+  # needs no cargo and no browser.
+  docs-shots:
+    name: docs-shots
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: bash scripts/checks/docs-shots.sh
 
   # ---- Tier 2: the Rust lanes, gated on the workspace existing --------------
 
@@ -430,6 +447,61 @@ jobs:
             bash scripts/checks/bundle-size.sh --verify-recorded
           fi
 
+  # The browser journeys. scripts/ui-e2e.sh owns everything it drives: it
+  # stages two committed CKM templates, starts the server over them, serves
+  # the renderer bundle, and runs a pinned Chromium in a container beside
+  # them. The journeys live outside the workspace (e2e/Cargo.toml records
+  # why), so they get their own formatting and clippy run here rather than
+  # riding along with the workspace lanes.
+  ui-e2e:
+    name: ui-e2e
+    needs: detect
+    if: needs.detect.outputs.cargo == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+        with:
+          components: clippy,rustfmt
+          cache-key: ui-e2e
+      - name: Add the WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
+      - uses: taiki-e/install-action@0758d235715de2f3551eacc980d9ae8fce9342c3 # v2.87.3
+        with:
+          tool: trunk@0.21.14, cargo-nextest
+      - name: The journeys keep the same bar as the workspace
+        run: |
+          set -euo pipefail
+          cargo fmt --manifest-path e2e/Cargo.toml --check
+          cargo clippy --manifest-path e2e/Cargo.toml --locked --all-targets -- -D warnings
+      - name: The journeys
+        run: bash scripts/ui-e2e.sh
+      # The capture pass is the one thing that writes into the checkout, and
+      # this run never asks for it, so a run that changed a tracked file, or
+      # left an image behind, has a defect in it (issue #93).
+      - name: A battery run changed no tracked file and left no image behind
+        run: |
+          set -euo pipefail
+          git diff --exit-code
+          stray="$(git status --porcelain --untracked-files=all -- website/book/src)"
+          if [[ -n "$stray" ]]; then
+            echo "the battery left this behind under website/book/src:"
+            echo "$stray"
+            exit 1
+          fi
+      - name: What a failing journey was looking at
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ui-e2e-failures
+          path: target/ui-e2e-failures
+          if-no-files-found: ignore
+
   msrv:
     name: msrv (cargo-hack)
     needs: detect
@@ -489,6 +561,7 @@ jobs:
       - dockerfile-lint
       - comment-style
       - versions
+      - docs-shots
       - detect
       - fmt
       - clippy
@@ -498,6 +571,7 @@ jobs:
       - crate-closure
       - serde-json-features
       - renderer
+      - ui-e2e
       - msrv
       - dependency-review
     if: always()

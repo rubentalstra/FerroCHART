@@ -43,6 +43,22 @@ the build order.
 
 ### Added
 
+- The book shows the renderer, and a test takes the pictures (#93).
+  `scripts/ui-e2e.sh` stands up the form surface over two committed CKM
+  templates, serves the renderer bundle against it, and drives a pinned
+  headless Chromium through the template library, both forms and the design
+  system over WebDriver. `--docs-shots` walks the same screens again on both
+  grounds and writes one PNG each into
+  `website/book/src/operate/img/renderer`, which the new
+  `website/book/src/operate/renderer.md` page and the book's introduction
+  embed. The journeys and the capture share one definition of what a screen
+  must have drawn (`e2e/tests/it/screens.rs`), so a screenshot cannot outlive
+  the journey that proves it, and an ordinary run rewrites no tracked file.
+  A `ui-e2e` CI job runs the battery on every pull request, uploads what a
+  failed journey was looking at, and fails when a run changed a tracked file.
+  `scripts/checks/docs-shots.sh` refuses an image that is not a PNG, is small
+  enough to be a blank page, carries a name the capture does not write, or is
+  committed with no page embedding it.
 - The form screen draws the controls (#26). `/ui/forms/{template_id}` fetched
   a definition and rendered its group tree as headings and labels, because the
   request module and the controls were built in parallel and nothing joined

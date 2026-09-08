@@ -12,7 +12,8 @@ Deriving the mechanical half is deterministic. A `DV_QUANTITY` becomes a number
 with its permitted units, a `DV_CODED_TEXT` becomes a selection over its value
 set, a `DV_DATE_TIME` becomes a date field at the right precision, and a
 `CLUSTER` whose upper occurrence exceeds one becomes a repeatable group. No
-human is needed for any of it.
+human is needed for any of it. [The renderer](../operate/renderer.md) shows
+what one template becomes.
 
 ## The half no specification governs
 

@@ -34,7 +34,9 @@
 #                          app/ferrochart-renderer/Trunk.toml and the trunk and
 #                          leptosfmt versions the ci.yml renderer job installs,
 #                          against docs/VERSIONS.md.
-#  10. licence             LICENSE is the Business Source License 1.1 and no
+#  10. browser journeys   the pinned Chromium image scripts/ui-e2e.sh runs,
+#                          against docs/VERSIONS.md.
+#  11. licence             LICENSE is the Business Source License 1.1 and no
 #                          first-party file claims MIT or Apache-2.0 as its own.
 #
 # Usage:
@@ -394,6 +396,29 @@ if [ -f "$ci" ] && [ -f "$trunk_toml" ]; then
   else
     note "OK: the renderer job installs leptosfmt $found_lf"
   fi
+fi
+
+echo "== browser journeys (scripts/ui-e2e.sh <-> docs/VERSIONS.md)"
+# The battery drives a pinned Chromium. A moving tag would change the browser
+# under a green lane, so the pin carries its index digest and both halves are
+# compared.
+ui_e2e=scripts/ui-e2e.sh
+if [ -f "$ui_e2e" ]; then
+  want_browser="$(pin_of "Selenium standalone Chromium" docs/VERSIONS.md)"
+  found_browser="$(sed -nE 's|^readonly BROWSER_IMAGE="selenium/standalone-chromium:([^"]+)".*|\1|p' "$ui_e2e" | head -n1)"
+  if [ -z "$want_browser" ]; then
+    bad "docs/VERSIONS.md has no 'Selenium standalone Chromium' row"
+  elif [ -z "$found_browser" ]; then
+    bad "$ui_e2e names no pinned selenium/standalone-chromium image"
+  elif [ "${found_browser#*@sha256:}" = "$found_browser" ]; then
+    bad "$ui_e2e pins the browser by tag alone; a tag is mutable"
+  elif [ "$found_browser" != "$want_browser" ]; then
+    bad "browser: $ui_e2e runs $found_browser, docs/VERSIONS.md pins $want_browser"
+  else
+    note "OK: the browser image is $found_browser"
+  fi
+else
+  note "no $ui_e2e yet, skipped"
 fi
 
 echo "== docs toolchain (.github/actions/docs-toolchain <-> docs/VERSIONS.md)"

@@ -9,5 +9,6 @@
   - [Licensing](evaluate/licensing.md)
 - [Operate](operate/README.md)
   - [Configuration](operate/configuration.md)
+  - [The renderer](operate/renderer.md)
 - [Contribute](contribute/README.md)
   - [The working discipline](contribute/discipline.md)
