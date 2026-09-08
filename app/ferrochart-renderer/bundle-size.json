@@ -18,9 +18,9 @@
       "glob": "*_bg.wasm",
       "max_gzip_bytes": 420000,
       "max_growth_gzip_bytes": 60000,
-      "measured_gzip_bytes": 268525,
+      "measured_gzip_bytes": 267867,
       "step_change": {
-        "to": 268525,
+        "to": 267867,
         "reason": "the renderer links ferrochart-form and serde_json for the first time (#138)",
         "issue": 154
       }

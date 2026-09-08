@@ -6,9 +6,8 @@
 //! `docs/architecture.md` section 10 fixes the shape: `gloo-net` rather than
 //! a server-shaped HTTP client, ONE module owning every request, and typed
 //! errors carrying the upstream status and body. No other module of this
-//! crate opens a request, and
-//! [`tests::no_other_module_opens_a_request`] proves it from the sources
-//! rather than from intent.
+//! crate opens a request, and the `no_other_module_opens_a_request` test
+//! below proves it from the sources rather than from intent.
 //!
 //! # What is tested, and what cannot be
 //!
