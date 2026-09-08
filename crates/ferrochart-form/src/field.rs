@@ -252,7 +252,7 @@ pub enum ComponentValidity {
 /// The variant names the kind of value and never the widget: which control a
 /// four-member selection gets is a layout decision no specification governs.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum FieldKind {
     /// `DV_BOOLEAN` (openEHR RM Release-1.1.0 `data_types.html` section
@@ -804,7 +804,7 @@ mod tests {
     }
 
     #[test]
-    fn a_field_kind_serializes_under_a_tag_that_names_it() {
+    fn a_field_kind_serializes_under_the_name_of_its_variant() {
         let kind = FieldKind::Boolean(BooleanField {
             true_allowed: true,
             false_allowed: true,
@@ -812,7 +812,7 @@ mod tests {
         let json = serde_json::to_string(&kind).expect("a field kind serializes");
         assert_eq!(
             json,
-            r#"{"kind":"boolean","true_allowed":true,"false_allowed":true}"#
+            r#"{"boolean":{"true_allowed":true,"false_allowed":true}}"#
         );
         assert_eq!(kind.name(), "boolean");
     }

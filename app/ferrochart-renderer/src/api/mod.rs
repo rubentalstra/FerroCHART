@@ -448,10 +448,13 @@ mod tests {
         let envelope = envelope();
         let values = ferrochart_form::values::FormValues::new();
         let written = serde_json::to_value(super::Submission::new(&envelope, &values)).unwrap();
+        // Externally tagged since format version 2, so the variant is the
+        // member name: `{"identified":{"name":…}}`.
         let composer = written
             .get("envelope")
             .and_then(|it| it.get("composer"))
-            .expect("the submission carries a composer");
+            .and_then(|it| it.get("identified"))
+            .expect("the submission carries an identified composer");
         assert_eq!(
             composer.get("name").and_then(serde_json::Value::as_str),
             Some("A clinician"),

@@ -30,7 +30,20 @@ use crate::ids::{LanguageTag, TemplateId};
 /// bytes still reads what it read before: a new member a reader may ignore,
 /// and a new variant of an enum this crate already marks `#[non_exhaustive]`.
 /// Neither may change the meaning of a member that is already there.
-pub const FORMAT_VERSION: u32 = 1;
+///
+/// # Version 2
+///
+/// Every tagged enum here is externally tagged, so a variant is spelled
+/// `{"quantity": {…}}` where version 1 wrote `{"kind": "quantity", …}`. The
+/// reason is not taste. An internally or adjacently tagged enum cannot be
+/// deserialised in one pass, so serde buffers the input through `Content` and
+/// monomorphises the whole subtree twice; measured over the renderer, that
+/// cost 33269 gzipped bytes, 7.6% of the bundle a reader downloads. The same
+/// buffer is what issue #103 broke against, when a dependency enabling
+/// `serde_json/arbitrary_precision` stopped these documents deserialising
+/// with no line changed here. An externally tagged enum never enters that
+/// code path.
+pub const FORMAT_VERSION: u32 = 2;
 
 /// A form, derived from one operational template.
 ///

@@ -350,6 +350,15 @@ mod tests {
             error,
             ApiError::UnsupportedFormat { found: 99, .. }
         ));
-        assert!(format_checked("/api/templates", 200, 1).is_ok());
+        // The constant rather than a literal, so a format bump does not need
+        // this test edited to keep meaning what it says.
+        assert!(
+            format_checked(
+                "/api/templates",
+                200,
+                ferrochart_form::definition::FORMAT_VERSION
+            )
+            .is_ok()
+        );
     }
 }

@@ -39,7 +39,7 @@ use crate::key::NodeKey;
 /// element carries exactly one of a value and a null flavour: never both, and
 /// never neither. This enum is that invariant as a type.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "entered", content = "value", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum Entered {
     /// The value the clinician entered.
     Value(Datum),
@@ -63,7 +63,7 @@ pub enum Entered {
 /// datum are checked against each other at the seam rather than deep inside a
 /// serialiser.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum Datum {
     /// A `DV_BOOLEAN`.
     Boolean(bool),

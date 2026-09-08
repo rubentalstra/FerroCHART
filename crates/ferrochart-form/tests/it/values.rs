@@ -182,11 +182,10 @@ fn one_entry_spells_its_slot_out_beside_its_value() {
     let json = serde_json::to_value(&entry).unwrap();
     assert_eq!(json["group_path"], serde_json::json!([2]));
     assert_eq!(json["occurrence"], serde_json::json!(1));
-    assert_eq!(json["entered"]["entered"], serde_json::json!("value"));
-    assert_eq!(
-        json["entered"]["value"]["type"],
-        serde_json::json!("boolean")
-    );
+    // Externally tagged since format version 2: a variant nests under its own
+    // name, so `Entered::Value(Datum::Boolean(true))` is `{"value":{"boolean":
+    // true}}` rather than a tag beside a payload.
+    assert_eq!(json["entered"]["value"]["boolean"], serde_json::json!(true));
 
     let slot = Slot {
         key: field("at0001"),

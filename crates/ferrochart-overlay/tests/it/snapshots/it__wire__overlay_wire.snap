@@ -59,12 +59,9 @@ expression: authored().to_json().unwrap()
           "en": "What the number means."
         },
         "default": {
-          "type": "real",
-          "value": 2.5
+          "real": 2.5
         },
-        "visibility": {
-          "visibility": "always"
-        },
+        "visibility": "always",
         "widget": "segmented",
         "geometry": {
           "span": 2,
@@ -111,16 +108,13 @@ expression: authored().to_json().unwrap()
           "en": "What the number means."
         },
         "default": {
-          "type": "quantity",
-          "value": {
+          "quantity": {
             "magnitude": 37.5,
             "units": "Cel",
             "precision": 1
           }
         },
-        "visibility": {
-          "visibility": "never"
-        },
+        "visibility": "never",
         "widget": "segmented",
         "geometry": {
           "span": 2,
@@ -175,8 +169,7 @@ expression: authored().to_json().unwrap()
           "en": "What the number means."
         },
         "default": {
-          "type": "ordinal",
-          "value": {
+          "ordinal": {
             "value": 1.0,
             "symbol": {
               "terminology": "local",
@@ -185,47 +178,50 @@ expression: authored().to_json().unwrap()
           }
         },
         "visibility": {
-          "visibility": "when",
-          "condition": {
-            "test": "all",
-            "conditions": [
-              {
-                "test": "answered",
-                "node": {
-                  "steps": [
-                    {
-                      "rm_attribute": "",
-                      "node_id": "at0000",
-                      "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
-                      "rm_type": "OBSERVATION",
-                      "pinned_name": null,
-                      "sibling_ordinal": 0
+          "when": {
+            "condition": {
+              "all": {
+                "conditions": [
+                  {
+                    "answered": {
+                      "node": {
+                        "steps": [
+                          {
+                            "rm_attribute": "",
+                            "node_id": "at0000",
+                            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+                            "rm_type": "OBSERVATION",
+                            "pinned_name": null,
+                            "sibling_ordinal": 0
+                          }
+                        ],
+                        "is_positional": false
+                      }
                     }
-                  ],
-                  "is_positional": false
-                }
-              },
-              {
-                "test": "equals",
-                "node": {
-                  "steps": [
-                    {
-                      "rm_attribute": "",
-                      "node_id": "at0000",
-                      "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
-                      "rm_type": "OBSERVATION",
-                      "pinned_name": null,
-                      "sibling_ordinal": 0
+                  },
+                  {
+                    "equals": {
+                      "node": {
+                        "steps": [
+                          {
+                            "rm_attribute": "",
+                            "node_id": "at0000",
+                            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+                            "rm_type": "OBSERVATION",
+                            "pinned_name": null,
+                            "sibling_ordinal": 0
+                          }
+                        ],
+                        "is_positional": false
+                      },
+                      "value": {
+                        "real": 2.5
+                      }
                     }
-                  ],
-                  "is_positional": false
-                },
-                "value": {
-                  "type": "real",
-                  "value": 2.5
-                }
+                  }
+                ]
               }
-            ]
+            }
           }
         },
         "widget": "segmented",
@@ -290,9 +286,7 @@ expression: authored().to_json().unwrap()
           "en": "What the number means."
         },
         "default": null,
-        "visibility": {
-          "visibility": "always"
-        },
+        "visibility": "always",
         "widget": "segmented",
         "geometry": {
           "span": 2,
@@ -363,12 +357,9 @@ expression: authored().to_json().unwrap()
           "en": "What the number means."
         },
         "default": {
-          "type": "real",
-          "value": 2.5
+          "real": 2.5
         },
-        "visibility": {
-          "visibility": "never"
-        },
+        "visibility": "never",
         "widget": "segmented",
         "geometry": {
           "span": 2,
@@ -439,9 +430,7 @@ expression: authored().to_json().unwrap()
           "en": "What the number means."
         },
         "default": null,
-        "visibility": {
-          "visibility": "never"
-        },
+        "visibility": "never",
         "widget": "segmented",
         "geometry": {
           "span": 2,
@@ -512,55 +501,57 @@ expression: authored().to_json().unwrap()
           "en": "What the number means."
         },
         "default": {
-          "type": "quantity",
-          "value": {
+          "quantity": {
             "magnitude": 37.5,
             "units": "Cel",
             "precision": 1
           }
         },
         "visibility": {
-          "visibility": "when",
-          "condition": {
-            "test": "all",
-            "conditions": [
-              {
-                "test": "answered",
-                "node": {
-                  "steps": [
-                    {
-                      "rm_attribute": "",
-                      "node_id": "at0000",
-                      "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
-                      "rm_type": "OBSERVATION",
-                      "pinned_name": null,
-                      "sibling_ordinal": 0
+          "when": {
+            "condition": {
+              "all": {
+                "conditions": [
+                  {
+                    "answered": {
+                      "node": {
+                        "steps": [
+                          {
+                            "rm_attribute": "",
+                            "node_id": "at0000",
+                            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+                            "rm_type": "OBSERVATION",
+                            "pinned_name": null,
+                            "sibling_ordinal": 0
+                          }
+                        ],
+                        "is_positional": false
+                      }
                     }
-                  ],
-                  "is_positional": false
-                }
-              },
-              {
-                "test": "equals",
-                "node": {
-                  "steps": [
-                    {
-                      "rm_attribute": "",
-                      "node_id": "at0000",
-                      "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
-                      "rm_type": "OBSERVATION",
-                      "pinned_name": null,
-                      "sibling_ordinal": 0
+                  },
+                  {
+                    "equals": {
+                      "node": {
+                        "steps": [
+                          {
+                            "rm_attribute": "",
+                            "node_id": "at0000",
+                            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+                            "rm_type": "OBSERVATION",
+                            "pinned_name": null,
+                            "sibling_ordinal": 0
+                          }
+                        ],
+                        "is_positional": false
+                      },
+                      "value": {
+                        "real": 2.5
+                      }
                     }
-                  ],
-                  "is_positional": false
-                },
-                "value": {
-                  "type": "real",
-                  "value": 2.5
-                }
+                  }
+                ]
               }
-            ]
+            }
           }
         },
         "widget": "segmented",
@@ -633,8 +624,7 @@ expression: authored().to_json().unwrap()
           "en": "What the number means."
         },
         "default": {
-          "type": "ordinal",
-          "value": {
+          "ordinal": {
             "value": 1.0,
             "symbol": {
               "terminology": "local",
@@ -642,9 +632,7 @@ expression: authored().to_json().unwrap()
             }
           }
         },
-        "visibility": {
-          "visibility": "always"
-        },
+        "visibility": "always",
         "widget": "segmented",
         "geometry": {
           "span": 2,
@@ -691,51 +679,53 @@ expression: authored().to_json().unwrap()
           "en": "What the number means."
         },
         "default": {
-          "type": "real",
-          "value": 2.5
+          "real": 2.5
         },
         "visibility": {
-          "visibility": "when",
-          "condition": {
-            "test": "all",
-            "conditions": [
-              {
-                "test": "answered",
-                "node": {
-                  "steps": [
-                    {
-                      "rm_attribute": "",
-                      "node_id": "at0000",
-                      "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
-                      "rm_type": "OBSERVATION",
-                      "pinned_name": null,
-                      "sibling_ordinal": 0
+          "when": {
+            "condition": {
+              "all": {
+                "conditions": [
+                  {
+                    "answered": {
+                      "node": {
+                        "steps": [
+                          {
+                            "rm_attribute": "",
+                            "node_id": "at0000",
+                            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+                            "rm_type": "OBSERVATION",
+                            "pinned_name": null,
+                            "sibling_ordinal": 0
+                          }
+                        ],
+                        "is_positional": false
+                      }
                     }
-                  ],
-                  "is_positional": false
-                }
-              },
-              {
-                "test": "equals",
-                "node": {
-                  "steps": [
-                    {
-                      "rm_attribute": "",
-                      "node_id": "at0000",
-                      "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
-                      "rm_type": "OBSERVATION",
-                      "pinned_name": null,
-                      "sibling_ordinal": 0
+                  },
+                  {
+                    "equals": {
+                      "node": {
+                        "steps": [
+                          {
+                            "rm_attribute": "",
+                            "node_id": "at0000",
+                            "archetype_id": "openEHR-EHR-OBSERVATION.aedes_indices.v0",
+                            "rm_type": "OBSERVATION",
+                            "pinned_name": null,
+                            "sibling_ordinal": 0
+                          }
+                        ],
+                        "is_positional": false
+                      },
+                      "value": {
+                        "real": 2.5
+                      }
                     }
-                  ],
-                  "is_positional": false
-                },
-                "value": {
-                  "type": "real",
-                  "value": 2.5
-                }
+                  }
+                ]
               }
-            ]
+            }
           }
         },
         "widget": "segmented",

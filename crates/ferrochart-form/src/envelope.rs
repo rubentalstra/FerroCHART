@@ -124,7 +124,7 @@ pub struct Envelope {
 
 /// Who composed the document.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "composer", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum Composer {
     /// `PARTY_SELF`: the subject of the record composed it, which is what
     /// patient-entered data uses (`ehr.html` section 5.2.2).
@@ -140,7 +140,7 @@ pub enum Composer {
 
 /// Who the entry is about.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "subject", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum Subject {
     /// `PARTY_SELF`: the subject of the record.
     SelfParty,
