@@ -161,9 +161,11 @@ pub enum Datum {
 
 /// Every value a clinician entered against one form definition.
 ///
-/// A key names a field of the definition; an occurrence index names which
-/// repeat of that field, because a repeatable group produces several data
-/// nodes sharing one `archetype_node_id` (openEHR BASE Release-1.2.0
+/// A key names a field of the definition. Two indices say WHICH one: the
+/// occurrence path names which repeat of each repeating group above the
+/// field, and the occurrence names which repeat of the field itself. Both are
+/// needed because a repeatable group produces several data nodes sharing one
+/// `archetype_node_id` (openEHR BASE Release-1.2.0
 /// `architecture_overview.html` section 10.4: "a single archetype node may be
 /// replicated in the data").
 ///
@@ -174,13 +176,24 @@ pub struct FormValues {
     entries: BTreeMap<Slot, Entered>,
 }
 
-/// One field of one occurrence.
+/// One field of one occurrence, inside one occurrence of each repeating group
+/// above it.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Slot {
     /// The field the value belongs to.
     pub key: NodeKey,
-    /// Which repeat of that field, counting from zero. A field that cannot
-    /// repeat always uses zero.
+    /// Which occurrence of each REPEATING ancestor group, outermost first.
+    /// Empty where no ancestor of the field repeats.
+    ///
+    /// One index per repeating ancestor rather than one per ancestor. A
+    /// [`NodeKey`] is already a step chain from the root, so which ancestors
+    /// there are is a fact of the definition; which repeat of each is the
+    /// only thing the definition cannot supply. Counting only the repeating
+    /// ones also means adding a non-repeating group to a template does not
+    /// shift every path beneath it.
+    pub group_path: Vec<usize>,
+    /// Which repeat of the field itself, counting from zero. A field that
+    /// cannot repeat always uses zero.
     pub occurrence: usize,
 }
 
@@ -191,38 +204,104 @@ impl FormValues {
         Self::default()
     }
 
-    /// Records `entered` against the first occurrence of `key`.
+    /// Records `entered` against the first occurrence of `key`, under no
+    /// repeating group.
     pub fn set(&mut self, key: NodeKey, entered: Entered) {
         self.set_at(key, 0, entered);
     }
 
-    /// Records `entered` against occurrence `occurrence` of `key`.
+    /// Records `entered` against occurrence `occurrence` of `key`, under no
+    /// repeating group.
     pub fn set_at(&mut self, key: NodeKey, occurrence: usize, entered: Entered) {
-        self.entries.insert(Slot { key, occurrence }, entered);
+        self.set_in(key, Vec::new(), occurrence, entered);
     }
 
-    /// What was entered against the first occurrence of `key`.
+    /// Records `entered` against one field of one occurrence path.
+    pub fn set_in(
+        &mut self,
+        key: NodeKey,
+        group_path: Vec<usize>,
+        occurrence: usize,
+        entered: Entered,
+    ) {
+        self.entries.insert(
+            Slot {
+                key,
+                group_path,
+                occurrence,
+            },
+            entered,
+        );
+    }
+
+    /// What was entered against the first occurrence of `key`, under no
+    /// repeating group.
     #[must_use]
     pub fn get(&self, key: &NodeKey) -> Option<&Entered> {
         self.get_at(key, 0)
     }
 
-    /// What was entered against occurrence `occurrence` of `key`.
+    /// What was entered against occurrence `occurrence` of `key`, under no
+    /// repeating group.
     #[must_use]
     pub fn get_at(&self, key: &NodeKey, occurrence: usize) -> Option<&Entered> {
+        self.get_in(key, &[], occurrence)
+    }
+
+    /// What was entered against one field of one occurrence path.
+    #[must_use]
+    pub fn get_in(
+        &self,
+        key: &NodeKey,
+        group_path: &[usize],
+        occurrence: usize,
+    ) -> Option<&Entered> {
         self.entries.get(&Slot {
             key: key.clone(),
+            group_path: group_path.to_vec(),
             occurrence,
         })
     }
 
-    /// How many occurrences of `key` carry a value.
+    /// How many occurrences of `key` carry a value, across every occurrence
+    /// path.
     ///
     /// Counts entries rather than the highest index, so a gap left by an
     /// editing session does not inflate the answer.
     #[must_use]
     pub fn occurrences_of(&self, key: &NodeKey) -> usize {
         self.entries.keys().filter(|slot| slot.key == *key).count()
+    }
+
+    /// How many occurrences of `key` carry a value under one occurrence path.
+    #[must_use]
+    pub fn occurrences_in(&self, key: &NodeKey, group_path: &[usize]) -> usize {
+        self.entries
+            .keys()
+            .filter(|slot| slot.key == *key && slot.group_path == group_path)
+            .count()
+    }
+
+    /// Which occurrences of `group` the values name, under the occurrence
+    /// path `prefix` of the repeating groups above it.
+    ///
+    /// Ascending and without repeats. Empty says no value names the group,
+    /// which is not the same as one occurrence carrying no value: the builder
+    /// tells the two apart, because a group the template requires still has
+    /// to be built.
+    #[must_use]
+    pub fn group_occurrences(&self, group: &NodeKey, prefix: &[usize]) -> Vec<usize> {
+        let depth = prefix.len();
+        let mut found: Vec<usize> = self
+            .entries
+            .keys()
+            .filter(|slot| slot.key.steps.starts_with(&group.steps))
+            .filter(|slot| slot.group_path.starts_with(prefix))
+            .filter_map(|slot| slot.group_path.get(depth).copied())
+            .collect();
+        found.sort_unstable();
+        found.dedup();
+        found
     }
 
     /// Every slot and value, in key order.
