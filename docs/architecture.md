@@ -354,12 +354,21 @@ constraint twice. Three rules follow:
 2. **Under a container attribute, identical members fold into one node
    carrying the collective occurrences**: the sum of the members' lower
    bounds, and the minimum of the sum of their upper bounds and the
-   containing attribute's cardinality upper bound. That arithmetic is AOM 2
-   section 4.5.4.3 rule VSONCO, the only definition of collective sibling
-   occurrences openEHR publishes; AOM 1.4 defines none, so reading it across
-   generations is analogy. The fold is lossless because the members state the
-   same constraint, so one node with the summed bound admits exactly what the
-   pair did.
+   containing attribute's cardinality upper bound. **That arithmetic is the
+   specification's, in the generation the templates are written in.** ADL 1.4
+   section 5.3.4.2 rule VCOC states it: "the interval represented by: (the sum
+   of all occurrences minimum values) .. (the sum of all occurrences maximum
+   values) must be inside the interval of the cardinality". AOM 2 section
+   4.5.4.3 rule VSONCO reads a specialised node set the same way. The fold is
+   lossless because the members state the same constraint, so one node with
+   the summed bound admits exactly what the pair did.
+
+   **What no specification governs is the fold itself, not the sum.** Both
+   generations describe conformance one node at a time (AOM 1.4 section
+   4.2.3.2 and AOM 2 section 4.2.5.1, `valid_value`), and neither says how an
+   instance is matched against two sibling constraints nothing can tell apart.
+   Folding is our answer to that silence; the arithmetic applied afterwards is
+   VCOC's.
 3. **Under a container attribute, members that differ are refused.** RM
    `common.html` section 3.2.2 gives a non-root node only its
    `archetype_node_id`, `LOCATABLE.name` is the only other identity attribute
@@ -1550,13 +1559,17 @@ The specification defects and silences found during this research, each an
     unique identification" and no invariant, validity condition or function
     requires it; `C_OBJECT` and `C_MULTIPLE_ATTRIBUTE` carry no `Invariants`
     block at all, and the ITS-XML schemas that *are* the OPT 1.4
-    specification carry no `xs:unique`. AOM 2 has the rule (VCOSU). Three
+    specification carry no `xs:unique`. AOM 2 has the rule (VCOSU). Two
     consequences follow and each is its own ask: no matching algorithm is
-    defined for a container whose children tie, no collective occurrences are
-    defined for a sibling set outside AOM 2's VSONCO, and nothing downstream
-    can call a colliding template invalid. Two vendored CKM templates carry
-    the shape, and in one of them the cause is a generator emitting each
+    defined for a container whose children tie, and nothing downstream can
+    call a colliding template invalid. Two vendored CKM templates carry the
+    shape, and in one of them the cause is a generator emitting each
     `use_node` expansion twice.
+
+    A third consequence was recorded here and is withdrawn: collective
+    occurrences ARE defined for a 1.4 sibling set, by ADL 1.4 section 5.3.4.2
+    rule VCOC, which this document cited only to AOM 2's VSONCO until issue
+    #142 read the 1.4 text.
 11. **Fifteen defects in RM Release-1.1.0, BASE Release-1.2.0 and the RM
     XSDs** (issue #111), four of which change what an implementation writes,
     the worst being `COMPOSITION.uid` defined three incompatible ways across

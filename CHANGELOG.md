@@ -21,6 +21,17 @@ the build order.
 
 ## [Unreleased]
 
+### Changed
+
+- The tied-sibling fold cites ADL 1.4 section 5.3.4.2 rule VCOC rather than
+  AOM 2's VSONCO (#142). Four places in this repository said VSONCO was "the
+  only definition of collective sibling occurrences openEHR publishes; AOM 1.4
+  defines none", and that is false: ADL 1.4 publishes VCOC, in the generation
+  these templates are written in, and it states the sum of upper bounds, which
+  is the bound that was in dispute. The arithmetic is unchanged, because it
+  was already what VCOC requires. The upstream-report register loses a
+  consequence it should never have carried.
+
 ### Added
 
 - The form screen draws the controls (#26). `/ui/forms/{template_id}` fetched
