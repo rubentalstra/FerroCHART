@@ -271,8 +271,7 @@ fn element_id(address: &Address) -> String {
 /// even that is absent, the first language in tag order is better than an
 /// empty label.
 pub(crate) fn localized(text: &Localized, language: &LanguageTag) -> String {
-    text.get(language)
-        .or_else(|| text.languages().next().and_then(|first| text.get(first)))
+    crate::label::text(text, language)
         .unwrap_or_default()
         .to_owned()
 }

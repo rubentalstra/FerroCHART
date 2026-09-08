@@ -11,7 +11,6 @@ use ferrochart_form::group::{UndeterminedContent, UndeterminedReason};
 use ferrochart_form::ids::LanguageTag;
 use leptos::prelude::*;
 
-use crate::control::localized;
 use crate::kit::notice::Notice;
 use crate::kit::surface::CODE;
 use crate::kit::tone::Tone;
@@ -54,7 +53,7 @@ pub(crate) fn UndeterminedView(
     /// The language a label is shown in.
     language: LanguageTag,
 ) -> impl IntoView {
-    let label = localized(&content.label, &language);
+    let label = crate::label::of(&content.label, &language, &content.key);
     let title = if label.is_empty() {
         format!("{} is left undetermined.", content.rm_type)
     } else {
