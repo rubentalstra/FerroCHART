@@ -210,7 +210,10 @@ pub(crate) fn FieldView(
     let repeats = {
         let key = key.clone();
         let path = path.clone();
-        move || (0..state.shown(&key, &path)).collect::<Vec<_>>()
+        // A field always draws one control: its label is drawn whether or not
+        // a value is entered, and a row with a label and nothing under it
+        // would be a question with no way to answer it.
+        move || (0..state.shown(&key, &path, (minimum as usize).max(1))).collect::<Vec<_>>()
     };
 
     let bodies = {
@@ -238,7 +241,7 @@ pub(crate) fn FieldView(
         let key = key.clone();
         let path = path.clone();
         Callback::new(move |()| {
-            state.add_occurrence(&key, &path, maximum);
+            state.add_occurrence(&key, &path, minimum, maximum);
         })
     };
     let remove = {
@@ -251,7 +254,7 @@ pub(crate) fn FieldView(
     let at_ceiling = {
         let key = key.clone();
         let path = path.clone();
-        Signal::derive(move || !state.can_add(&key, &path, maximum))
+        Signal::derive(move || !state.can_add(&key, &path, minimum, maximum))
     };
     let at_floor = Signal::derive(move || !state.can_remove(&key, &path, minimum));
 

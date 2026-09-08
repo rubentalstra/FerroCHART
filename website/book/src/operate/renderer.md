@@ -54,6 +54,13 @@ the Reference Model tree, so this screen decides no layout of its own.
 
 ![The same form on the dark ground](img/renderer/form-family-history-summary-item-r2-dark.png)
 
+A section the template says may be absent opens with none of it: its heading,
+its description, and the way to add one. openEHR AM Release-2.3.0
+`AOM1.4.html` section 4.3.6 makes `occurrences` the count a node may appear
+in, so a lower bound of zero is the template saying none of that section is a
+complete answer. The battery opens one before it takes the picture, which is
+why the form below is longer than the one a reader first meets.
+
 Each group is a card headed by the label the template gave it. A group whose
 occurrences allow more than one carries its bound as a badge and an add and
 remove pair, and it opens showing the occurrences the template requires. Each

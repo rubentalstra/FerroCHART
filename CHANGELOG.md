@@ -23,6 +23,13 @@ the build order.
 
 ### Added
 
+- The browser battery opens a section the template says may be absent and
+  proves the fields inside it arrive (#202). A form now opens with those
+  sections closed, so a battery that stopped at the first screen would never
+  see what is in one, and the book would show a form nobody had touched. The
+  capture runs the same proof, which is why the picture shows an opened
+  section.
+
 - `scripts/checks/changelog.sh`, which refuses a release section with two
   headings of one change type (#184). Every pull request adds an entry under
   `[Unreleased]`, and the quick way to do that is to paste a fresh
@@ -48,6 +55,28 @@ the build order.
   coverage found #191.
 
 ### Changed
+
+- **An open archetype slot reads as a place to add content, not a warning**
+  (#180). openEHR AM Release-2.3.0 `AOM2.html` section 4.5.8 gives
+  `ARCHETYPE_SLOT` the attribute `is_closed`, "closed to further filling
+  either in further specialisations or at runtime", and defaults it to false,
+  so a slot that survived into an operational template is one the template
+  meant to leave open. It was drawn as a yellow warning, and counted in a
+  banner reading "the template left content undetermined", on 116 of the 121
+  templates the committed pack compiles. It is a neutral notice now and the
+  banner counts only what is genuinely undetermined, which across the whole
+  pack is four nodes rather than 1194.
+- **The Reference Model's own container is not drawn as a group** (#190). RM
+  Release-1.1.0 `data_structures.html` section 4.3 makes `ITEM_SINGLE`,
+  `ITEM_LIST` and `ITEM_TREE` the structure an ENTRY attribute holds its
+  content in; they exist because the model needs a container, not because
+  anybody grouped anything, and the CKM archetypes head them "Tree" and
+  describe them "@ internal @". Their contents are drawn where they were, so
+  a form loses a nesting level and two meaningless headings. An `ITEM_TABLE`
+  keeps its card because a grid is a shape a person reads, a `CLUSTER` keeps
+  its card because a cluster is the clinical grouping, and a container that
+  roots an archetype or repeats keeps its card because it carries something
+  of its own. No key, value or composition node changes.
 
 - **A timezone is chosen from the list the platform carries, and resolved to
   the offset at the instant entered** (#197). It was a free-text field with a
@@ -148,6 +177,14 @@ the build order.
   takes." (#178).
 
 ### Fixed
+
+- A repeating group inside an occurrence a reader added opened with one
+  entry, whatever its template said (#202). The count of occurrences a form is
+  showing is seeded from the definition, and a group inside a section nobody
+  had opened yet was never seeded, so the lookup answered with a hard-coded 1.
+  It answers with what the template requires now. The browser battery found
+  this the moment it started opening a section rather than photographing a
+  closed one.
 
 - **A section the template says may be absent opens with none of it** (#202).
   A repeatable group opened showing `max(1)` occurrences, so a group whose
