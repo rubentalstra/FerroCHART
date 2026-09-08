@@ -512,6 +512,36 @@ jobs:
           path: target/ui-e2e-failures
           if-no-files-found: ignore
 
+  # The only lane that can falsify the product's central promise: a CDR
+  # rejecting a COMPOSITION FerroCHART built and validated is always a
+  # FerroCHART bug (CLAUDE.md). Every other Rust lane judges FerroCHART
+  # against FerroCHART.
+  #
+  # `scripts/test-cdr.sh` starts the demo profile of the release's own
+  # compose.yaml, so what is tested against is the artefact a downloader runs,
+  # and it runs the `#[ignore]`d live cases of ferrochart-cdr and
+  # ferrochart-server against it.
+  cdr:
+    name: cdr (the round trip against a real CDR)
+    needs: detect
+    if: needs.detect.outputs.cargo == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+        with:
+          cache-key: cdr
+      - uses: taiki-e/install-action@0758d235715de2f3551eacc980d9ae8fce9342c3 # v2.87.3
+        with:
+          tool: cargo-nextest
+      - name: The round trip against a real CDR
+        run: bash scripts/test-cdr.sh
+
   msrv:
     name: msrv (cargo-hack)
     needs: detect
@@ -582,6 +612,7 @@ jobs:
       - serde-json-features
       - renderer
       - ui-e2e
+      - cdr
       - msrv
       - dependency-review
     if: always()
