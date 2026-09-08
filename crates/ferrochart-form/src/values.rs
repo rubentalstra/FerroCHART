@@ -4,13 +4,21 @@
 //! What a clinician entered, keyed the way the form definition is keyed.
 //!
 //! No specification governs this shape: our own design. It is the input to the
-//! builder and the output of the read-back, so the two directions are inverses
-//! over one type rather than over two that have to be kept in step.
+//! composition builder and the output of the read-back, so the two directions
+//! are inverses over one type rather than over two that have to be kept in
+//! step.
+//!
+//! It lives beside the definition rather than beside the builder for the
+//! reason `docs/architecture.md` section 11 gives for the layout types: a
+//! renderer has to COLLECT values and has no business with the builder, the
+//! read-back, or the envelope. That keeps the browser on one crate of this
+//! tree, which is what makes the form definition a contract a third party can
+//! implement against.
 
 use std::collections::BTreeMap;
 
-use ferrochart_form::ids::LocalCode;
-use ferrochart_form::key::NodeKey;
+use crate::ids::LocalCode;
+use crate::key::NodeKey;
 
 /// One entered value, or the reason there is none.
 ///

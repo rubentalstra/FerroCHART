@@ -33,7 +33,7 @@ use openehr_rm::v1_2::data_types::uri::dv_uri::{DvUri, DvUriData};
 
 use crate::envelope::code_phrase;
 use crate::error::{BuildError, ReadError};
-use crate::values::Datum;
+use ferrochart_form::values::Datum;
 
 /// The `PROPORTION_KIND` code for a unitary proportion.
 ///

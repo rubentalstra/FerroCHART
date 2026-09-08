@@ -51,6 +51,11 @@ the build order.
 
 ### Changed
 
+- The entered-value types (`FormValues`, `Slot`, `Entered`, `Datum`) moved from
+  `ferrochart-compose` to `ferrochart-form` (#139). A renderer collects values
+  and links `ferrochart-form` alone, so leaving them behind the composition
+  builder left the browser unable to name the type it exists to fill in. The
+  serialised shape is unchanged.
 - `deny.toml` ignores two RustSec unmaintained advisories, `RUSTSEC-2024-0436`
   (`paste`) and `RUSTSEC-2026-0173` (`proc-macro-error2`). Both crates are
   build-time proc-macro dependencies of Leptos, neither is a vulnerability,

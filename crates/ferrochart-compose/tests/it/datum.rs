@@ -9,9 +9,9 @@
 
 use ferrochart_compose::datum;
 use ferrochart_compose::error::BuildError;
-use ferrochart_compose::values::Datum;
 use ferrochart_form::ids::{LocalCode, RmAttributeName, RmTypeName};
 use ferrochart_form::key::{KeyStep, NodeKey};
+use ferrochart_form::values::Datum;
 
 /// A key deep enough to read in a failure message.
 fn key() -> NodeKey {

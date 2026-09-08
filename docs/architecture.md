@@ -1210,7 +1210,7 @@ the manifest rather than by habit.
 
 | Crate | Role |
 |---|---|
-| `ferrochart-form` | The form definition type, the overlay's layout types, and their serialisations. No I/O, and nothing else from this tree; `thiserror` for its one error type is the only dependency. |
+| `ferrochart-form` | The form definition type, the overlay's layout types, the entered-value types, and their serialisations. No I/O, and nothing else from this tree; `thiserror` for its one error type is the only dependency. |
 | `ferrochart-compile` | Operational template to form definition. Owns the internal constraint model of section 3 and the derivation of section 5. |
 | `ferrochart-webtemplate` | The web template compatibility surface of section 4: reading one into a form definition, and writing one out. Links `ferrochart-form` and nothing else of this tree. |
 | `ferrochart-overlay` | Overlay storage, the key normalization of section 6.2, replay, and the differential report. Not the layout types themselves. |
@@ -1218,7 +1218,7 @@ the manifest rather than by habit.
 | `ferrochart-validate` | The pre-post gate of section 9: it judges a COMPOSITION against its operational template and keys every failure onto the form definition. It links `ferrochart-form` and nothing else, so it can never post what it judged. |
 | `ferrochart-term` | The terminology client of section 7. |
 | `ferrochart-server` | The HTTP surface: serves definitions, validates, builds and commits compositions. |
-| `ferrochart-renderer` | The Leptos client-side binary of section 10. Depends on `ferrochart-form` and nothing else from this tree. |
+| `ferrochart-renderer` | The Leptos client-side binary of sections 10 and 10.1. Depends on `ferrochart-form` and nothing else from this tree. |
 | `ferrochart` | The binary. |
 
 **Where the line between the two overlay crates falls, and why.** A renderer
@@ -1236,6 +1236,17 @@ renderer was built. The layout types already referenced the definition's own
 `Prefill`, so the move removed a cross-crate dependency rather than adding one.
 Neither crate re-exports anything the other owns: a caller that needs a layout
 type names `ferrochart-form`.
+
+**The entered values split the same way, for the same reason.** `FormValues`,
+`Slot`, `Entered` and `Datum` landed in `ferrochart-compose` with issue #23 and
+issue #139 moved them to `ferrochart-form`. A renderer has to COLLECT values,
+because it is the thing a clinician types into, and it has no business with the
+composition builder, the read-back, or the envelope. Leaving the type in
+`ferrochart-compose` would have left the browser unable to name the type it
+exists to fill in, and the only other way out was a hand-written copy of its
+JSON shape in the renderer, which forks a model this repository already owns.
+The moved file named nothing but `ferrochart-form`, so this move also removed a
+dependency direction rather than adding one.
 
 **The closure promises are checked, not asserted.**
 `scripts/checks/crate-closure.sh` reads the resolved dependency graph and fails

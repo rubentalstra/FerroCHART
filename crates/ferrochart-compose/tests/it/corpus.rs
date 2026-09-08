@@ -167,8 +167,8 @@ fn a_null_flavour_outside_the_openehr_group_is_refused() {
     // `Inv_null_flavour_valid` tests membership of the openEHR `null
     // flavours` group, which has four members. A code outside it would build
     // a document the CDR refuses.
-    use ferrochart_compose::values::Entered;
     use ferrochart_form::ids::LocalCode;
+    use ferrochart_form::values::Entered;
 
     // A form the builder otherwise accepts, so the refusal under test is the
     // null flavour rather than an empty entry higher up.
