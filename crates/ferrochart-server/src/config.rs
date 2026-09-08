@@ -5,6 +5,7 @@
 
 use std::env;
 use std::net::SocketAddr;
+use std::path::PathBuf;
 
 /// The prefix every FerroCHART environment variable carries.
 const PREFIX: &str = "FERROCHART_";
@@ -29,6 +30,14 @@ pub struct Config {
     pub cdr_url: String,
     /// The FHIR terminology server's base URL.
     pub term_url: String,
+    /// The directory of `.opt` operational templates the server compiles at
+    /// startup, where the operator named one.
+    ///
+    /// Absent means the server holds no template and serves no form, which is
+    /// the honest reading of an operator who installed none. A directory that
+    /// IS named has to exist and every template in it has to compile, or the
+    /// server refuses to start.
+    pub templates: Option<PathBuf>,
 }
 
 /// Why the configuration could not be read.
@@ -99,10 +108,15 @@ impl Config {
             source,
         })?;
 
+        let templates = var("TEMPLATES")?
+            .filter(|value| !value.trim().is_empty())
+            .map(PathBuf::from);
+
         Ok(Self {
             listen,
             cdr_url: required("CDR_URL", "the openEHR CDR's ITS-REST base URL")?,
             term_url: required("TERM_URL", "the FHIR terminology server's base URL")?,
+            templates,
         })
     }
 }

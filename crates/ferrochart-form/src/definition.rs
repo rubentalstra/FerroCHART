@@ -12,7 +12,9 @@ use crate::ids::{LanguageTag, TemplateId};
 /// The version of the form definition format this crate defines.
 ///
 /// A consumer reads it from [`FormDefinition::format_version`] and refuses a
-/// document it does not know.
+/// document it does not know. The entered-value document of
+/// [`crate::values`] is published under the same number, and the surface that
+/// carries one states the number beside it.
 ///
 /// # What the number covers
 ///

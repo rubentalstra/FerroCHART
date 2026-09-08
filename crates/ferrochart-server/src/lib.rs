@@ -5,30 +5,67 @@
 //! against the operational template, builds COMPOSITIONs and commits them.
 //!
 //! The runtime surface is the configuration, the listener, the health probe
-//! and an orderly shutdown. The routes that serve a form definition arrive
-//! with the renderer.
+//! and an orderly shutdown. [`mod@api`] is the form surface over it, and no
+//! specification governs a route of it: our own design.
 //!
-//! [`mod@commit`] is here already, and it is not a route: it is the gate of
-//! `docs/architecture.md` section 9. It is the only path in this workspace
-//! from a clinician's entries to a CDR write, and it validates the
-//! COMPOSITION against its operational template before it makes any request.
+//! [`mod@commit`] is not a route: it is the gate of `docs/architecture.md`
+//! section 9. It is the only path in this workspace from a clinician's entries
+//! to a CDR write, and it validates the COMPOSITION against its operational
+//! template before it makes any request.
 
+pub mod api;
 pub mod commit;
 mod config;
 mod health;
+pub mod store;
 
 use std::io;
+use std::path::PathBuf;
+use std::sync::Arc;
 
 use axum::Router;
 use axum::routing::get;
+use ferrochart_cdr::client::CdrClient;
+use ferrochart_cdr::error::CdrError;
 use tokio::net::TcpListener;
 
+pub use crate::api::ServerState;
 pub use crate::config::{Config, ConfigError};
 pub use crate::health::Health;
+use crate::store::{StoreError, TemplateStore};
 
-/// Why the server stopped.
+/// Why the server never started, or stopped.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum ServeError {
+    /// A template the operator installed would not compile.
+    #[error("the template directory {} cannot be served", directory.display())]
+    Templates {
+        /// The directory as configured.
+        directory: PathBuf,
+        /// Which template, and why.
+        #[source]
+        source: Box<StoreError>,
+    },
+
+    /// The configured CDR base is not a URL.
+    #[error("FERROCHART_CDR_URL is not a URL: {url:?}")]
+    CdrUrl {
+        /// What was configured.
+        url: String,
+        /// Why it did not parse.
+        #[source]
+        source: url::ParseError,
+    },
+
+    /// The CDR client could not be built.
+    #[error("no client can be built for the configured CDR")]
+    Cdr {
+        /// Why it could not be built.
+        #[source]
+        source: Box<CdrError>,
+    },
+
     /// The listener could not be bound.
     #[error("cannot bind {addr}")]
     Bind {
@@ -48,12 +85,40 @@ pub enum ServeError {
     },
 }
 
-/// Build the router.
+/// Build the router over `state`.
 ///
-/// Kept separate from [`serve`] so a test can drive the routes without binding
-/// a port.
-pub fn router() -> Router {
-    Router::new().route("/health", get(health::probe))
+/// Kept separate from [`serve`] so a test can drive the routes over a listener
+/// of its own.
+pub fn router(state: ServerState) -> Router {
+    Router::new()
+        .route("/health", get(health::probe))
+        .merge(api::routes(state))
+}
+
+/// Compile the configured templates and connect to the configured CDR.
+///
+/// # Errors
+/// Returns [`ServeError::Templates`] when a template the operator installed
+/// will not compile, [`ServeError::CdrUrl`] when the configured CDR base is
+/// not a URL, and [`ServeError::Cdr`] when no client can be built for it.
+pub fn state(config: &Config) -> Result<ServerState, ServeError> {
+    let templates = match config.templates {
+        None => TemplateStore::new(),
+        Some(ref directory) => {
+            TemplateStore::load(directory).map_err(|source| ServeError::Templates {
+                directory: directory.clone(),
+                source: Box::new(source),
+            })?
+        }
+    };
+    let base = url::Url::parse(&config.cdr_url).map_err(|source| ServeError::CdrUrl {
+        url: config.cdr_url.clone(),
+        source,
+    })?;
+    let cdr = CdrClient::new(&base).map_err(|source| ServeError::Cdr {
+        source: Box::new(source),
+    })?;
+    Ok(ServerState::new(Arc::new(templates), cdr))
 }
 
 /// Bind the configured address and serve until the process is asked to stop.
@@ -64,9 +129,13 @@ pub fn router() -> Router {
 ///
 /// # Errors
 ///
-/// Returns [`ServeError::Bind`] when the address cannot be bound, and
-/// [`ServeError::Serve`] when the running server fails.
+/// Returns whatever [`state`] refuses at startup, [`ServeError::Bind`] when
+/// the address cannot be bound, and [`ServeError::Serve`] when the running
+/// server fails.
 pub async fn serve(config: &Config) -> Result<(), ServeError> {
+    let state = state(config)?;
+    let held = state.templates().len();
+
     let listener = TcpListener::bind(config.listen)
         .await
         .map_err(|source| ServeError::Bind {
@@ -78,10 +147,11 @@ pub async fn serve(config: &Config) -> Result<(), ServeError> {
         listen = %config.listen,
         cdr = %config.cdr_url,
         terminology = %config.term_url,
+        templates = held,
         "FerroCHART is listening"
     );
 
-    axum::serve(listener, router())
+    axum::serve(listener, router(state))
         .with_graceful_shutdown(shutdown())
         .await
         .map_err(|source| ServeError::Serve { source })

@@ -14,8 +14,19 @@
 //! read-back, or the envelope. That keeps the browser on one crate of this
 //! tree, which is what makes the form definition a contract a third party can
 //! implement against.
+//!
+//! # The wire
+//!
+//! The values are published beside the definition and carry the same format
+//! number, [`crate::definition::FORMAT_VERSION`]. A [`FormValues`] is a JSON
+//! ARRAY of [`ValueEntry`], because its map is keyed by a struct and a JSON
+//! object cannot be. Every entry spells the three parts of its [`Slot`] out,
+//! the occurrence path among them, so a value that belongs to the second
+//! repeat of a group comes back to the second repeat of that group.
 
 use std::collections::BTreeMap;
+
+use serde::{Deserialize, Serialize};
 
 use crate::ids::LocalCode;
 use crate::key::NodeKey;
@@ -27,7 +38,8 @@ use crate::key::NodeKey;
 /// and `Inv_null_flavour_indicated: is_null() xor null_flavour = Void`, so an
 /// element carries exactly one of a value and a null flavour: never both, and
 /// never neither. This enum is that invariant as a type.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "entered", content = "value", rename_all = "snake_case")]
 pub enum Entered {
     /// The value the clinician entered.
     Value(Datum),
@@ -50,7 +62,8 @@ pub enum Entered {
 /// One variant per shape the derivation table produces, so a field kind and a
 /// datum are checked against each other at the seam rather than deep inside a
 /// serialiser.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum Datum {
     /// A `DV_BOOLEAN`.
     Boolean(bool),
@@ -170,15 +183,63 @@ pub enum Datum {
 /// replicated in the data").
 ///
 /// The map is ordered, so a build is byte-deterministic and a repeat keeps the
-/// order the form put it in.
-#[derive(Debug, Clone, Default, PartialEq)]
+/// order the form put it in. On the wire it is an array of [`ValueEntry`] in
+/// that same order, because a map keyed by a struct is not a JSON object.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(from = "Vec<ValueEntry>", into = "Vec<ValueEntry>")]
 pub struct FormValues {
     entries: BTreeMap<Slot, Entered>,
 }
 
+/// One slot and what was entered against it, as the wire carries the pair.
+///
+/// The three parts of the [`Slot`] are spelled out beside the value rather
+/// than nested, so a reader of the document sees the occurrence path without
+/// descending into a member.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ValueEntry {
+    /// The field the value belongs to.
+    pub key: NodeKey,
+    /// Which occurrence of each repeating ancestor group, outermost first.
+    pub group_path: Vec<usize>,
+    /// Which repeat of the field itself, counting from zero.
+    pub occurrence: usize,
+    /// What was entered.
+    pub entered: Entered,
+}
+
+impl From<FormValues> for Vec<ValueEntry> {
+    fn from(values: FormValues) -> Self {
+        values
+            .entries
+            .into_iter()
+            .map(|(slot, entered)| ValueEntry {
+                key: slot.key,
+                group_path: slot.group_path,
+                occurrence: slot.occurrence,
+                entered,
+            })
+            .collect()
+    }
+}
+
+impl From<Vec<ValueEntry>> for FormValues {
+    /// Reads the array back into the ordered map.
+    ///
+    /// Two entries naming the same slot collapse to the last one, which is
+    /// what [`FormValues::set_in`] does with the same pair.
+    fn from(entries: Vec<ValueEntry>) -> Self {
+        let mut values = Self::new();
+        for entry in entries {
+            values.set_in(entry.key, entry.group_path, entry.occurrence, entry.entered);
+        }
+        values
+    }
+}
+
 /// One field of one occurrence, inside one occurrence of each repeating group
 /// above it.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Slot {
     /// The field the value belongs to.
     pub key: NodeKey,

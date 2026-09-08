@@ -1,0 +1,289 @@
+---
+source: crates/ferrochart-form/tests/it/values.rs
+expression: "serde_json::to_string_pretty(&values()).unwrap()"
+---
+[
+  {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "items",
+          "node_id": "at0001",
+          "archetype_id": null,
+          "rm_type": "ELEMENT",
+          "pinned_name": null,
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "group_path": [
+      0
+    ],
+    "occurrence": 0,
+    "entered": {
+      "entered": "value",
+      "value": {
+        "type": "quantity",
+        "value": {
+          "magnitude": 37.2,
+          "units": "Cel",
+          "precision": 1
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "items",
+          "node_id": "at0001",
+          "archetype_id": null,
+          "rm_type": "ELEMENT",
+          "pinned_name": null,
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "group_path": [
+      1
+    ],
+    "occurrence": 0,
+    "entered": {
+      "entered": "value",
+      "value": {
+        "type": "quantity",
+        "value": {
+          "magnitude": 36.8,
+          "units": "Cel",
+          "precision": 1
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "items",
+          "node_id": "at0002",
+          "archetype_id": null,
+          "rm_type": "ELEMENT",
+          "pinned_name": null,
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "group_path": [
+      1,
+      0
+    ],
+    "occurrence": 0,
+    "entered": {
+      "entered": "value",
+      "value": {
+        "type": "text",
+        "value": "a synthetic entry"
+      }
+    }
+  },
+  {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "items",
+          "node_id": "at0002",
+          "archetype_id": null,
+          "rm_type": "ELEMENT",
+          "pinned_name": null,
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "group_path": [
+      1,
+      0
+    ],
+    "occurrence": 1,
+    "entered": {
+      "entered": "value",
+      "value": {
+        "type": "text",
+        "value": "a second synthetic entry"
+      }
+    }
+  },
+  {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "items",
+          "node_id": "at0003",
+          "archetype_id": null,
+          "rm_type": "ELEMENT",
+          "pinned_name": null,
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "group_path": [],
+    "occurrence": 0,
+    "entered": {
+      "entered": "value",
+      "value": {
+        "type": "coded",
+        "value": {
+          "terminology": "local",
+          "code": "at0010",
+          "rubric": "a synthetic rubric"
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "items",
+          "node_id": "at0004",
+          "archetype_id": null,
+          "rm_type": "ELEMENT",
+          "pinned_name": null,
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "group_path": [],
+    "occurrence": 0,
+    "entered": {
+      "entered": "value",
+      "value": {
+        "type": "scale",
+        "value": {
+          "terminology": "local",
+          "code": "at0011",
+          "rubric": "a synthetic symbol",
+          "value": 1.5
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "items",
+          "node_id": "at0005",
+          "archetype_id": null,
+          "rm_type": "ELEMENT",
+          "pinned_name": null,
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "group_path": [],
+    "occurrence": 0,
+    "entered": {
+      "entered": "value",
+      "value": {
+        "type": "proportion",
+        "value": {
+          "numerator": 1.0,
+          "denominator": 4.0,
+          "kind": 2,
+          "precision": 2
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "items",
+          "node_id": "at0006",
+          "archetype_id": null,
+          "rm_type": "ELEMENT",
+          "pinned_name": null,
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "group_path": [],
+    "occurrence": 0,
+    "entered": {
+      "entered": "value",
+      "value": {
+        "type": "interval",
+        "value": {
+          "lower": {
+            "type": "count",
+            "value": 1
+          },
+          "upper": {
+            "type": "count",
+            "value": 9
+          },
+          "lower_included": true,
+          "upper_included": false
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "items",
+          "node_id": "at0007",
+          "archetype_id": null,
+          "rm_type": "ELEMENT",
+          "pinned_name": null,
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "group_path": [],
+    "occurrence": 0,
+    "entered": {
+      "entered": "value",
+      "value": {
+        "type": "date_time",
+        "value": "2026-09-08T12:00:00Z"
+      }
+    }
+  },
+  {
+    "key": {
+      "steps": [
+        {
+          "rm_attribute": "items",
+          "node_id": "at0008",
+          "archetype_id": null,
+          "rm_type": "ELEMENT",
+          "pinned_name": null,
+          "sibling_ordinal": 0
+        }
+      ],
+      "is_positional": false
+    },
+    "group_path": [],
+    "occurrence": 0,
+    "entered": {
+      "entered": "null",
+      "value": {
+        "code": "271",
+        "reason": "no information"
+      }
+    }
+  }
+]

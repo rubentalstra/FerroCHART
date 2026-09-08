@@ -17,6 +17,7 @@ publish.workspace = true
 ferrochart-form.workspace = true
 openehr-base.workspace = true
 openehr-rm.workspace = true
+serde.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]

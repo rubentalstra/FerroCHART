@@ -81,6 +81,18 @@
 # FERROCHART_TERM_URL, and refuses to start when either endpoint is absent,
 # naming the variable. It answers GET /health without authentication.
 #
+# FERROCHART_TEMPLATES names a directory of .opt operational templates to
+# serve, and is optional: unset means the server holds no form. To serve your
+# own, mount them read-only and point the variable at the mount, by adding to
+# the ferrochart service:
+#
+#   volumes:
+#     - ./my-templates:/srv/templates:ro
+#
+# then running FERROCHART_TEMPLATES=/srv/templates docker compose up. Every
+# template in the directory is compiled at startup, and one that will not
+# compile stops the server naming the file.
+#
 # There is no `healthcheck:` block on the ferrochart service: the image is
 # distroless and carries no shell or curl to run one from inside. Probe
 # GET /health over HTTP from outside, which is what an orchestrator does.
@@ -99,6 +111,9 @@ services:
       # a server pointed at nothing.
       FERROCHART_CDR_URL: ${FERROCHART_CDR_URL:?set FERROCHART_CDR_URL to your openEHR REST base URL, or to http://ferroehr:8080/ferroehr/rest/openehr with --profile demo}
       FERROCHART_TERM_URL: ${FERROCHART_TERM_URL:?set FERROCHART_TERM_URL to your FHIR R4 terminology base URL, or to http://ferroterm:8080/r4 with --profile demo}
+      # Optional, and empty means the server holds no form: the path inside
+      # the container where you mounted your operational templates.
+      FERROCHART_TEMPLATES: ${FERROCHART_TEMPLATES:-}
       RUST_LOG: ${RUST_LOG:-info}
     # Inert unless the demo profile is up: `required: false` makes the edge a
     # warning rather than a failure when the service is not started

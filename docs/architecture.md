@@ -1210,7 +1210,7 @@ the manifest rather than by habit.
 
 | Crate | Role |
 |---|---|
-| `ferrochart-form` | The form definition type, the overlay's layout types, the entered-value types, and their serialisations. No I/O, and nothing else from this tree; `thiserror` for its one error type is the only dependency. |
+| `ferrochart-form` | The form definition type, the overlay's layout types, the entered-value types, and their serialisations. No I/O, and nothing else from this tree; `serde` for the published documents and `thiserror` for its one error type. |
 | `ferrochart-compile` | Operational template to form definition. Owns the internal constraint model of section 3 and the derivation of section 5. |
 | `ferrochart-webtemplate` | The web template compatibility surface of section 4: reading one into a form definition, and writing one out. Links `ferrochart-form` and nothing else of this tree. |
 | `ferrochart-overlay` | Overlay storage, the key normalization of section 6.2, replay, and the differential report. Not the layout types themselves. |
@@ -1293,6 +1293,86 @@ The root manifest carries the workspace lints of `.claude/rules/reliability.md`
 at their stated tiers, `unsafe_code = "forbid"` among them, and the release
 profile pins `panic = "unwind"` and `overflow-checks = true`.
 
+### 11.1 The HTTP surface
+
+**No specification governs this: our own design.** openEHR ITS-REST
+Release-1.1.0 defines the CDR's API and says nothing about the API of a form
+server sitting in front of one, so every path, body and status below is
+FerroCHART's. What the bodies carry is not ours to invent: a form definition
+and a set of entered values are `ferrochart-form`'s published contract
+(sections 4 and 6), and this surface transports them unchanged.
+
+| Route | What it does |
+|---|---|
+| `GET /health` | Reports that this process is up, without authentication. It says nothing about the CDR or the terminology server. |
+| `GET /api/templates` | The template identifiers this server holds. |
+| `GET /api/templates/{template_id}/definition` | The `FormDefinition` that template compiles to. |
+| `POST /api/templates/{template_id}/validation` | Judges entered values against the template and returns the failures keyed onto the definition. It makes no request to the CDR. |
+| `POST /api/ehrs/{ehr_id}/templates/{template_id}/compositions` | Builds, validates and commits, which is `Commit::create` behind a route. Answers 201 with the version uid. |
+| `GET /api/ehrs/{ehr_id}/compositions/{uid}/values?template={template_id}` | Reads a stored COMPOSITION back into the values of that form. |
+
+The `{uid}` of the read-back takes either form ITS-REST `ehr.html` accepts: an
+identifier carrying `::` names one version, and one without it names the
+versioned object and resolves to its latest version.
+
+**Statuses.** An unknown template identifier is 404, a body the route cannot
+read is 400, and values the template refuses are 422 carrying the report. A
+CDR that refused or never answered is 502, carrying `cdr_status` and
+`cdr_body`: the CDR's own status and body reach the client rather than being
+flattened into a default (`.claude/rules/reliability.md`), and `cdr_status` is
+null where the call never reached an answer. A composition the CDR reports as
+deleted is 410, which is a different fact from the 404 an absent one earns.
+Every failure answers with one document, `{"error": …, "message": …}`, plus
+`report` where there is a judgement to place on the form.
+
+**The templates a server holds come from a directory.** `FERROCHART_TEMPLATES`
+names a directory of `.opt` operational templates, which the server compiles at
+startup into a form definition and a flattened validator per template, keyed by
+the identifier each template states for itself. Compiling once is what makes
+the request path cheap. A template that will not compile fails the startup,
+naming the file and the cause, and two files stating one identifier fail it
+too: a server serving fewer forms than its operator installed, or picking
+between two by filesystem order, is silently wrong. The variable is optional,
+and unset means the server holds no template at all, which is the honest
+reading of an operator who installed none.
+
+**The entered values on the wire.** A `FormValues` is a JSON ARRAY, because its
+map is keyed by a `Slot` and a JSON object cannot be. Each element spells the
+three parts of the slot out beside the value, the occurrence path among them:
+
+```json
+[
+  {
+    "key": { "steps": [ … ], "is_positional": false },
+    "group_path": [1],
+    "occurrence": 0,
+    "entered": {
+      "entered": "value",
+      "value": { "type": "quantity",
+                 "value": { "magnitude": 37.2, "units": "Cel", "precision": 1 } }
+    }
+  }
+]
+```
+
+`entered` is `value` or `null`, which is `ELEMENT`'s invariant pair
+(RM Release-1.1.0 `data_structures.html` section 5.2.3), and a null carries the
+flavour code and its reason instead of a datum. The member names are
+snake_case and the enum tags are snake_case, which is what the form definition
+already publishes, so a consumer parses both documents the same way.
+
+Every request and response body of this surface states `format_version`, so a
+client can tell which version of the published contract it is reading, and a
+request stating another version is refused rather than guessed at. A commit
+and a validation body also carry the `Envelope` of section 5.3, because most
+of it is per-session: `ehr.html` section 5.2.2 makes `COMPOSITION.composer`
+mandatory and nothing authorises a server to invent it.
+
+A build refusal reaches the client as a report too, keyed onto the field it
+names, under `FailureSource::Builder`. A required field left empty is the
+commonest thing a clinician does wrong, and it belongs on the field rather
+than in prose a renderer cannot place.
+
 ## 12. What each seam carries
 
 - **A modelling tool to FerroCHART:** an operational template, as OPT 1.4 XML
@@ -1304,7 +1384,9 @@ profile pins `panic = "unwind"` and `overflow-checks = true`.
 - **A FHIR terminology server to FerroCHART:** an expansion or a code
   validation, for the bindings of section 7 that name a target.
 - **FerroCHART to a renderer:** a form definition, and a validation result
-  keyed by node path.
+  keyed by node path, over the routes of section 11.1.
+- **A renderer to FerroCHART:** the entered values, in the array of section
+  11.1, with the envelope of section 5.3 beside them.
 - **A person to FerroCHART:** the overlay, which is the only artefact in this
   list no specification governs.
 

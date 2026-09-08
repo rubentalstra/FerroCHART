@@ -12,4 +12,5 @@
     reason = "test assertions"
 )]
 
+mod values;
 mod wire;

@@ -14,6 +14,7 @@
 
 use openehr_base::v1_3::base_types::identification::terminology_id::TerminologyId;
 use openehr_rm::v1_2::data_types::text::code_phrase::CodePhrase;
+use serde::{Deserialize, Serialize};
 
 /// The openEHR terminology's own identifier.
 ///
@@ -59,7 +60,7 @@ const IANA_CHARACTER_SETS: &str = "IANA_character-sets";
 /// Each field says where it comes from, because the distinction matters: a
 /// derived value is a fact about the template, and an invented one is a
 /// decision FerroCHART made that a reader is entitled to question.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Envelope {
     /// `COMPOSITION.language`, 1..1. Configuration or the session locale, and
     /// no CKM template constrains it.
@@ -117,7 +118,8 @@ pub struct Envelope {
 }
 
 /// Who composed the document.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "composer", rename_all = "snake_case")]
 pub enum Composer {
     /// `PARTY_SELF`: the subject of the record composed it, which is what
     /// patient-entered data uses (`ehr.html` section 5.2.2).
@@ -132,14 +134,15 @@ pub enum Composer {
 }
 
 /// Who the entry is about.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "subject", rename_all = "snake_case")]
 pub enum Subject {
     /// `PARTY_SELF`: the subject of the record.
     SelfParty,
 }
 
 /// The setting a context was recorded in.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Setting {
     /// The code, from the openEHR `setting` group.
     pub code: String,
