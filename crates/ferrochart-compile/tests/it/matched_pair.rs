@@ -71,6 +71,17 @@
 //!    compared. Neither reader resolves an unstated value against the
 //!    Reference Model, so there is nothing else the comparison could hold
 //!    them to.
+//! 7. **The archetype names itself at a different version precision.**
+//!    openEHR BASE Release-1.2.0 `base_types.html` section 5.5 gives an
+//!    `archetype_id` a single version number
+//!    (`version-id = 'v', ( '0' | non-zero-digit, [ number ] )`), where
+//!    openEHR AM Release-2.3.0 `ADL2.html` section 7.5.5 gives an ADL 2
+//!    identifier a three-part one and deprecates the single-number form.
+//!    `AOM2.html` section 3.6.3 records that the human-readable identifier
+//!    carries only the major version, so every archetype identifier is
+//!    compared at its major version. The reference model entity, the concept
+//!    and the major version are still compared, so two archetypes that differ
+//!    in any of those still differ here.
 //!
 //! Three spellings are already normalized by the readers themselves, so this
 //! comparison asserts nothing about them and says so rather than appearing to:
@@ -102,6 +113,17 @@ const AS_ADL2: &str = include_str!("../fixtures/ferro_test_observation.v1.0.0.ad
 /// The identifier both halves are given, because neither generation's own is
 /// comparable (§The differences accepted as legitimate, item 4).
 const ONE_ARTEFACT: &str = "the matched pair";
+
+/// The archetype identifier both halves are compared under: the identifier
+/// with its version part cut back to the major version (§The differences
+/// accepted as legitimate, item 7).
+fn same_major(id: &ArchetypeId) -> ArchetypeId {
+    let Some((concept, version)) = id.as_str().rsplit_once(".v") else {
+        return id.clone();
+    };
+    let major = version.split('.').next().unwrap_or(version);
+    ArchetypeId::new(format!("{concept}.v{major}"))
+}
 
 /// The terminology name an archetype's own codes are drawn from.
 ///
@@ -238,7 +260,11 @@ impl<'a> Side<'a> {
             if let Some(source) = self.template.terminology(scope) {
                 self.copy(scope, source, mentioned, &mut terminology);
             }
-            built.insert(scope.clone(), terminology);
+            let clash = built.insert(same_major(scope), terminology);
+            assert!(
+                clash.is_none(),
+                "{scope} shares a major version with another archetype in the same template"
+            );
         }
         built
     }
@@ -422,7 +448,7 @@ fn rebuild(
     let identity = NodeIdentity::new(
         node.identity().rm_attribute().clone(),
         node_id.map(|code| side.concept(scope, &code)),
-        node.identity().archetype_id().cloned(),
+        node.identity().archetype_id().map(same_major),
         node.identity().rm_type().clone(),
         node.identity().pinned_name().map(str::to_owned),
         node.identity().sibling_ordinal(),
@@ -435,7 +461,7 @@ fn rebuild(
         false,
         attribute,
         normalize_payload(side, scope, node.payload()),
-        scope.clone(),
+        same_major(scope),
         node.is_deprecated(),
         node.default_value()
             .map(|value| normalize_default(side, scope, value)),
@@ -718,8 +744,8 @@ fn the_equivalence_reads_every_node_of_the_pair() {
     // silently stopped early would still pass. This pins the size it covered.
     let (opt14, from_adl2) = pair();
     let (left, right, _) = normalized_pair(&opt14, &from_adl2);
-    assert_eq!(left.walk().count(), 10);
-    assert_eq!(right.walk().count(), 10);
+    assert_eq!(left.walk().count(), 12);
+    assert_eq!(right.walk().count(), 12);
 }
 
 #[test]
@@ -736,11 +762,16 @@ fn a_difference_the_equivalence_does_not_accept_fails_naming_the_node() {
     let message = failure
         .downcast_ref::<String>()
         .expect("the assertion carries its message");
+    // The trailing separator is part of the match, so the single-version
+    // spelling cannot be satisfied by the three-part one.
     assert!(
-        message.contains("openEHR-EHR-OBSERVATION.ferro_test.v1.0.0"),
+        message.contains("at openEHR-EHR-OBSERVATION.ferro_test.v1 /"),
         "{message}"
     );
-    assert!(message.contains("/data[0]/items[0]"), "{message}");
+    assert!(
+        message.contains("/data[0]/events[0]/data[0]/items[0]:"),
+        "{message}"
+    );
 }
 
 /// Widens the occurrences of the first leaf under `items`, which is the
@@ -843,7 +874,7 @@ fn an_external_code_is_compared_verbatim_rather_than_by_rubric() {
     // Release-1.1.0 `data_types.html` section 5.2.3).
     let (opt14, _) = pair();
     let side = Side::new(&opt14);
-    let scope = ArchetypeId::new("openEHR-EHR-OBSERVATION.ferro_test.v1.0.0");
+    let scope = ArchetypeId::new("openEHR-EHR-OBSERVATION.ferro_test.v1");
     let snomed = CodedValue::new(TerminologyName::new("SNOMED-CT"), "27113001", None);
     assert_eq!(
         normalize_coded_value(&side, &scope, &snomed).code(),
@@ -871,7 +902,7 @@ fn a_node_with_no_local_code_keeps_its_identity_parts() {
         true,
         AttributeContext::single(None),
         ConstraintPayload::Structure,
-        ArchetypeId::new("openEHR-EHR-OBSERVATION.ferro_test.v1.0.0"),
+        ArchetypeId::new("openEHR-EHR-OBSERVATION.ferro_test.v1"),
         false,
         None,
         Vec::new(),

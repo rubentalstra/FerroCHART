@@ -150,13 +150,13 @@ fn a_use_node_reference_is_resolved_against_the_same_template() {
 #[test]
 fn an_unresolvable_use_node_reference_is_refused() {
     let broken = SLOTS_AND_REFS.replace(
-        "<target_path>/data[at0001]/items[at0002]</target_path>",
-        "<target_path>/data[at0001]/items[at9999]</target_path>",
+        "/data[at0001]/items[at0002]</target_path>",
+        "/data[at0001]/items[at9999]</target_path>",
     );
     let error = adl14::from_xml(&broken).expect_err("a missing target is refused");
     assert!(
         matches!(error, ReadError::UnresolvedInternalReference { ref target, .. }
-            if target == "/data[at0001]/items[at9999]"),
+            if target == "/data[at0006]/events[at0007]/data[at0001]/items[at9999]"),
         "expected an unresolved-reference refusal, got {error}"
     );
 }
@@ -300,8 +300,8 @@ fn a_default_value_reaches_the_node_its_differential_path_names() {
 #[test]
 fn a_default_value_naming_a_node_the_template_does_not_define_is_refused() {
     let broken = XSD_ONLY.replace(
-        "/data[at0004]</differential_path>",
-        "/data[at9999]</differential_path>",
+        "/items[at0004]</differential_path>",
+        "/items[at9999]</differential_path>",
     );
     let error = adl14::from_xml(&broken).expect_err("a dangling default path is refused");
     assert!(
