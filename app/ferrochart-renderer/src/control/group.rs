@@ -14,7 +14,7 @@
 //! behind would commit a document they cannot see.
 
 use ferrochart_form::definition::FormDefinition;
-use ferrochart_form::group::{FormGroup, FormItem};
+use ferrochart_form::group::{FormGroup, FormItem, GroupShape};
 use ferrochart_form::ids::LanguageTag;
 use leptos::prelude::*;
 
@@ -77,7 +77,7 @@ pub(crate) fn GroupView(
         let path = path.clone();
         move || {
             if repeatable {
-                (0..state.shown(&key, &path)).collect::<Vec<_>>()
+                (0..state.shown(&key, &path, minimum as usize)).collect::<Vec<_>>()
             } else {
                 vec![0]
             }
@@ -116,7 +116,7 @@ pub(crate) fn GroupView(
         let key = key.clone();
         let path = path.clone();
         Callback::new(move |()| {
-            state.add_occurrence(&key, &path, maximum);
+            state.add_occurrence(&key, &path, minimum, maximum);
         })
     };
     let remove = {
@@ -129,7 +129,7 @@ pub(crate) fn GroupView(
     let at_ceiling = {
         let key = key.clone();
         let path = path.clone();
-        Signal::derive(move || !state.can_add(&key, &path, maximum))
+        Signal::derive(move || !state.can_add(&key, &path, minimum, maximum))
     };
     let at_floor = Signal::derive(move || !state.can_remove(&key, &path, minimum));
     let bound = group.occurrences.to_string();
@@ -164,6 +164,32 @@ pub(crate) fn GroupView(
     .into_any()
 }
 
+/// Whether the group is the Reference Model's own container rather than a
+/// grouping a person would recognize.
+///
+/// openEHR RM Release-1.1.0 `data_structures.html` section 4.3 makes
+/// `ITEM_SINGLE`, `ITEM_LIST` and `ITEM_TREE` the `ITEM_STRUCTURE` an ENTRY
+/// attribute holds its content in. They exist because the Reference Model
+/// needs a container there, not because anybody grouped anything, and the CKM
+/// archetypes label them accordingly: the one on the family history form is
+/// headed "Tree" and described "@ internal @".
+///
+/// So the group's contents are drawn where the group would have been. Nothing
+/// is invented and nothing is dropped: the node keeps its key, its values and
+/// its place in the composition, and only the card and the heading go. An
+/// `ITEM_TABLE` keeps both, because a grid is a shape a person reads, and a
+/// `CLUSTER` keeps both, because a cluster IS the clinical grouping.
+///
+/// A structure node that repeats keeps its card too, because the add and
+/// remove pair has to hang on something.
+fn is_plumbing(group: &FormGroup) -> bool {
+    matches!(
+        group.shape,
+        GroupShape::Single | GroupShape::List | GroupShape::Tree
+    ) && group.archetype_id.is_none()
+        && !group.occurrences.is_repeatable()
+}
+
 /// Everything one occurrence of a group holds: its items, then the holes the
 /// template left in it.
 fn contents(
@@ -176,6 +202,9 @@ fn contents(
         .items
         .iter()
         .map(|item| match *item {
+            FormItem::Group(ref nested) if is_plumbing(nested) => {
+                contents(nested, state, inside, language).into_any()
+            }
             FormItem::Group(ref nested) => view! {
                 <GroupView
                     group=(**nested).clone()
@@ -204,4 +233,76 @@ fn contents(
         view! { <UndeterminedView content=content.clone() language=language.clone() /> }.into_any()
     }));
     drawn
+}
+
+#[cfg(test)]
+mod tests {
+    use ferrochart_form::group::{FormGroup, GroupShape};
+    use ferrochart_form::ids::{ArchetypeId, RmAttributeName, RmTypeName};
+    use ferrochart_form::key::{KeyStep, NodeKey};
+    use ferrochart_form::occurrences::Occurrences;
+    use ferrochart_form::text::Localized;
+
+    use super::is_plumbing;
+
+    /// A group of `shape`, holding nothing.
+    fn group(shape: GroupShape) -> FormGroup {
+        FormGroup {
+            key: NodeKey::root().child(KeyStep {
+                rm_attribute: RmAttributeName::new("data"),
+                node_id: None,
+                archetype_id: None,
+                rm_type: RmTypeName::new("ITEM_TREE"),
+                pinned_name: None,
+                sibling_ordinal: 0,
+            }),
+            rm_type: RmTypeName::new("ITEM_TREE"),
+            archetype_id: None,
+            label: Localized::empty(),
+            help: Localized::empty(),
+            occurrences: Occurrences::bounded(1, 1),
+            shape,
+            name_constraint: None,
+            is_ordered: false,
+            is_unique: false,
+            is_deprecated: false,
+            items: Vec::new(),
+            undetermined: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn the_reference_models_own_container_is_plumbing() {
+        // openEHR RM Release-1.1.0 `data_structures.html` section 4.3: these
+        // hold an ENTRY's content because the model needs a container there,
+        // and the CKM archetypes head them "Tree" and describe them
+        // "@ internal @".
+        for shape in [GroupShape::Single, GroupShape::List, GroupShape::Tree] {
+            assert!(is_plumbing(&group(shape)), "{shape:?}");
+        }
+    }
+
+    #[test]
+    fn a_cluster_and_a_table_are_not_plumbing() {
+        // A cluster IS the clinical grouping, and a table is a shape a person
+        // reads.
+        assert!(!is_plumbing(&group(GroupShape::Cluster)));
+        assert!(!is_plumbing(&group(GroupShape::Table)));
+        assert!(!is_plumbing(&group(GroupShape::Plain)));
+    }
+
+    #[test]
+    fn a_container_that_roots_an_archetype_keeps_its_heading() {
+        let mut rooted = group(GroupShape::Tree);
+        rooted.archetype_id = Some(ArchetypeId::new("openEHR-EHR-CLUSTER.x.v1"));
+        assert!(!is_plumbing(&rooted));
+    }
+
+    #[test]
+    fn a_container_that_repeats_keeps_its_heading() {
+        // The add and remove pair has to hang on something.
+        let mut repeats = group(GroupShape::Tree);
+        repeats.occurrences = Occurrences::unbounded_from(0);
+        assert!(!is_plumbing(&repeats));
+    }
 }

@@ -123,17 +123,29 @@ impl FormState {
     }
 
     /// How many occurrences of `group` the form is showing under `path`.
-    pub(crate) fn shown(&self, group: &NodeKey, path: &Path) -> usize {
+    ///
+    /// `least` is what the template requires, and it is the answer for a node
+    /// the seeding never reached: a repeating group inside an occurrence the
+    /// reader added is not in the list until they touch it, and answering 1
+    /// there put an entry in a section the template says may be empty
+    /// (issue #202).
+    pub(crate) fn shown(&self, group: &NodeKey, path: &Path, least: usize) -> usize {
         self.shown
             .read()
             .iter()
             .find(|(key, at, _)| key == group && at.as_slice() == path.as_ref())
-            .map_or(1, |&(_, _, count)| count)
+            .map_or(least, |&(_, _, count)| count)
     }
 
     /// Whether one more occurrence of `key` may be shown.
-    pub(crate) fn can_add(&self, key: &NodeKey, path: &Path, maximum: Option<u32>) -> bool {
-        maximum.is_none_or(|most| self.shown(key, path) < most as usize)
+    pub(crate) fn can_add(
+        &self,
+        key: &NodeKey,
+        path: &Path,
+        minimum: u32,
+        maximum: Option<u32>,
+    ) -> bool {
+        maximum.is_none_or(|most| self.shown(key, path, minimum as usize) < most as usize)
     }
 
     /// Whether the last occurrence of `key` may be taken away.
@@ -143,18 +155,24 @@ impl FormState {
     /// so a person who added an optional section could never put it back
     /// (issue #202).
     pub(crate) fn can_remove(&self, key: &NodeKey, path: &Path, minimum: u32) -> bool {
-        self.shown(key, path) > minimum as usize
+        self.shown(key, path, minimum as usize) > minimum as usize
     }
 
     /// Shows one more occurrence of `key`, up to what the template admits.
     ///
     /// Returns whether one was added, so a control can disable itself at the
     /// ceiling rather than offering an action that does nothing.
-    pub(crate) fn add_occurrence(&self, key: &NodeKey, path: &Path, maximum: Option<u32>) -> bool {
-        if !self.can_add(key, path, maximum) {
+    pub(crate) fn add_occurrence(
+        &self,
+        key: &NodeKey,
+        path: &Path,
+        minimum: u32,
+        maximum: Option<u32>,
+    ) -> bool {
+        if !self.can_add(key, path, minimum, maximum) {
             return false;
         }
-        let showing = self.shown(key, path);
+        let showing = self.shown(key, path, minimum as usize);
         self.set_shown(key, path, showing.saturating_add(1));
         true
     }
@@ -174,7 +192,7 @@ impl FormState {
         if !self.can_remove(group, path, minimum) {
             return false;
         }
-        let last = self.shown(group, path).saturating_sub(1);
+        let last = self.shown(group, path, minimum as usize).saturating_sub(1);
         let inside = descend(path, last);
         self.values
             .update(|values| values.remove_under(group, &inside));
@@ -196,7 +214,7 @@ impl FormState {
         if !self.can_remove(key, path, minimum) {
             return false;
         }
-        let last = self.shown(key, path).saturating_sub(1);
+        let last = self.shown(key, path, minimum as usize).saturating_sub(1);
         self.values.update(|values| {
             // The removed repeat's value goes with it, deliberately: an
             // occurrence a clinician removed is one they said is not there.
