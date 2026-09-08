@@ -20,7 +20,7 @@ It runs as its own server beside any openEHR CDR reached over the openEHR
 ITS-REST API, and uses any FHIR terminology server to expand the value sets
 behind coded fields.
 
-## Status: it compiles a template into a form
+## Status: the round trip runs, and has never met a real CDR
 
 **What works today.** Point it at an openEHR operational template and it
 produces a form definition: fields with their permitted units, value sets,
@@ -29,10 +29,30 @@ the constraint at each node. Both ADL generations are read. Measured against
 the 123 openEHR CKM templates this repository vendors, 121 read and all 121
 derive a form, 2658 fields across 1789 groups.
 
-**What does not work yet.** Nothing renders that form to a clinician, builds a
-COMPOSITION out of it, or commits one to a CDR. The layout overlay, which is
-the reason this project exists, is being built now. So a release today is a
-compiler and its supply chain, not a product a ward could use.
+The server publishes that definition, and a browser renders it. There is a
+control for every one of the eighteen field kinds the derivation produces,
+each admitting what its template admits and refusing the rest. A repeatable
+group adds and removes occurrences, a field can be given a null flavour
+instead of a value, and content a template left undetermined is drawn as a
+visible hole rather than dropped. What a clinician enters is validated against
+the operational template before any request is made, built into a COMPOSITION,
+posted to a CDR over ITS-REST, and read back into the same form.
+
+**What does not work yet.** Two things, and the second is the honest one.
+
+The layout overlay's authoring surface is not built. The overlay itself is:
+its storage, its key normalization, its replay across a template revision and
+the report of what matched, moved, disappeared or became ambiguous. What is
+missing is the screen a person uses to author one, so today a form is rendered
+in template order.
+
+**The round trip has never run against a real CDR.** The ITS-REST client has,
+and the terminology client has, and the whole build-validate-post-accept path
+is exercised end to end against a mock. The one test that would prove the
+claim this project makes is the one still outstanding, tracked as
+[issue #126](https://github.com/rubentalstra/FerroCHART/issues/126). Until it
+runs, treat the commit path as untested against anything that enforces
+openEHR's rules for itself.
 
 The design of record is [`docs/architecture.md`](docs/architecture.md), the
 output of the research program on
@@ -59,7 +79,7 @@ Every release asset is checksummed and carries a Sigstore attestation, so you
 can check where a binary came from before you trust it:
 
 ```sh
-gh attestation verify ferrochart-v0.0.3-x86_64-unknown-linux-musl.tar.gz \
+gh attestation verify ferrochart-v0.0.5-x86_64-unknown-linux-musl.tar.gz \
   --repo rubentalstra/FerroCHART \
   --signer-workflow rubentalstra/FerroCHART/.github/workflows/release-build.yml
 ```
