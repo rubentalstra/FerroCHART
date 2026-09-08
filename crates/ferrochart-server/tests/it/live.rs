@@ -32,6 +32,20 @@ const CDR_URL: &str = "FERROCHART_TEST_CDR_URL";
 /// The `Authorization` header value, where the CDR under test wants one.
 const CDR_AUTHORIZATION: &str = "FERROCHART_TEST_CDR_AUTHORIZATION";
 
+/// One committed template per class the pack roots at below COMPOSITION.
+///
+/// 113 of the 123 committed templates root at an ENTRY or a SECTION, so this
+/// is the shape most of the pack commits in. Each name here compiles, fills,
+/// builds and passes FerroCHART's own gate, so the only judgement left is the
+/// CDR's.
+const ROOTED_BELOW_COMPOSITION: [&str; 5] = [
+    "aedes-indices-jm.opt",
+    "alcohol-consumption-summary-item-r1.opt",
+    "case-demographic-information-jm.opt",
+    "medication-order-item-r1.opt",
+    "travel-event-jm.opt",
+];
+
 fn client() -> CdrClient {
     let base =
         env::var(CDR_URL).unwrap_or_else(|_| panic!("{CDR_URL} is unset; run scripts/test-cdr.sh"));
@@ -137,4 +151,50 @@ async fn a_real_cdr_never_sees_a_composition_the_gate_refused() {
         Ok(_) => panic!("an empty form committed a document"),
         Err(other) => panic!("the outcome is {other:?}"),
     }
+}
+
+#[tokio::test]
+#[ignore = "needs a running CDR: scripts/test-cdr.sh"]
+async fn a_real_cdr_accepts_a_composition_around_a_template_rooted_below_it() {
+    // TODO(#163): FerroCHART writes the template id at the wrapper
+    // COMPOSITION, where no template is active, so a CDR compares an
+    // ENTRY-rooted template against a COMPOSITION and refuses all five.
+    let client = client();
+    let ehr = client.create_ehr().await.expect("the CDR creates an EHR");
+    let envelope = support::envelope();
+    let mut refused: Vec<String> = Vec::new();
+
+    for name in ROOTED_BELOW_COMPOSITION {
+        let xml = support::xml_at(&support::corpus().join(name));
+        let (definition, validator, values) = support::case_at(&xml);
+        let rooted_at = definition.root.rm_type.as_str().to_owned();
+        assert_ne!(
+            rooted_at, "COMPOSITION",
+            "{name} is in this sample because it roots below COMPOSITION"
+        );
+        match client.upload_template(Generation::Adl14, &xml).await {
+            Ok(_) | Err(CdrError::Conflict { .. }) => {}
+            Err(other) => panic!("the CDR would not take {name}: {other:?}"),
+        }
+
+        let gate = Commit {
+            definition: &definition,
+            validator: &validator,
+            envelope: &envelope,
+        };
+        match gate.create(&client, &ehr, &values).await {
+            Ok(_) => {}
+            Err(CommitError::Rejected { source, .. }) => {
+                refused.push(format!("{name} ({rooted_at}): {source}"));
+            }
+            Err(other) => panic!("the commit failed for {name}: {other:?}"),
+        }
+    }
+
+    assert_eq!(
+        refused,
+        Vec::<String>::new(),
+        "the CDR refused a COMPOSITION FerroCHART validated, which is a \
+         FerroCHART defect"
+    );
 }

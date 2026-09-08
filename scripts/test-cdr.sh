@@ -96,5 +96,8 @@ echo "test-cdr: running the wire tests against ${FERROCHART_TEST_CDR_URL}"
 # live cases commit a COMPOSITION FerroCHART built and validated. A CDR
 # refusing one of those is a FerroCHART defect, so they run here beside the
 # client's own wire tests.
+#
+# --no-fail-fast: the point of the lane is what a real CDR says about every
+# case, so one refusal must not cancel the cases behind it.
 cargo nextest run --locked -p ferrochart-cdr -p ferrochart-server \
-  --run-ignored all --test-threads 1
+  --run-ignored all --test-threads 1 --no-fail-fast
