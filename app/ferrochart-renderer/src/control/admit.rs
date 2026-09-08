@@ -61,7 +61,7 @@ impl Refusal {
             Self::TooPrecise => "The template admits fewer decimal places than that.",
             Self::NotEnumerated => "Choose one of the values the template lists.",
             Self::NothingAdmitted => "The template admits no value here.",
-            Self::WrongScheme => "The Reference Model class requires another URI scheme.",
+            Self::WrongScheme => "The link has to start with the scheme this field takes.",
             Self::ZeroDenominator => "A proportion cannot have a denominator of zero.",
             Self::TooCoarse => "The template requires a finer value than that.",
             Self::TooFine => "The template does not admit a value that fine.",
