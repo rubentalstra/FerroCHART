@@ -51,6 +51,7 @@ only_match() {
 }
 
 status=0
+unbaselined=0
 names=$(jq -r '.assets | keys[]' "$root/$bars")
 
 for name in $names; do
@@ -71,8 +72,23 @@ for name in $names; do
         echo "bundle-size: --base needs a commit." >&2
         exit 1
       }
-      baseline=$(git -C "$root" show "$base:$bars" |
-        jq -r ".assets[\"$name\"].measured_gzip_bytes")
+      # The baseline comes out of the merge base, never out of the branch
+      # under judgement. It is absent twice: on the change that adds this
+      # file, and on the change that adds a new asset to it. Neither is a
+      # regression and neither is a pass either, so both say so out loud and
+      # the ceiling still applies.
+      baseline=""
+      if base_json=$(git -C "$root" show "$base:$bars" 2>/dev/null); then
+        baseline=$(printf '%s' "$base_json" |
+          jq -r ".assets[\"$name\"].measured_gzip_bytes // empty")
+      fi
+      if [[ -z "$baseline" ]]; then
+        unbaselined=$((unbaselined + 1))
+        printf '%-5s %7d gzipped, NO BASELINE in the merge base, which is NOT a pass: ' "$name" "$measured"
+        printf 'the per-change budget did not apply (ceiling %d)\n' "$ceiling"
+        printf '  Record %d as measured_gzip_bytes for %s once this lands.\n' "$measured" "$name"
+        continue
+      fi
       growth=$((measured - baseline))
       if [[ "$growth" -gt "$budget" ]]; then
         status=1
@@ -98,4 +114,9 @@ for name in $names; do
 done
 
 [[ "$status" -eq 0 ]] || exit 1
-echo "bundle-size: every asset is inside its ceiling and its budget."
+if [[ "$unbaselined" -gt 0 ]]; then
+  echo "bundle-size: every asset is inside its ceiling. $unbaselined had no baseline"
+  echo "  in the merge base, so the per-change budget did not judge them."
+else
+  echo "bundle-size: every asset is inside its ceiling and its budget."
+fi
