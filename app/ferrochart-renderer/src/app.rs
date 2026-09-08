@@ -88,19 +88,36 @@ fn Pending(
 /// The layout overlay authoring surface.
 #[component]
 fn Layout() -> impl IntoView {
-    view! { <Pending title="Layout" note="The overlay authoring surface lands with issue #27." /> }
+    view! {
+        <Pending
+            title="Layout"
+            note="Where a form is laid out: the order of the fields, what they are \
+            called, and which of them a person is asked for. Not built yet."
+        />
+    }
 }
 
 /// The commit log.
 #[component]
 fn Commits() -> impl IntoView {
-    view! { <Pending title="Commits" note="What this server posted to the CDR, and what came back." /> }
+    view! {
+        <Pending
+            title="Commits"
+            note="What this server posted to the CDR, and what came back. Not built \
+            yet."
+        />
+    }
 }
 
 /// The settings screen.
 #[component]
 fn Settings() -> impl IntoView {
-    view! { <Pending title="Settings" note="The CDR and terminology endpoints this server uses." /> }
+    view! {
+        <Pending
+            title="Settings"
+            note="The CDR and terminology endpoints this server uses. Not built yet."
+        />
+    }
 }
 
 /// The screen for an address no route owns.

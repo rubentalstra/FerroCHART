@@ -32,27 +32,35 @@ derive a form, 2658 fields across 1789 groups.
 The server publishes that definition, and a browser renders it. There is a
 control for every one of the eighteen field kinds the derivation produces,
 each admitting what its template admits and refusing the rest. A repeatable
-group adds and removes occurrences, a field can be given a null flavour
-instead of a value, and content a template left undetermined is drawn as a
-visible hole rather than dropped. What a clinician enters is validated against
-the operational template before any request is made, built into a COMPOSITION,
-posted to a CDR over ITS-REST, and read back into the same form.
+group adds and removes occurrences, and one the template says may be absent
+opens with none of it. A field can be given a reason instead of a value, an
+archetype slot the template left open says so as a place to add content, and
+a value the template never typed is drawn as a visible hole rather than
+dropped. What a clinician enters is validated against the operational
+template before any request is made, built into a COMPOSITION, posted to a CDR
+over ITS-REST, and read back into the same form.
 
-**What does not work yet.** Two things, and the second is the honest one.
+**What does not work yet.** The layout overlay, which is half the product.
 
-The layout overlay's authoring surface is not built. The overlay itself is:
-its storage, its key normalization, its replay across a template revision and
-the report of what matched, moved, disappeared or became ambiguous. What is
-missing is the screen a person uses to author one, so today a form is rendered
-in template order.
+Its engine is built: the storage, the key normalization, the replay across a
+template revision, and the report of what matched, moved, disappeared or
+became ambiguous. Two things are missing. Nobody can author one, because the
+screen for it is not built. And the browser honours none of it, so the
+visibility rules the model already carries, the ones that would ask whether a
+person is deceased before asking when they died, do not reach a form. Until
+both land, a form is rendered in template order and shows every field the
+template admits.
 
-**The round trip has never run against a real CDR.** The ITS-REST client has,
-and the terminology client has, and the whole build-validate-post-accept path
-is exercised end to end against a mock. The one test that would prove the
-claim this project makes is the one still outstanding, tracked as
-[issue #126](https://github.com/rubentalstra/FerroCHART/issues/126). Until it
-runs, treat the commit path as untested against anything that enforces
-openEHR's rules for itself.
+**The round trip runs against a real CDR on every pull request.** The `cdr`
+job starts FerroEHR from the release's own `compose.yaml`, uploads a template
+to it, commits a COMPOSITION FerroCHART built and validated, reads it back and
+compares. It is the only lane that can falsify this project's central claim, so
+it is named in the required check rather than left to a script somebody
+remembers.
+
+That lane has already earned its place: it found a COMPOSITION whose template
+identifier sat at the wrong node, which FerroEHR refused for 66 of 66
+templates rooted below COMPOSITION while every mock in the suite accepted it.
 
 The design of record is [`docs/architecture.md`](docs/architecture.md), the
 output of the research program on
@@ -79,7 +87,7 @@ Every release asset is checksummed and carries a Sigstore attestation, so you
 can check where a binary came from before you trust it:
 
 ```sh
-gh attestation verify ferrochart-v0.0.5-x86_64-unknown-linux-musl.tar.gz \
+gh attestation verify ferrochart-v0.1.0-x86_64-unknown-linux-musl.tar.gz \
   --repo rubentalstra/FerroCHART \
   --signer-workflow rubentalstra/FerroCHART/.github/workflows/release-build.yml
 ```

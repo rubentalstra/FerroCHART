@@ -7,9 +7,11 @@
 //! of the `FerroEHR` viewer so the two products read as one family: a full-width
 //! 56px topbar above everything, a 208px rail, a 40px footer.
 //!
-//! **The third column is FerroCHART's own.** The sibling's right-hand panel
-//! is a transient drawer, because a viewer only ever reads. A form builder
-//! selects a node and edits its layout, so the inspector is persistent.
+//! A third column for the layout inspector is FerroCHART's own, and it is not
+//! drawn yet: the sibling's right-hand panel is a transient drawer because a
+//! viewer only ever reads, and a form builder selects a node and edits its
+//! layout, so this one will be persistent. It arrives with the selection that
+//! drives it (issue #27).
 //!
 //! Below the breakpoint the sibling hides its rail with no scrim and no focus
 //! management. This one turns it into an overlay: the scrim covers the page,
@@ -118,17 +120,17 @@ pub(crate) fn Shell(
                     on:click=move |_| close_rail()
                 ></div>
                 <Rail rail_open=rail_open node=rail />
+                // The inspector belongs to the screen that has something to
+                // inspect, and that screen is the overlay authoring surface of
+                // issue #27. Until then it was a fixed 320-pixel column
+                // reading "Select a node to edit its layout" on the template
+                // library, the style guide, Commits, Settings, and on Layout
+                // itself, which says the authoring surface is not built
+                // (issue #193). It comes back with the selection that drives
+                // it.
                 <main id=MAIN_ID tabindex="-1" class="min-w-0 flex-1 overflow-auto p-6">
                     <Outlet />
                 </main>
-                <aside class="hidden w-inspector shrink-0 overflow-auto border-l border-edge bg-raised lg:block">
-                    <div class="border-b border-edge px-4 py-3 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-                        "Inspector"
-                    </div>
-                    <div class="p-4 text-sm text-ink-muted">
-                        "Select a node to edit its layout."
-                    </div>
-                </aside>
             </div>
 
             <footer class="flex h-10 shrink-0 items-center gap-2 border-t border-edge bg-raised px-4 text-xs text-ink-muted">
