@@ -10,17 +10,21 @@
 //!
 //! No specification governs the rule: our own design.
 //!
-//! # A failure names a field, not one repeat of it
+//! # A failure names one repeat where it can, and a field where it cannot
 //!
 //! A [`Slot`] addresses one control: the key, one index per repeating
 //! ancestor group, and which repeat of the field itself. A
 //! [`ValidationFailure`] carries only the key, because
 //! `ferrochart-validate` resolves a reported path onto the DEFINITION and the
 //! definition has one item per field however many times the data repeats it.
-//! So a failure lands on every control its field renders, and the only
+//! A refusal from the composition builder carries the occurrence it came
+//! from, because the builder walks the form with that address in hand, and
+//! such a failure is drawn on that control alone. A refusal from the template
+//! carries a Reference Model path whose positional predicates do not
+//! translate to that address, so it states none and is drawn on every control
+//! its field renders, which is loud rather than lost. The only other
 //! narrowing is a count: a failure about HOW MANY times a node appears is
-//! about the set rather than about a member of it, so it is drawn once, on
-//! the first control, instead of under every sibling.
+//! about the set rather than a member of it, so it is drawn once.
 //!
 //! # Nothing is dropped
 //!
@@ -28,9 +32,6 @@
 //! [`unplaced`] is how a screen reaches it. Losing a refusal silently is the
 //! defect class this project exists to prevent, so a screen that renders a
 //! report renders that list too.
-
-// TODO(#152): draw a refusal on the repeat it belongs to. The occurrence
-// address exists at the seam and is dropped before the report is built.
 
 // The lookup is what a control calls, and the controls are issue #137. Its
 // own tests exercise every function, so the lint fires in one configuration
@@ -45,11 +46,22 @@ use ferrochart_form::validation::{FailureKind, ValidationFailure, ValidationRepo
 use ferrochart_form::values::Slot;
 
 /// Every failure the control at `slot` draws.
+///
+/// A failure that states its own address is drawn on that control alone. One
+/// that states none is drawn on every control its field renders, which is
+/// loud rather than lost.
 pub(crate) fn at<'r>(
     report: &'r ValidationReport,
     slot: &'r Slot,
 ) -> impl Iterator<Item = &'r ValidationFailure> {
-    at_key(report, &slot.key, slot.occurrence)
+    report
+        .at(&slot.key)
+        .filter(move |failure| match failure.at {
+            Some(ref stated) => {
+                stated.group_path == slot.group_path && stated.occurrence == slot.occurrence
+            }
+            None => slot.occurrence == 0 || !counts(failure.kind),
+        })
 }
 
 /// Every failure the control for `key` at repeat `occurrence` draws.
@@ -82,7 +94,7 @@ mod tests {
     use ferrochart_form::ids::{ArchetypeId, LocalCode, RmAttributeName, RmTypeName};
     use ferrochart_form::key::{KeyStep, NodeKey};
     use ferrochart_form::validation::{
-        FailureKind, FailureSource, ValidationFailure, ValidationReport,
+        FailureAt, FailureKind, FailureSource, ValidationFailure, ValidationReport,
     };
     use ferrochart_form::values::Slot;
 
@@ -134,6 +146,22 @@ mod tests {
             message: "a synthetic failure".to_owned(),
             kind,
             source: FailureSource::Template,
+            at: None,
+        }
+    }
+
+    /// A builder refusal, which knows the occurrence it came from.
+    fn refused_at(key: NodeKey, group_path: Vec<usize>, occurrence: usize) -> ValidationFailure {
+        ValidationFailure {
+            path: key.to_string(),
+            key: Some(key),
+            message: "a synthetic refusal".to_owned(),
+            kind: FailureKind::WrongType,
+            source: FailureSource::Builder,
+            at: Some(FailureAt {
+                group_path,
+                occurrence,
+            }),
         }
     }
 
@@ -248,5 +276,41 @@ mod tests {
             report.failures.len(),
             "a refusal reached neither a field nor the unplaced list"
         );
+    }
+    #[test]
+    fn a_refusal_that_states_its_occurrence_is_drawn_on_that_control_alone() {
+        // The case 67 of the 121 committed templates can produce: a field
+        // inside the second occurrence of a repeating group refuses a value,
+        // and the first occurrence is not at fault (issue #152).
+        let report = ValidationReport {
+            failures: vec![refused_at(nested_field(), vec![1], 0)],
+        };
+        assert_eq!(at(&report, &slot(nested_field(), vec![1], 0)).count(), 1);
+        assert_eq!(
+            at(&report, &slot(nested_field(), vec![0], 0)).count(),
+            0,
+            "the first occurrence did not refuse anything"
+        );
+        assert_eq!(
+            at(&report, &slot(nested_field(), vec![1], 1)).count(),
+            0,
+            "the second repeat of the field is a different control"
+        );
+    }
+
+    #[test]
+    fn a_refusal_that_states_no_occurrence_is_still_drawn_on_every_repeat() {
+        // A template refusal cannot say which repeat is wrong, so it is loud
+        // rather than lost, which is the behaviour that has to survive.
+        let report = ValidationReport {
+            failures: vec![failure(Some(nested_field()), FailureKind::WrongType)],
+        };
+        for path in [vec![0], vec![1]] {
+            assert_eq!(
+                at(&report, &slot(nested_field(), path.clone(), 0)).count(),
+                1,
+                "an unaddressed refusal reaches the control at {path:?}"
+            );
+        }
     }
 }

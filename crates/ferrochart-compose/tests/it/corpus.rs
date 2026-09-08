@@ -249,6 +249,7 @@ fn a_null_flavour_outside_the_openehr_group_is_refused() {
         let (slot, _) = values.iter().next().expect("the filler entered a value");
         (slot.key.clone(), slot.group_path.clone(), slot.occurrence)
     };
+    let (expected_path, expected_occurrence) = (group_path.clone(), occurrence);
     values.set_in(
         key,
         group_path,
@@ -259,8 +260,22 @@ fn a_null_flavour_outside_the_openehr_group_is_refused() {
         },
     );
 
+    // The refusal carries the address it came from, so a renderer draws it on
+    // the control the clinician typed into (issue #152). The inner error says
+    // what is wrong; the wrapper says where.
     match build::composition(&form, &values, &envelope()) {
-        Err(BuildError::UnknownNullFlavour { code }) => assert_eq!(code, "999"),
+        Err(BuildError::At {
+            group_path: reported_path,
+            occurrence: reported_occurrence,
+            source,
+        }) => {
+            assert_eq!(reported_path, expected_path);
+            assert_eq!(reported_occurrence, expected_occurrence);
+            match *source {
+                BuildError::UnknownNullFlavour { code } => assert_eq!(code, "999"),
+                other => panic!("the refusal is {other:?}"),
+            }
+        }
         Ok(_) => panic!("a null flavour outside the group was accepted"),
         Err(other) => panic!("the refusal is {other:?}"),
     }

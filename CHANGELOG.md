@@ -37,6 +37,21 @@ the build order.
 
 ### Fixed
 
+- A refusal from the composition builder is drawn on the repeat it came from
+  (#152). A validation failure carried no occurrence, so a form with a
+  repeating group showed "this value is out of range" under every repeat of
+  the field rather than the one that was wrong, and 67 of the 121 forms the
+  committed pack derives to carry a repeating group. The builder walks a form
+  with the occurrence of every repeating group above each field, so it knows
+  the address and now states it.
+- A refusal from the operational template still states no occurrence and is
+  still drawn on every repeat. Its Reference Model path carries positional
+  predicates into attribute arrays, and nothing establishes their
+  correspondence to a form's occurrence path, so an address there would
+  sometimes be invented. The type says which judgements know and which do not.
+
+### Fixed
+
 - A COMPOSITION built around a template rooted below COMPOSITION states its
   template identifier where the template is active, and a real CDR now accepts
   it (#163). It was written at the wrapper COMPOSITION, a document FerroCHART

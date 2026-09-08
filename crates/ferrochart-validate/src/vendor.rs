@@ -85,6 +85,9 @@ fn placed(text: &str, index: &KeyIndex, instance: &Value) -> ValidationFailure {
         path: quoted,
         message: text.to_owned(),
         kind: FailureKind::Other,
+        // A CDR reports a path and never an occurrence of a form it has
+        // never seen.
+        at: None,
         source: FailureSource::Cdr,
     }
 }
@@ -96,6 +99,7 @@ fn unkeyed(message: String) -> ValidationFailure {
         path: String::new(),
         message,
         kind: FailureKind::Other,
+        at: None,
         source: FailureSource::Cdr,
     }
 }

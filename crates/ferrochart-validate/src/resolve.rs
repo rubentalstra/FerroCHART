@@ -34,6 +34,11 @@ pub fn failure(
         message: message.message.clone(),
         kind: kind(message.kind),
         source: FailureSource::Template,
+        // A template refusal carries a Reference Model path whose positional
+        // predicates are indices into attribute arrays, and nothing
+        // establishes their correspondence to a form's occurrence path. It
+        // states no address rather than inventing one (issue #152).
+        at: None,
     }
 }
 

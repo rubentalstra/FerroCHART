@@ -19,7 +19,7 @@ use ferrochart_cdr::error::CdrError;
 use ferrochart_compose::error::{BuildError, ReadError};
 use ferrochart_form::key::NodeKey;
 use ferrochart_form::validation::{
-    FailureKind, FailureSource, ValidationFailure, ValidationReport,
+    FailureAt, FailureKind, FailureSource, ValidationFailure, ValidationReport,
 };
 use ferrochart_validate::error::ValidateError;
 
@@ -236,6 +236,23 @@ pub(crate) fn from_commit(error: CommitError) -> ApiError {
 /// carries a [`NodeKey`] resolves onto the form, and the two that carry a code
 /// instead are reported unplaced rather than dropped.
 pub(crate) fn build_report(error: &BuildError) -> ValidationReport {
+    // The builder wraps a refusal in `At` when it knows which occurrence the
+    // value came from, so the address is unwrapped here and the inner error
+    // decides the key and the kind (issue #152).
+    let (at, error) = match *error {
+        BuildError::At {
+            ref group_path,
+            occurrence,
+            ref source,
+        } => (
+            Some(FailureAt {
+                group_path: group_path.clone(),
+                occurrence,
+            }),
+            &**source,
+        ),
+        ref other => (None, other),
+    };
     let (key, kind) = match *error {
         BuildError::UnknownField { ref key } => (Some(key.clone()), FailureKind::Unexpected),
         BuildError::WrongDatum { ref key, .. } => (Some(key.clone()), FailureKind::WrongType),
@@ -254,6 +271,7 @@ pub(crate) fn build_report(error: &BuildError) -> ValidationReport {
             message: error.to_string(),
             kind,
             source: FailureSource::Builder,
+            at,
         }],
     }
 }

@@ -515,7 +515,7 @@ fn ism_transition(
                 {
                     entered_for(values, &field.key, path)
                         .first()
-                        .and_then(|entry| match **entry {
+                        .and_then(|&(_, entered)| match *entered {
                             Entered::Value(ferrochart_form::values::Datum::Coded {
                                 ref terminology,
                                 ref code,
@@ -744,11 +744,18 @@ fn elements_of(
     language: &LanguageTag,
 ) -> Result<Vec<Element>, BuildError> {
     let mut built = Vec::new();
-    for entered in entered_for(values, &field.key, path) {
-        check_null_flavour(entered)?;
+    for (occurrence, entered) in entered_for(values, &field.key, path) {
+        // The address this value came from, so a refusal names the control
+        // the clinician typed into rather than every repeat of the field.
+        let at = |source: BuildError| BuildError::At {
+            group_path: path.to_vec(),
+            occurrence,
+            source: Box::new(source),
+        };
+        check_null_flavour(entered).map_err(at)?;
         let (value, null_flavour, null_reason) = match *entered {
             Entered::Value(ref datum) => (
-                Some(datum::build(&field.key, field.rm_type.as_str(), datum)?),
+                Some(datum::build(&field.key, field.rm_type.as_str(), datum).map_err(at)?),
                 None,
                 None,
             ),
