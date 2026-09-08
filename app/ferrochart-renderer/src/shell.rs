@@ -24,9 +24,8 @@ use leptos::html;
 use leptos::prelude::*;
 use leptos_router::components::Outlet;
 use leptos_router::hooks::use_location;
-use web_sys::HtmlElement;
-use web_sys::wasm_bindgen::JsCast;
 
+use crate::focus::{focus, focus_first, trap};
 use crate::icon::{Decoration, Size};
 use crate::kit::field::BTN_QUIET;
 use crate::nav::{self, Slot};
@@ -34,11 +33,6 @@ use crate::theme::Theme;
 
 /// The id the skip link jumps to.
 const MAIN_ID: &str = "main";
-
-/// What a Tab press can land on inside a trapped region.
-const FOCUSABLE: &str = "a[href], button:not([disabled]), input:not([disabled]), \
-                         select:not([disabled]), textarea:not([disabled]), \
-                         [tabindex]:not([tabindex='-1'])";
 
 /// The application frame.
 #[component]
@@ -232,53 +226,4 @@ fn Rail(
             <ul class="flex flex-col gap-0.5">{entries}</ul>
         </nav>
     }
-}
-
-/// Moves focus, reporting a refusal rather than losing it silently. A
-/// browser refuses when the element is not rendered yet, and a trap whose
-/// entry quietly failed leaves the reader outside the region it guards.
-fn focus(element: &HtmlElement) {
-    if element.focus().is_err() {
-        leptos::logging::warn!("the browser refused to move focus");
-    }
-}
-
-/// Moves focus to the first thing inside a region.
-fn focus_first(region: Option<HtmlElement>) {
-    if let Some(first) = region.and_then(|region| focusable(&region).into_iter().next()) {
-        focus(&first);
-    }
-}
-
-/// Keeps Tab inside a region by wrapping it at either end.
-fn trap(event: &KeyboardEvent, region: Option<HtmlElement>) {
-    let Some(region) = region else { return };
-    let stops = focusable(&region);
-    let (Some(first), Some(last)) = (stops.first(), stops.last()) else {
-        return;
-    };
-    let Some(focused) = leptos::prelude::document().active_element() else {
-        return;
-    };
-    let wrap_to = if event.shift_key() {
-        (focused == **first).then_some(last)
-    } else {
-        (focused == **last).then_some(first)
-    };
-    if let Some(target) = wrap_to {
-        event.prevent_default();
-        focus(target);
-    }
-}
-
-/// Everything inside a region that a Tab press can land on, in document
-/// order.
-fn focusable(region: &HtmlElement) -> Vec<HtmlElement> {
-    let Ok(found) = region.query_selector_all(FOCUSABLE) else {
-        return Vec::new();
-    };
-    (0..found.length())
-        .filter_map(|at| found.item(at))
-        .filter_map(|node| node.dyn_into::<HtmlElement>().ok())
-        .collect()
 }

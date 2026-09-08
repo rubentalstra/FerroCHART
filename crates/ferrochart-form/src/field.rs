@@ -495,6 +495,23 @@ impl ProportionKind {
             other => Self::Other(other),
         }
     }
+
+    /// The integer the kind is, per openEHR RM Release-1.1.0
+    /// `data_types.html` section 6.2.11.
+    ///
+    /// The inverse of [`ProportionKind::from_code`], so a consumer that has
+    /// to write `DV_PROPORTION.type` back out does not restate the table.
+    #[must_use]
+    pub const fn code(self) -> i64 {
+        match self {
+            Self::Ratio => 0,
+            Self::Unitary => 1,
+            Self::Percent => 2,
+            Self::Fraction => 3,
+            Self::IntegerFraction => 4,
+            Self::Other(other) => other,
+        }
+    }
 }
 
 /// A numerator over a denominator.
@@ -811,5 +828,12 @@ mod tests {
             ProportionKind::IntegerFraction
         );
         assert_eq!(ProportionKind::from_code(9), ProportionKind::Other(9));
+    }
+
+    #[test]
+    fn every_proportion_kind_round_trips_through_its_integer() {
+        for code in [0, 1, 2, 3, 4, 9, -1] {
+            assert_eq!(ProportionKind::from_code(code).code(), code);
+        }
     }
 }

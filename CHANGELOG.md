@@ -41,6 +41,26 @@ the build order.
   control its node key names, and one about how many nodes there are is drawn
   once rather than under every repeat. A failure that names no field of the
   form stays reachable through `unplaced` and is shown beside the form.
+- A control for every one of the eighteen `FieldKind` variants (#137), each
+  rendering from a pure admission function that refuses what the template
+  refuses: a boolean whose two flags are independent, a text field whose
+  closed list is the whole permitted set, a coded field that says plainly when
+  a value set needs a terminology server rather than inventing an expansion,
+  an ordinal that stores the symbol and shows the rubric, a quantity whose
+  magnitude range and decimal precision follow the chosen unit, a proportion
+  that holds the `DV_PROPORTION` invariants of openEHR RM Release-1.1.0
+  `data_types.html` section 6.2.10, and a date, time and date-time at the
+  precision the template states and no finer.
+- The null-flavour affordance beside a field, and the add and remove pair a
+  repeatable field or group carries, disabled at the template's ceiling and
+  floor. Content the template left undetermined is drawn as a visible hole
+  carrying its reason and captures nothing.
+- Ten design-system affordances beside the buttons and surfaces already there:
+  the table shell, tab pills, the segmented control, badges and status pills,
+  the stat tile, the empty state, the loading skeleton, the confirm dialog,
+  the toast queue, and the inline notice family. Each has one definition, and
+  the living style guide at `/ui/design` draws every one of them beside a
+  synthetic form carrying one field of every kind.
 - The HTTP form surface (#146): `GET /api/templates`,
   `GET /api/templates/{template_id}/definition`,
   `POST /api/templates/{template_id}/validation`,
