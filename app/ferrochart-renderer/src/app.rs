@@ -33,7 +33,7 @@ pub(crate) fn App() -> impl IntoView {
         <Title text="FerroCHART" />
         <Meta name="color-scheme" content="light dark" />
         <Router base=nav::BASE>
-            <Routes fallback=NotFound>
+            <Routes fallback=OffTheMap>
                 <ParentRoute path=path!("") view=move || view! { <Shell theme=theme /> }>
                     <Route path=path!("") view=Form />
                     <Route path=path!("forms") view=Form />
@@ -43,6 +43,12 @@ pub(crate) fn App() -> impl IntoView {
                     <Route path=path!("commits") view=Commits />
                     <Route path=path!("settings") view=Settings />
                     <Route path=path!("design") view=DesignSystem />
+                    // An address under the base that no route above owns.
+                    // It sits INSIDE the shell, so a reader who mistypes one
+                    // keeps the rail, the theme control and every way out.
+                    // The outer fallback stays for an address outside the
+                    // base, where there is no application to stay inside.
+                    <Route path=path!("*any") view=NotFound />
                 </ParentRoute>
             </Routes>
         </Router>
@@ -98,14 +104,35 @@ fn Settings() -> impl IntoView {
 }
 
 /// The screen for an address no route owns.
+///
+/// Drawn as ordinary content, because it is reached from inside the shell and
+/// keeps the frame around it. [`OffTheMap`] is the same content for the one
+/// address that has no shell to sit in.
 #[component]
 fn NotFound() -> impl IntoView {
     view! {
-        <div class="flex min-h-screen flex-col items-center justify-center gap-3 bg-surface p-6 text-center">
+        <div class=CARD_PAD>
             <p class="text-sm font-semibold text-ink">"That address does not name a screen."</p>
-            <a href=crate::nav::href(crate::nav::FORMS) class="text-sm text-accent hover:underline">
-                "Go to Forms"
+            <a
+                href=crate::nav::href(crate::nav::TEMPLATES)
+                class="mt-2 inline-block text-sm text-accent hover:underline"
+            >
+                "Go to the template library"
             </a>
+        </div>
+    }
+}
+
+/// An address outside the application entirely.
+///
+/// The router is based at `/ui`, so this is reached only by an address the
+/// server handed to the bundle and the bundle does not own. There is no shell
+/// to sit inside, so the content is centred on a bare ground.
+#[component]
+fn OffTheMap() -> impl IntoView {
+    view! {
+        <div class="flex min-h-screen flex-col items-center justify-center bg-surface p-6 text-center">
+            <NotFound />
         </div>
     }
 }

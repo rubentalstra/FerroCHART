@@ -93,6 +93,41 @@ any address it does not serve.
 
 ![The style guide on the dark ground](img/renderer/design-dark.png)
 
+## The screens with their frame and not yet their content
+
+Three entries on the rail lead to a heading and a line saying what the screen
+will do. They are photographed with the rest, because a frame nobody has seen
+is a frame nobody notices has gone wrong.
+
+![Layout, the overlay authoring surface](img/renderer/layout.png)
+
+![Layout on the dark ground](img/renderer/layout-dark.png)
+
+![Commits, what this server posted to the CDR](img/renderer/commits.png)
+
+![Commits on the dark ground](img/renderer/commits-dark.png)
+
+![Settings, the endpoints this server uses](img/renderer/settings.png)
+
+![Settings on the dark ground](img/renderer/settings-dark.png)
+
+## Where a reader lands with nothing chosen
+
+Clicking Forms on the rail with no template named reaches the form screen with
+nothing to draw, so it points at the library instead.
+
+![The form screen with no template named](img/renderer/forms.png)
+
+![The same screen on the dark ground](img/renderer/forms-dark.png)
+
+An address no route owns says so and offers the way back. It keeps the frame:
+a reader who mistypes an address still has the rail, the theme control and
+every way out of it.
+
+![An address no route owns](img/renderer/not-found.png)
+
+![The same address on the dark ground](img/renderer/not-found-dark.png)
+
 ## What is not built
 
 **No published artefact serves these screens yet.** The container image a

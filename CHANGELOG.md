@@ -21,6 +21,15 @@ the build order.
 
 ## [Unreleased]
 
+### Added
+
+- The browser battery drives and photographs **every** screen, not three of
+  eight (#192). The form screen with no template named, the three frames on
+  the rail whose content is still to come, and an address no route owns are
+  all covered, each with a proof of its own: the way out of a dead end, the
+  heading and the line under it, and the way back. The first run of the new
+  coverage found #191.
+
 ### Changed
 
 - **The living style guide is no longer in a clinician's download**, and the
@@ -58,6 +67,18 @@ the build order.
 - A refusal on a link field read "The Reference Model class requires another
   URI scheme." and now reads "The link has to start with the scheme this field
   takes." (#178).
+
+### Fixed
+
+- An address no route owns lost the whole application (#193). It was drawn
+  outside the shell, so a reader who mistyped one had no rail, no theme
+  control and one link. It is a route inside the shell now, and it points at
+  the template library, which is somewhere a reader can act.
+- The form screen asked the server for a template with no name (#191). Landing
+  on `/ui/forms` from the rail sent `GET /api/templates//definition` and took a
+  404, because the guard sat on what the screen draws and not on the request.
+  The screen looked right, which is why it went unnoticed until the battery
+  started photographing it.
 
 ## [0.1.0] - 2026-09-08
 

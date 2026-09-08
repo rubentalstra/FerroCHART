@@ -38,9 +38,18 @@ pub(crate) fn Form() -> impl IntoView {
     let params = use_params_map();
     let wanted = move || params.read().get(TEMPLATE_PARAM).unwrap_or_default();
 
+    // The address with no template named is where the rail lands a reader who
+    // clicks Forms, and there is nothing to ask for there. Asking anyway sends
+    // `/api/templates//definition`, which the server answers 404, so the
+    // guard is on the request and not only on what is drawn.
     let compiled = LocalResource::new(move || {
         let template_id = wanted();
-        async move { api::definition(&template_id).await }
+        async move {
+            if template_id.is_empty() {
+                return None;
+            }
+            Some(api::definition(&template_id).await)
+        }
     });
 
     let body = move || {
@@ -56,11 +65,12 @@ pub(crate) fn Form() -> impl IntoView {
         }
         compiled
             .map(|answer| match *answer {
-                Ok(ref definition) => tree(definition).into_any(),
-                Err(ref error) => {
+                Some(Ok(ref definition)) => tree(definition).into_any(),
+                Some(Err(ref error)) => {
                     view! { <Failed title="The form could not be read." lines=detail(error) /> }
                         .into_any()
                 }
+                None => ().into_any(),
             })
             .unwrap_or_else(|| {
                 view! { <p class="text-sm text-ink-muted">"Reading the form…"</p> }.into_any()
