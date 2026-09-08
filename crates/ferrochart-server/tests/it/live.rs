@@ -156,9 +156,6 @@ async fn a_real_cdr_never_sees_a_composition_the_gate_refused() {
 #[tokio::test]
 #[ignore = "needs a running CDR: scripts/test-cdr.sh"]
 async fn a_real_cdr_accepts_a_composition_around_a_template_rooted_below_it() {
-    // TODO(#163): FerroCHART writes the template id at the wrapper
-    // COMPOSITION, where no template is active, so a CDR compares an
-    // ENTRY-rooted template against a COMPOSITION and refuses all five.
     let client = client();
     let ehr = client.create_ehr().await.expect("the CDR creates an EHR");
     let envelope = support::envelope();
