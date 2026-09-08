@@ -9,8 +9,9 @@
 //! graph rather than from intent.
 //!
 //! This module is the entry point and nothing else. The design system lives
-//! in [`kit`], the frame in [`shell`], and the token measurements in
-//! [`tokens`].
+//! in [`kit`], the frame in [`shell`], the screens in [`screen`], the token
+//! measurements in [`tokens`], and every request the browser makes in
+//! [`api`], which is the only module that opens one.
 
 // Leptos's `#[component]` macro emits `pub` items whatever visibility the
 // function carries. Nothing in a binary crate is reachable from outside it,
@@ -21,15 +22,20 @@
     reason = "the #[component] macro emits pub items inside a binary crate"
 )]
 
+mod api;
 mod app;
 mod design;
 mod icon;
 mod kit;
+mod label;
 mod nav;
+mod placement;
+mod screen;
 mod shell;
 mod storage;
 mod theme;
 mod tokens;
+mod url;
 
 fn main() {
     console_error_panic_hook::set_once();

@@ -1162,6 +1162,37 @@ link an engine crate, which landed with issue #72 as
 definition, which is the reason section 4 owns the type rather than
 publishing a web template.
 
+**One module owns every request, and a test proves it.**
+`app/ferrochart-renderer/src/api` is the only place `gloo-net` is named, and a
+test in it scans the crate's own sources above their test modules and fails
+when another module names the transport. The addresses are built by
+`api::route` rather than written out at a call site, and every part a caller
+supplies is percent-encoded, because a template identifier is free text and
+the committed corpus carries identifiers with spaces in them. `wasm-bindgen-test`
+needs a browser, so what decides an outcome is a pure function a native test
+calls: the address, the reading of the error document, the mapping of a status
+onto a variant, and the format check. What stays untested is the handing of a
+built request to `fetch`.
+
+**A failure reaches its field through the key the report already carries.**
+`ferrochart-validate` keys every `ValidationFailure` onto the form definition,
+so `app/ferrochart-renderer/src/placement.rs` needs no adapter: it filters the
+report by the `NodeKey` a control is already holding. A failure addresses the
+field in the DEFINITION rather than one repeat of it in the data, so it lands
+on every control the field renders, and the one narrowing is a count. A
+failure about how many times a node appears judges the set rather than a
+member of it, so it is drawn on the first control alone. A failure whose
+reported path resolved to no item of the form carries no key, and
+`ValidationReport::unplaced` is how a screen reaches it; it is shown beside
+the form rather than dropped.
+
+**The renderer's own error type carries the whole upstream.** A refusal keeps
+the status, the server's stable code, its message, the report where the
+refusal is a judgement, and the CDR's own `cdr_status` and `cdr_body` where
+the failure came from one. A body this client cannot read keeps its bytes, and
+a request that never reached an answer reports no status at all rather than
+one the server never sent.
+
 ### 10.1 The design system
 
 Issue #101 landed the frame before the renderer, so #26 does not invent a look

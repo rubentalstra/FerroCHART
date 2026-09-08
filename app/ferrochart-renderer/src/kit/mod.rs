@@ -14,5 +14,6 @@
 //! indicator, so a control cannot ship without one.
 
 pub(crate) mod field;
+pub(crate) mod notice;
 pub(crate) mod page_header;
 pub(crate) mod surface;
