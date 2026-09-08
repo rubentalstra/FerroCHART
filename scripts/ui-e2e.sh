@@ -344,7 +344,7 @@ if [[ -n "$docs_shots" ]]; then
     FERROCHART_UI_E2E_FAILURES="$FAILURES_DIR" \
     FERROCHART_UI_E2E_FORMS="$forms" \
     FERROCHART_UI_E2E_DOCS_SHOTS=1 \
-    cargo nextest run --manifest-path e2e/Cargo.toml --locked \
+    cargo nextest run --manifest-path e2e/Cargo.toml --locked --no-capture \
       -E 'test(/^docs_shots::/)'
   bash scripts/checks/docs-shots.sh
 fi

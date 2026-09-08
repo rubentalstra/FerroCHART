@@ -108,7 +108,7 @@ pub(crate) fn ChoiceControl(
         <div class="flex flex-col gap-2">
             <div>
                 <label class=LABEL for=picker_id.clone()>
-                    "Which of these"
+                    "Kind of value"
                 </label>
                 <select
                     id=picker_id

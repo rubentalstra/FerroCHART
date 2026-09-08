@@ -52,20 +52,32 @@ pub(crate) const TEXTAREA: &str = "w-full min-h-24 rounded-control border border
                                    disabled:cursor-not-allowed disabled:opacity-60";
 
 /// The label above a control.
+///
+/// This names a PART of a control: a magnitude, a unit, the ends of a range.
+/// A field's own name is [`FIELD_LABEL`], which outranks it, because a person
+/// scans a form by the field names and reads the parts only once they are
+/// inside one.
 pub(crate) const LABEL: &str = "mb-1 block text-xs font-medium text-ink-muted";
 
+/// The name of a field, which is what a person scans a form by.
+///
+/// It is the same size as the value the reader types and darker than the
+/// help, so the three ranks read as name, then value, then description.
+pub(crate) const FIELD_LABEL: &str = "block text-sm font-medium text-ink";
+
 /// The help text under a control.
-pub(crate) const HINT: &str = "mt-1 block text-xs text-ink-muted";
+pub(crate) const HINT: &str = "block text-xs text-ink-muted";
 
 #[cfg(test)]
 mod tests {
     use super::{
-        BTN_DANGER, BTN_PRIMARY, BTN_QUIET, BTN_SECONDARY, HINT, INPUT, LABEL, SELECT, TEXTAREA,
+        BTN_DANGER, BTN_PRIMARY, BTN_QUIET, BTN_SECONDARY, FIELD_LABEL, HINT, INPUT, LABEL, SELECT,
+        TEXTAREA,
     };
 
     /// Every class constant in this module, so a rule can be asserted over
     /// the set rather than one constant at a time.
-    const ALL: [&str; 9] = [
+    const ALL: [&str; 10] = [
         BTN_PRIMARY,
         BTN_SECONDARY,
         BTN_DANGER,
@@ -74,6 +86,7 @@ mod tests {
         SELECT,
         TEXTAREA,
         LABEL,
+        FIELD_LABEL,
         HINT,
     ];
 

@@ -21,6 +21,36 @@ the build order.
 
 ## [Unreleased]
 
+### Changed
+
+- **A form is a list of questions with answers, and most of what it drew was
+  neither** (#190). Four of the five lines a field drew were not the value.
+  - A field carries a value **or** a reason there is none, never both. The
+    null-flavour select was drawn full width under every field that offered
+    one, which in the committed corpus is nearly every field, so a
+    fifteen-field form carried fifteen extra dropdowns reading "No value,
+    because: A value is entered". It showed a state openEHR RM Release-1.1.0
+    `data_structures.html` section 5.2.3 forbids, since `Inv_is_null_valid`
+    gives `ELEMENT` no state carrying the two together. A quiet "No value"
+    at the end of the value row now replaces the control with the flavour and
+    a way back.
+  - A field name is 14px solid ink where it was 12px grey, the same weight as
+    the help text under it. The name is what a person scans a form by.
+  - The help text sits with the name it describes. Under the control it read
+    as a caption for the next field.
+  - A value sits in one box, not three. The per-field fieldset keeps the
+    accessible name its `legend` carries and draws no border.
+  - A date, a count and a unit stop at 28rem. Prose, an attachment and a
+    choice keep the width, because their answers use it.
+  - A choice picker is labelled "Kind of value" where it said "Which of
+    these", and a repeat is headed "Entry 2" where it said "Occurrence 2".
+
+  Measured in the browser, over the two committed corpus forms: the family
+  history summary fell from 4190 to 3086 pixels and the alcohol consumption
+  summary from 3934 to 2828, both a little over a quarter shorter. The capture
+  prints the height of every screen it photographs, so the figure is read from
+  a run rather than estimated.
+
 ### Added
 
 - The browser battery drives and photographs **every** screen, not three of

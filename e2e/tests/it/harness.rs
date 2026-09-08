@@ -391,7 +391,11 @@ impl Page {
             .screenshot(path)
             .await
             .unwrap_or_else(|error| panic!("writing {}: {error}", path.display()));
-        println!("captured {}", path.display());
+        // The document height is printed beside the file, because how far a
+        // form runs is the measurement #190 is judged by and there is nowhere
+        // else it can be read: an image is cropped to the capture bounds, so
+        // two forms of very different length photograph the same size.
+        println!("captured {} ({document} px tall)", path.display());
         Ok(())
     }
 
