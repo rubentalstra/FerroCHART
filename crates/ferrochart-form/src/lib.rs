@@ -48,6 +48,7 @@
 //! (`.claude/rules/reliability.md`).
 
 pub mod definition;
+pub mod envelope;
 pub mod field;
 pub mod group;
 pub mod ids;

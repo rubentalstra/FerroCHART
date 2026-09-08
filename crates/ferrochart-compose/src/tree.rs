@@ -39,8 +39,8 @@ use crate::build::{
     null_flavour_rubric,
 };
 use crate::datum;
-use crate::envelope::{ACTIVE, Envelope, OPENEHR, Subject};
 use crate::error::BuildError;
+use ferrochart_form::envelope::{ACTIVE, Envelope, OPENEHR, Subject};
 use ferrochart_form::values::{Entered, FormValues};
 
 /// Everything under a composition group's `content` attribute.
@@ -245,8 +245,8 @@ fn observation(
         links: None,
         archetype_details: nested_archetyped(group),
         feeder_audit: None,
-        language: envelope.language_code(),
-        encoding: envelope.encoding_code(),
+        language: crate::envelope::language_code(envelope),
+        encoding: crate::envelope::encoding_code(envelope),
         other_participations: None,
         workflow_id: None,
         subject: subject(&envelope.subject),
@@ -281,8 +281,8 @@ fn evaluation(
         links: None,
         archetype_details: nested_archetyped(group),
         feeder_audit: None,
-        language: envelope.language_code(),
-        encoding: envelope.encoding_code(),
+        language: crate::envelope::language_code(envelope),
+        encoding: crate::envelope::encoding_code(envelope),
         other_participations: None,
         workflow_id: None,
         subject: subject(&envelope.subject),
@@ -316,8 +316,8 @@ fn admin_entry(
         links: None,
         archetype_details: nested_archetyped(group),
         feeder_audit: None,
-        language: envelope.language_code(),
-        encoding: envelope.encoding_code(),
+        language: crate::envelope::language_code(envelope),
+        encoding: crate::envelope::encoding_code(envelope),
         other_participations: None,
         workflow_id: None,
         subject: subject(&envelope.subject),
@@ -361,8 +361,8 @@ fn instruction(
         links: None,
         archetype_details: nested_archetyped(group),
         feeder_audit: None,
-        language: envelope.language_code(),
-        encoding: envelope.encoding_code(),
+        language: crate::envelope::language_code(envelope),
+        encoding: crate::envelope::encoding_code(envelope),
         other_participations: None,
         workflow_id: None,
         subject: subject(&envelope.subject),
@@ -436,8 +436,8 @@ fn action(
         links: None,
         archetype_details: nested_archetyped(group),
         feeder_audit: None,
-        language: envelope.language_code(),
-        encoding: envelope.encoding_code(),
+        language: crate::envelope::language_code(envelope),
+        encoding: crate::envelope::encoding_code(envelope),
         other_participations: None,
         workflow_id: None,
         subject: subject(&envelope.subject),

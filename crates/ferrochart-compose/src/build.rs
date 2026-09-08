@@ -29,9 +29,10 @@ use openehr_rm::v1_2::data_types::text::dv_coded_text::DvCodedText;
 use openehr_rm::v1_2::data_types::text::dv_text::{DvText, DvTextData};
 
 use crate::datum;
-use crate::envelope::{Composer, Envelope, OPENEHR, RM_VERSION, code_phrase};
+use crate::envelope::code_phrase;
 use crate::error::BuildError;
 use crate::tree;
+use ferrochart_form::envelope::{Composer, Envelope, OPENEHR, RM_VERSION};
 use ferrochart_form::values::{Datum, Entered, FormValues};
 
 /// The four codes the openEHR `null flavours` group carries.
@@ -136,8 +137,8 @@ pub fn composition(
         links: None,
         archetype_details: Some(archetyped(&archetype, definition)),
         feeder_audit: None,
-        language: envelope.language_code(),
-        territory: envelope.territory_code(),
+        language: crate::envelope::language_code(envelope),
+        territory: crate::envelope::territory_code(envelope),
         category,
         context: stated_context,
         composer: composer(&envelope.composer),

@@ -9,8 +9,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use ferrochart_compose::build;
-use ferrochart_compose::envelope::{CATEGORY_EVENT, Composer, Envelope, Setting, Subject, UTF8};
 use ferrochart_form::definition::FormDefinition;
+use ferrochart_form::envelope::{CATEGORY_EVENT, Composer, Envelope, Setting, Subject, UTF8};
 use ferrochart_validate::template::TemplateValidator;
 use openehr_rm::v1_2::composition::composition::Composition;
 

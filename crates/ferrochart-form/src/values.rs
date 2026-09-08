@@ -366,6 +366,7 @@ impl FormValues {
     }
 
     /// Forgets what was entered at one address, returning it.
+    #[must_use = "the value that was forgotten; discard it deliberately"]
     pub fn remove_in(
         &mut self,
         key: &NodeKey,
