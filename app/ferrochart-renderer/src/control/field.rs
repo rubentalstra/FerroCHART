@@ -10,6 +10,7 @@
 
 use ferrochart_form::field::{FieldKind, FormField, ReferenceRanges};
 use ferrochart_form::ids::{LanguageTag, RmTypeName};
+use ferrochart_form::values::Entered;
 use leptos::prelude::*;
 
 use crate::control::boolean::BooleanControl;
@@ -20,7 +21,7 @@ use crate::control::duration::DurationControl;
 use crate::control::identifier::IdentifierControl;
 use crate::control::interval::IntervalControl;
 use crate::control::multimedia::MultimediaControl;
-use crate::control::null_flavour::NullFlavourControl;
+use crate::control::null_flavour::{NoValueButton, NullFlavourControl};
 use crate::control::ordinal::OrdinalControl;
 use crate::control::parsable::ParsableControl;
 use crate::control::proportion::ProportionControl;
@@ -35,7 +36,7 @@ use crate::control::text::TextControl;
 use crate::control::uri::UriControl;
 use crate::control::{Address, Slot, localized, prefill};
 use crate::kit::badge::{BADGE, StatusPill};
-use crate::kit::field::{HINT, LABEL};
+use crate::kit::field::{FIELD_LABEL, HINT};
 use crate::kit::notice::Notice;
 use crate::kit::surface::WELL;
 use crate::kit::tone::Tone;
@@ -254,9 +255,9 @@ pub(crate) fn FieldView(
     let at_floor = Signal::derive(move || !state.can_remove(&key, &path, minimum));
 
     view! {
-        <div class="flex flex-col gap-1">
-            <div class="flex flex-wrap items-center gap-2">
-                <span class=LABEL>{label.clone()}</span>
+        <div class="flex flex-col gap-1.5">
+            <div class="flex flex-wrap items-baseline gap-2">
+                <span class=FIELD_LABEL>{label.clone()}</span>
                 <Show when=move || mandatory>
                     <span class=format!("{BADGE} {}", Tone::Accent.subtle())>"Required"</span>
                 </Show>
@@ -264,6 +265,15 @@ pub(crate) fn FieldView(
                     <StatusPill tone=Tone::Warn label="Deprecated" />
                 </Show>
             </div>
+            // The description sits with the name it describes. Under the
+            // control it read as a caption for the field below it, because
+            // that field's name was the next line (issue #190).
+            <Show when={
+                let help = help.clone();
+                move || !help.is_empty()
+            }>
+                <span class=HINT>{help.clone()}</span>
+            </Show>
             {bodies}
             <Show when=move || repeatable>
                 <Repeats
@@ -275,24 +285,42 @@ pub(crate) fn FieldView(
                     remove_label="Remove"
                 />
             </Show>
-            <Show when={
-                let help = help.clone();
-                move || !help.is_empty()
-            }>
-                <span class=HINT>{help.clone()}</span>
-            </Show>
             {bands.map(|stated| view! { <Bands bands=*stated /> })}
         </div>
     }
 }
 
-/// One repeat of one field: its control, and the null flavour beside it.
+/// How wide a field of this kind is allowed to run.
+///
+/// No specification governs this: our own design. A date, a count and a unit
+/// are short answers, and stretching them across the content column made a
+/// form of short questions read as a wall of full-width boxes (issue #190).
+/// Prose, an attachment and a choice keep the width, because their answers
+/// genuinely use it.
+const fn widest(kind: &FieldKind) -> &'static str {
+    match *kind {
+        FieldKind::Text(_)
+        | FieldKind::Parsable(_)
+        | FieldKind::Multimedia(_)
+        | FieldKind::Uri(_)
+        | FieldKind::Choice(_) => "",
+        _ => "max-w-md",
+    }
+}
+
+/// One repeat of one field: its value, or the reason there is not one.
 ///
 /// The repeat is a `<fieldset>` whose `<legend>` carries the field's label,
 /// so every input inside it has an accessible name even where the control
 /// draws several (a quantity draws a magnitude and a unit, and neither one is
 /// the field). The legend is read aloud rather than drawn, because the field
-/// header above already shows the label.
+/// header above already shows the label. The fieldset draws no box: the group
+/// around it is already a card, and a third border around every value was
+/// most of what made a form feel like a wall (issue #190).
+///
+/// A field shows its value control OR its null flavour, never both, because
+/// openEHR RM Release-1.1.0 `data_structures.html` section 5.2.3 gives
+/// `ELEMENT` no state that carries the two together.
 #[component]
 fn Occurrence(
     /// The field, as the compiler derived it.
@@ -314,24 +342,64 @@ fn Occurrence(
     } else {
         slot.label.clone()
     };
-    let body = if field.is_fixed {
-        view! {
-            <p class="text-sm text-ink-muted">
-                "The template fixed this value, so nothing is entered."
-            </p>
-        }
-        .into_any()
-    } else {
-        control(&field.kind, &field.rm_type, &slot)
+    let offered = field.null_flavour.is_offered;
+    // Whether the reader asked for the flavour picker before choosing one.
+    // The stored value answers every other case, so this signal is only ever
+    // true between the click and the choice.
+    let choosing = RwSignal::new(false);
+    let holds_null = {
+        let slot = slot.clone();
+        Signal::derive(move || matches!(slot.entered(), Some(Entered::Null { .. })))
     };
-    let null = field.null_flavour.clone();
-    let offered = null.is_offered;
+    let instead = move || offered && (choosing.get() || holds_null.get());
+
+    let value_row = {
+        let field = field.clone();
+        let slot = slot.clone();
+        move || {
+            let body = if field.is_fixed {
+                view! {
+                    <p class="text-sm text-ink-muted">
+                        "The template fixed this value, so nothing is entered."
+                    </p>
+                }
+                .into_any()
+            } else {
+                control(&field.kind, &field.rm_type, &slot)
+            };
+            view! {
+                // `w-full` rather than `grow`, so a capped control is exactly
+                // its cap wide and the "No value" beside it lands in the same
+                // column on every field instead of tracking each control's
+                // own width.
+                <div class="flex items-start gap-3">
+                    <div class=format!("min-w-0 w-full {}", widest(&field.kind))>{body}</div>
+                    <Show when=move || offered>
+                        <NoValueButton on_start=Callback::new(move |()| choosing.set(true)) />
+                    </Show>
+                </div>
+            }
+        }
+    };
+    let null_row = {
+        let affordance = field.null_flavour.clone();
+        let slot = slot.clone();
+        move || {
+            view! {
+                <NullFlavourControl
+                    affordance=affordance.clone()
+                    at=slot.clone()
+                    on_cancel=Callback::new(move |()| choosing.set(false))
+                />
+            }
+        }
+    };
+
     view! {
-        <fieldset class="rounded-control border border-edge p-2">
+        <fieldset class="min-w-0">
             <legend class="sr-only">{legend}</legend>
-            {body}
-            <Show when=move || offered>
-                <NullFlavourControl affordance=null.clone() at=slot.clone() />
+            <Show when=instead fallback=value_row>
+                {null_row()}
             </Show>
         </fieldset>
     }

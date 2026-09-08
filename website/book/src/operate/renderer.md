@@ -60,9 +60,15 @@ remove pair, and it opens showing the occurrences the template requires. Each
 field draws the control its Reference Model type and its constraint call for:
 a quantity gets a magnitude and the units the template permits, a coded text
 gets a selection over its value set, a date gets the precision the template
-allows. A mandatory field is marked. A field that admits a null flavour offers
-one beside the value. Content the template left undetermined is drawn as a
-visible hole at the top of the form rather than dropped.
+allows. A mandatory field is marked. Content the template left undetermined is
+drawn as a visible hole at the top of the form rather than dropped.
+
+A field carries a value or a reason there is none, and never both: openEHR RM
+Release-1.1.0 `data_structures.html` section 5.2.3 gives `ELEMENT` no state
+that holds the two together. So a field draws its value control and a quiet
+"No value" beside it, and choosing a reason replaces the control rather than
+sitting under it. Answering "unknown" is rare and entering a value is the
+reason the form is open, so only one of them takes the width.
 
 Two strings in that picture read oddly, and both are the template's own. The
 archetype's structure node carries the text "Tree" and the description

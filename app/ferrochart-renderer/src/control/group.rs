@@ -101,7 +101,7 @@ pub(crate) fn GroupView(
                         <div class="flex flex-col gap-3">
                             <Show when=move || repeatable>
                                 <p class="text-xs font-medium text-ink-muted">
-                                    {format!("Occurrence {}", occurrence.saturating_add(1))}
+                                    {format!("Entry {}", occurrence.saturating_add(1))}
                                 </p>
                             </Show>
                             {contents(&group, state, &inside, &language)}
