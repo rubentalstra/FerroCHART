@@ -1279,6 +1279,18 @@ JSON shape in the renderer, which forks a model this repository already owns.
 The moved file named nothing but `ferrochart-form`, so this move also removed a
 dependency direction rather than adding one.
 
+**The envelope splits the same way, and for the third time.** `Envelope`,
+`Composer`, `Subject` and `Setting` landed in `ferrochart-compose` and issue
+#151 moved them to `ferrochart-form`. A renderer has to state a session's own
+facts: `ehr.html` section 5.2.2 makes `COMPOSITION.composer` mandatory and
+nothing authorises a server to invent it, and `EVENT_CONTEXT.start_time` is
+the moment the clinician recorded rather than the moment the server received.
+What stayed behind is the code that turns those coded fields into Reference
+Model `CODE_PHRASE` values, which needs the model types the browser never
+links. The pattern across all three moves is the same: the CONTRACT sits
+beside the definition, and the MACHINERY that reads it stays with the crate
+that owns the reading.
+
 **A slot addresses one field inside one instance of every repeating group above
 it.** No specification governs this: our own design. A `Slot` is a `NodeKey`, an
 occurrence path, and an occurrence. The key names the field in the definition,

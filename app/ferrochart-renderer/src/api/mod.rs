@@ -29,6 +29,7 @@ pub(crate) mod error;
 pub(crate) mod route;
 
 use ferrochart_form::definition::{FORMAT_VERSION, FormDefinition};
+use ferrochart_form::envelope::Envelope;
 use ferrochart_form::ids::TemplateId;
 use ferrochart_form::validation::ValidationReport;
 use ferrochart_form::values::FormValues;
@@ -106,10 +107,12 @@ pub(crate) struct ReadBack {
 /// What a clinician entered, and the Reference Model values a form never
 /// shows.
 ///
-/// The envelope travels as opaque JSON. `ferrochart-compose` owns its type
-/// and the renderer may not link that crate, so this module transports what a
-/// caller hands it rather than keeping a second copy of a model this
-/// repository already owns.
+/// The envelope is typed. It moved to `ferrochart-form` with issue #151, for
+/// the reason section 11 gives for the layout types and the entered values: a
+/// browser has to state a session's own facts, so it has to be able to name
+/// them. openEHR RM Release-1.1.0 `ehr.html` section 5.2.2 makes
+/// `COMPOSITION.composer` mandatory and nothing authorises a server to invent
+/// it.
 #[derive(Debug, Clone, Serialize)]
 #[allow(
     dead_code,
@@ -119,7 +122,7 @@ pub(crate) struct Submission<'v> {
     /// The format version this body is written in.
     format_version: u32,
     /// The Reference Model values a form never shows.
-    envelope: &'v serde_json::Value,
+    envelope: &'v Envelope,
     /// The entered values.
     values: &'v FormValues,
 }
@@ -130,7 +133,7 @@ impl<'v> Submission<'v> {
         dead_code,
         reason = "dead only outside the test configuration, whose non-test caller is the control of issue #137"
     )]
-    pub(crate) fn new(envelope: &'v serde_json::Value, values: &'v FormValues) -> Self {
+    pub(crate) fn new(envelope: &'v Envelope, values: &'v FormValues) -> Self {
         Self {
             format_version: FORMAT_VERSION,
             envelope,
@@ -401,9 +404,27 @@ mod tests {
         );
     }
 
+    /// A session's own facts, as a browser holds them.
+    fn envelope() -> ferrochart_form::envelope::Envelope {
+        ferrochart_form::envelope::Envelope {
+            language: "en".to_owned(),
+            territory: "NL".to_owned(),
+            category: ferrochart_form::envelope::CATEGORY_EVENT.to_owned(),
+            category_rubric: "event".to_owned(),
+            composer: ferrochart_form::envelope::Composer::Identified {
+                name: "A clinician".to_owned(),
+            },
+            subject: ferrochart_form::envelope::Subject::SelfParty,
+            encoding: ferrochart_form::envelope::UTF8.to_owned(),
+            now: "2026-09-08T04:00:00Z".to_owned(),
+            setting: None,
+            composition_archetype: None,
+        }
+    }
+
     #[test]
     fn a_submission_states_the_format_version_the_server_reads() {
-        let envelope = serde_json::json!({ "language": "en" });
+        let envelope = envelope();
         let values = ferrochart_form::values::FormValues::new();
         let submission = super::Submission::new(&envelope, &values);
         let written = serde_json::to_value(&submission).unwrap();
@@ -413,10 +434,27 @@ mod tests {
                 ferrochart_form::definition::FORMAT_VERSION
             ))
         );
-        assert_eq!(written.get("envelope"), Some(&envelope));
         assert!(written.get("values").is_some());
         // `ferrochart-server`'s `Submission` is `deny_unknown_fields`, so a
         // fourth member here would be refused with a 400.
         assert_eq!(written.as_object().map(serde_json::Map::len), Some(3));
+    }
+
+    #[test]
+    fn the_browser_states_the_composer_the_reference_model_requires() {
+        // The reason the envelope is typed rather than transported. RM
+        // Release-1.1.0 `ehr.html` section 5.2.2 makes COMPOSITION.composer
+        // mandatory, so a browser that cannot name one cannot commit.
+        let envelope = envelope();
+        let values = ferrochart_form::values::FormValues::new();
+        let written = serde_json::to_value(super::Submission::new(&envelope, &values)).unwrap();
+        let composer = written
+            .get("envelope")
+            .and_then(|it| it.get("composer"))
+            .expect("the submission carries a composer");
+        assert_eq!(
+            composer.get("name").and_then(serde_json::Value::as_str),
+            Some("A clinician"),
+        );
     }
 }

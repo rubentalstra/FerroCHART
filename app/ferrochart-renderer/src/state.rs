@@ -112,9 +112,13 @@ impl FormState {
     }
 
     /// Forgets whatever was entered at one address.
+    ///
+    /// What was there is dropped deliberately: this is the clinician saying
+    /// the field is empty, so the previous value is not something a caller
+    /// has any use for.
     pub(crate) fn clear(&self, key: &NodeKey, path: &Path, occurrence: usize) {
         self.values.update(|values| {
-            values.remove_in(key, path, occurrence);
+            drop(values.remove_in(key, path, occurrence));
         });
     }
 
@@ -189,7 +193,9 @@ impl FormState {
         }
         let last = self.shown(key, path).saturating_sub(1);
         self.values.update(|values| {
-            values.remove_in(key, path, last);
+            // The removed repeat's value goes with it, deliberately: an
+            // occurrence a clinician removed is one they said is not there.
+            drop(values.remove_in(key, path, last));
         });
         self.set_shown(key, path, last);
         true
