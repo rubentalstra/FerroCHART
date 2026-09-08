@@ -23,6 +23,14 @@ the build order.
 
 ### Added
 
+- **The round trip against a real CDR runs on every pull request** (#28). The
+  live cases of `ferrochart-cdr` and `ferrochart-server` commit a COMPOSITION
+  FerroCHART built and validated to a FerroEHR started from the release's own
+  `compose.yaml`, read it back, and compare. They existed, and ran only when
+  somebody remembered `scripts/test-cdr.sh`, so the one lane that can falsify
+  the product's central promise was the one lane nothing enforced. A failure
+  now prints what the CDR logged, because the container is gone by the time
+  anybody looks.
 - The browser battery drives and photographs **every** screen, not three of
   eight (#192). The form screen with no template named, the three frames on
   the rail whose content is still to come, and an address no route owns are

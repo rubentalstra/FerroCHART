@@ -39,6 +39,7 @@ fi
 
 started=0
 
+# shellcheck disable=SC2329 # invoked by the EXIT trap below, which shellcheck stops tracking once the script ends in an explicit exit
 stop() {
   if [[ "$started" -eq 1 && "$keep" -eq 0 ]]; then
     echo "test-cdr: stopping the demo CDR"
@@ -99,5 +100,16 @@ echo "test-cdr: running the wire tests against ${FERROCHART_TEST_CDR_URL}"
 #
 # --no-fail-fast: the point of the lane is what a real CDR says about every
 # case, so one refusal must not cancel the cases behind it.
+outcome=0
 cargo nextest run --locked -p ferrochart-cdr -p ferrochart-server \
-  --run-ignored all --test-threads 1 --no-fail-fast
+  --run-ignored all --test-threads 1 --no-fail-fast || outcome=$?
+
+# A refusal from the CDR is the finding this lane exists for, and the CDR's own
+# account of it is gone the moment the trap above stops the container. Printing
+# it here is what makes a red lane diagnosable without a second run.
+if [[ "$outcome" -ne 0 && "$started" -eq 1 ]]; then
+  echo "test-cdr: the lane failed; what the CDR logged:" >&2
+  compose logs --tail 200 "$SERVICE" >&2 || true
+fi
+
+exit "$outcome"
