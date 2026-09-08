@@ -22,10 +22,23 @@
     unreachable_pub,
     reason = "the #[component] macro emits pub items inside a binary crate"
 )]
+// The style guide is the only consumer of the kit affordances #27 will draw
+// (the dialog, the table, the tabs, the toasts), so a release bundle, built
+// without it, reports twenty-five of them dead. They are not dead; they have
+// no product consumer yet, and issue #186 is the record. The default build
+// carries the guide and still fails on genuinely dead code.
+#![cfg_attr(
+    not(feature = "design"),
+    allow(
+        dead_code,
+        reason = "the kit affordances issue #186 tracks, whose only consumer is the style guide"
+    )
+)]
 
 mod api;
 mod app;
 mod control;
+#[cfg(feature = "design")]
 mod design;
 mod focus;
 mod icon;

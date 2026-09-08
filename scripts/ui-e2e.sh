@@ -282,6 +282,8 @@ if [[ -z "$base_url" ]]; then
     cd app/ferrochart-renderer
     # `exec` so the recorded process id is Trunk's own and cleanup reaches it
     # rather than a subshell that has already gone.
+    # The `design` feature is on by default, and one of the screens below is
+    # the style guide it draws. A release bundle drops it (#154).
     exec trunk serve --config "$(basename "$TRUNK_RUN")" \
       --release --locked --address 0.0.0.0 --no-autoreload
   ) &
