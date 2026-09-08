@@ -85,12 +85,10 @@ fn a_value_stated_twice_under_a_single_valued_attribute_is_one_field() {
 
 #[test]
 fn identical_members_under_a_container_become_one_node_with_the_collective_count() {
-    // openEHR AM Release-2.3.0 AOM2.html section 4.5.4.3 rule VSONCO is the
-    // only definition of collective sibling occurrences openEHR publishes: the
-    // lower bound is the sum of the members' lower bounds and the upper bound
-    // is the minimum of the sum of their upper bounds and the flattened
-    // cardinality upper bound of the containing attribute. AOM 1.4 defines
-    // none, so reading it across generations is analogy, and it is lossless
+    // openEHR AM Release-2.3.0 ADL1.4.html section 5.3.4.2 rule VCOC reads a
+    // sibling set additively: the interval it represents runs from the sum of
+    // the occurrences minima to the sum of the occurrences maxima, and must
+    // sit inside the containing attribute's cardinality. The fold is lossless
     // here only because the members state the same constraint.
     let form = derived(TIED);
 

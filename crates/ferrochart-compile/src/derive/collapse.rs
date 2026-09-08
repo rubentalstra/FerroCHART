@@ -163,9 +163,10 @@ fn absorb(held: &mut ConstraintNode, member: &ConstraintNode) {
 
 /// The occurrences of a tied group, taken together.
 ///
-/// NOTE: openEHR AM Release-2.3.0 `AOM2.html` section 4.5.4.3 rule VSONCO is
-/// the only definition of collective sibling occurrences openEHR publishes,
-/// AOM 1.4 defines none, so reading it across generations is analogy.
+/// NOTE: openEHR AM Release-2.3.0 `ADL1.4.html` section 5.3.4.2 rule VCOC
+/// reads a sibling set additively, "the sum of all occurrences minimum
+/// values .. the sum of all occurrences maximum values", and AOM 2 section
+/// 4.5.4.3 rule VSONCO does the same for a specialised node set.
 fn collective(
     left: Multiplicity,
     right: Multiplicity,
