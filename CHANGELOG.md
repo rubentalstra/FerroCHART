@@ -21,6 +21,15 @@ the build order.
 
 ## [Unreleased]
 
+### Added
+
+- "Write your own renderer" in the book, which is the page that makes the
+  published form definition a contract rather than an internal type (#26). It
+  describes the three documents and their version, the externally tagged
+  shape, why a key carries five parts, how an entered value is addressed
+  inside a repeating group, where a refusal is drawn and where it is not, and
+  which two changes are deliberately not a version bump.
+
 ### Changed
 
 - **The published documents are externally tagged, and `FORMAT_VERSION` is 2**
