@@ -62,6 +62,11 @@ the build order.
   and no code from either reaches the bundle a reader downloads. Tracked as
   #135.
 
+- `FormValues::remove_in` and `FormValues::remove_under`: a set of entered
+  values could be written to and never unset, so a form had no way to say a
+  clinician removed an occurrence. `remove_under` forgets everything inside
+  one instance of one group, which is what removing a repeat means.
+
 ### Fixed
 
 - A repeatable group builds one instance per occurrence a clinician entered,

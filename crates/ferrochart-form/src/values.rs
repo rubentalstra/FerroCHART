@@ -304,6 +304,31 @@ impl FormValues {
         found
     }
 
+    /// Forgets what was entered at one address, returning it.
+    pub fn remove_in(
+        &mut self,
+        key: &NodeKey,
+        group_path: &[usize],
+        occurrence: usize,
+    ) -> Option<Entered> {
+        self.entries.remove(&Slot {
+            key: key.clone(),
+            group_path: group_path.to_vec(),
+            occurrence,
+        })
+    }
+
+    /// Forgets everything entered inside one occurrence of one group.
+    ///
+    /// A field is inside it when its key descends from the group's and its
+    /// occurrence path starts with the instance's, which is the same pair of
+    /// tests [`FormValues::group_occurrences`] makes.
+    pub fn remove_under(&mut self, group: &NodeKey, inside: &[usize]) {
+        self.entries.retain(|slot, _| {
+            !(slot.key.steps.starts_with(&group.steps) && slot.group_path.starts_with(inside))
+        });
+    }
+
     /// Every slot and value, in key order.
     pub fn iter(&self) -> impl Iterator<Item = (&Slot, &Entered)> {
         self.entries.iter()
@@ -319,5 +344,126 @@ impl FormValues {
     #[must_use]
     pub fn len(&self) -> usize {
         self.entries.len()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Datum, Entered, FormValues};
+    use crate::ids::{RmAttributeName, RmTypeName};
+    use crate::key::{KeyStep, NodeKey};
+
+    /// A key one step deep under `attribute`, which is all these tests need
+    /// to tell two fields apart.
+    fn key(attribute: &str) -> NodeKey {
+        NodeKey::root().child(KeyStep {
+            rm_attribute: RmAttributeName::new(attribute),
+            node_id: None,
+            archetype_id: None,
+            rm_type: RmTypeName::new("ELEMENT"),
+            pinned_name: None,
+            sibling_ordinal: 0,
+        })
+    }
+
+    /// A key two steps deep, so one key descends from another.
+    fn nested(outer: &str, inner: &str) -> NodeKey {
+        key(outer).child(KeyStep {
+            rm_attribute: RmAttributeName::new(inner),
+            node_id: None,
+            archetype_id: None,
+            rm_type: RmTypeName::new("ELEMENT"),
+            pinned_name: None,
+            sibling_ordinal: 0,
+        })
+    }
+
+    fn text(what: &str) -> Entered {
+        Entered::Value(Datum::Text(what.to_owned()))
+    }
+
+    #[test]
+    fn a_removed_value_is_returned_and_gone() {
+        let mut values = FormValues::new();
+        values.set_in(key("items"), vec![1], 0, text("entered"));
+        assert_eq!(
+            values.remove_in(&key("items"), &[1], 0),
+            Some(text("entered"))
+        );
+        assert_eq!(values.get_in(&key("items"), &[1], 0), None);
+        assert!(values.is_empty());
+    }
+
+    #[test]
+    fn removing_one_address_leaves_every_other_one_alone() {
+        let mut values = FormValues::new();
+        values.set_in(key("items"), vec![0], 0, text("first instance"));
+        values.set_in(key("items"), vec![1], 0, text("second instance"));
+        values.set_in(key("items"), vec![1], 1, text("second repeat"));
+        values.remove_in(&key("items"), &[1], 0);
+        assert_eq!(
+            values.get_in(&key("items"), &[0], 0),
+            Some(&text("first instance"))
+        );
+        assert_eq!(
+            values.get_in(&key("items"), &[1], 1),
+            Some(&text("second repeat"))
+        );
+        assert_eq!(values.len(), 2);
+    }
+
+    #[test]
+    fn removing_an_address_nothing_was_entered_at_is_not_an_error() {
+        let mut values = FormValues::new();
+        assert_eq!(values.remove_in(&key("items"), &[0], 0), None);
+    }
+
+    #[test]
+    fn removing_one_instance_of_a_group_takes_everything_inside_it() {
+        let mut values = FormValues::new();
+        // Two occurrences of one group, each holding one field.
+        values.set_in(nested("items", "value"), vec![0], 0, text("kept"));
+        values.set_in(nested("items", "value"), vec![1], 0, text("discarded"));
+        values.remove_under(&key("items"), &[1]);
+        assert_eq!(
+            values.get_in(&nested("items", "value"), &[0], 0),
+            Some(&text("kept"))
+        );
+        assert_eq!(values.get_in(&nested("items", "value"), &[1], 0), None);
+    }
+
+    #[test]
+    fn removing_one_instance_leaves_a_field_that_only_looks_nested() {
+        let mut values = FormValues::new();
+        // The same occurrence path under a DIFFERENT group. The path alone
+        // would match, so the key test is what keeps this one.
+        values.set_in(nested("other", "value"), vec![1], 0, text("elsewhere"));
+        values.remove_under(&key("items"), &[1]);
+        assert_eq!(
+            values.get_in(&nested("other", "value"), &[1], 0),
+            Some(&text("elsewhere"))
+        );
+    }
+
+    #[test]
+    fn removing_an_outer_instance_takes_every_instance_nested_inside_it() {
+        let mut values = FormValues::new();
+        for outer in 0..2 {
+            for inner in 0..2 {
+                values.set_in(
+                    nested("items", "value"),
+                    vec![outer, inner],
+                    0,
+                    text("entered"),
+                );
+            }
+        }
+        values.remove_under(&key("items"), &[1]);
+        assert_eq!(values.len(), 2, "only the first outer instance survives");
+        assert!(
+            values
+                .iter()
+                .all(|(slot, _)| slot.group_path.first() == Some(&0))
+        );
     }
 }
