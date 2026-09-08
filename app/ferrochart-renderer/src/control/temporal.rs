@@ -20,7 +20,7 @@ use leptos::prelude::*;
 
 use crate::control::admit::{Refusal, within_any};
 use crate::control::{RefusalNote, Slot};
-use crate::kit::field::{INPUT, LABEL};
+use crate::kit::field::{HINT, INPUT, LABEL, SELECT};
 
 /// How many components a value must and may carry, the leading one included.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -120,21 +120,26 @@ pub(crate) fn pattern_for(parts: &[(&str, &str, &str)], shape: Depth) -> String 
     expression
 }
 
-/// The shape a reader sees in the placeholder.
-pub(crate) fn placeholder_for(parts: &[(&str, &str, &str)], shape: Depth) -> String {
-    let mut text = String::new();
-    let mut open = 0_usize;
-    for (index, (_, _, token)) in parts.iter().take(shape.most).enumerate() {
-        if index >= shape.least {
-            text.push('[');
-            open = open.saturating_add(1);
-        }
-        text.push_str(token);
+/// What a reader is being asked for, where no native control collects it.
+///
+/// The placeholder is the ADL notation for the depth, and `YYYY[-MM[-DD]]` is
+/// addressed to somebody reading the specification. This says the same thing
+/// in the words a person would use (issue #197).
+pub(crate) fn asked_for(parts: &[(&str, &str, &str)], shape: Depth) -> &'static str {
+    // The component table says which of the three this is: a date and a time
+    // both carry three, and only a date leads with a year.
+    let leads_with = parts.first().map(|(_, _, token)| *token);
+    match (parts.len(), leads_with, shape.least, shape.most) {
+        (3, Some("YYYY"), 1, 2) => "Year, and month if known",
+        (3, Some("YYYY"), 1, 3) => "Year, then month and day if known",
+        (3, Some("YYYY"), 2, 3) => "Year and month, then day if known",
+        (3, Some("hh"), 1, 2) => "Hour, and minutes if known",
+        (3, Some("hh"), 1, 3) => "Hour, then minutes and seconds if known",
+        (3, Some("hh"), 2, 3) => "Hour and minutes, then seconds if known",
+        (6, _, _, 3) => "A date",
+        (6, _, _, _) => "Date, and time if known",
+        _ => "As much of it as you know",
     }
-    for _ in 0..open {
-        text.push(']');
-    }
-    text
 }
 
 /// The native input type the depth calls for, where one collects exactly it.
@@ -430,14 +435,12 @@ pub(crate) fn TemporalControl(
             record();
         }
     };
-    let on_zone = move |event: leptos::ev::Event| {
-        zone.set(event_target_value(&event));
-        record();
-    };
 
     let (input_type, step) = native.unwrap_or(("text", None));
     let pattern = native.is_none().then(|| pattern_for(parts, shape));
-    let placeholder = native.is_none().then(|| placeholder_for(parts, shape));
+    // The pattern still gates what the browser accepts; only what a person
+    // reads changes.
+    let placeholder = native.is_none().then(|| asked_for(parts, shape));
 
     view! {
         <div class="grid gap-2 sm:grid-cols-2">
@@ -454,23 +457,121 @@ pub(crate) fn TemporalControl(
                 />
             </div>
             <Show when=move || offers_zone>
-                <div>
-                    <label class=LABEL for=zone_id.clone()>
-                        {if zone_required { "Timezone" } else { "Timezone (optional)" }}
-                    </label>
-                    <input
-                        id=zone_id.clone()
-                        class=INPUT
-                        type="text"
-                        placeholder="+02:00"
-                        pattern="Z|[+-][0-9]{2}(:?[0-9]{2})?"
-                        prop:value=move || zone.get()
-                        on:input=on_zone.clone()
-                    />
-                </div>
+                <Timezone
+                    id=zone_id.clone()
+                    required=zone_required
+                    zone=zone
+                    instant=typed
+                    record=Callback::new({
+                        let record = record.clone();
+                        move |()| record()
+                    })
+                />
             </Show>
         </div>
         <RefusalNote refused=refused />
+    }
+}
+
+/// The timezone beside a time, chosen from the list the platform carries.
+///
+/// The reader picks where they are and this resolves it to the offset in
+/// force at the instant they entered, which is what `Iso8601_date_time`
+/// carries (`crate::zone`). A platform that does not publish the list falls
+/// back to the offset field, so nothing becomes unreachable.
+#[component]
+fn Timezone(
+    /// The identifier the label points at.
+    id: String,
+    /// Whether the template makes the timezone mandatory.
+    required: bool,
+    /// The offset the value carries, as ISO 8601 writes it.
+    zone: RwSignal<String>,
+    /// The value beside it, which decides which offset a zone is on.
+    instant: RwSignal<String>,
+    /// What recording the value looks like to the caller.
+    record: Callback<()>,
+) -> impl IntoView {
+    let zones = StoredValue::new(crate::zone::every());
+    let listed = zones.with_value(|every| !every.is_empty());
+    // The reader's own zone is the answer nine times in ten, so it is what the
+    // picker opens on. It is not written into the value until they choose:
+    // a timezone nobody asked for is not one the template stated.
+    let chosen = RwSignal::new(String::new());
+    let named = if required {
+        "Timezone"
+    } else {
+        "Timezone (optional)"
+    };
+
+    let options: Vec<_> = zones.with_value(|every| {
+        let here = crate::zone::here();
+        every
+            .iter()
+            .map(|zone| {
+                let mine = here.as_deref() == Some(zone.as_str());
+                let value = zone.clone();
+                let text = zone.clone();
+                view! {
+                    <option value=value selected=mine>
+                        {text}
+                    </option>
+                }
+            })
+            .collect()
+    });
+
+    let pick = move |event: leptos::ev::Event| {
+        let picked = event_target_value(&event);
+        if picked.is_empty() {
+            chosen.set(String::new());
+            zone.set(String::new());
+        } else {
+            let at = instant.get_untracked();
+            let resolved = crate::zone::offset_at(&picked, &at);
+            chosen.set(picked);
+            zone.set(resolved.unwrap_or_default());
+        }
+        record.run(());
+    };
+    let typed = move |event: leptos::ev::Event| {
+        zone.set(event_target_value(&event));
+        record.run(());
+    };
+
+    view! {
+        <div>
+            <label class=LABEL for=id.clone()>
+                {named}
+            </label>
+            <Show
+                when=move || listed
+                fallback={
+                    let id = id.clone();
+                    move || {
+                        view! {
+                            <input
+                                id=id.clone()
+                                class=INPUT
+                                type="text"
+                                placeholder="+02:00"
+                                pattern="Z|[+-][0-9]{2}(:?[0-9]{2})?"
+                                prop:value=move || zone.get()
+                                on:input=typed
+                            />
+                        }
+                    }
+                }
+            >
+                <select id=id.clone() class=SELECT on:change=pick>
+                    <option value="">"Not stated"</option>
+                    {options.clone()}
+                </select>
+                <Show when=move || !zone.get().is_empty()>
+                    <span class=HINT>{move || format!("{} here, at that moment", zone.get())}</span>
+                </Show>
+            </Show>
+        </div>
     }
 }
 
@@ -481,9 +582,8 @@ mod tests {
     use ferrochart_form::values::Datum;
 
     use super::{
-        DATE_PARTS, DATE_TIME_PARTS, Depth, admit_date, admit_date_time, admit_time, date_depth,
-        date_time_depth, depth, native_date, pattern_for, placeholder_for, time_depth,
-        timezone_admits,
+        DATE_PARTS, DATE_TIME_PARTS, Depth, TIME_PARTS, admit_date, admit_date_time, admit_time,
+        date_depth, date_time_depth, depth, native_date, pattern_for, time_depth, timezone_admits,
     };
     use crate::control::admit::Refusal;
 
@@ -557,10 +657,6 @@ mod tests {
         assert_eq!(
             pattern_for(&DATE_PARTS, Depth { least: 3, most: 3 }),
             "[0-9]{4}-[0-9]{2}-[0-9]{2}"
-        );
-        assert_eq!(
-            placeholder_for(&DATE_PARTS, Depth { least: 1, most: 2 }),
-            "YYYY[-MM]"
         );
     }
 
@@ -659,6 +755,36 @@ mod tests {
         assert_eq!(
             depth(&[ComponentValidity::Optional, ComponentValidity::Optional]),
             Depth { least: 1, most: 3 }
+        );
+    }
+    #[test]
+    fn a_partial_date_is_asked_for_in_words_and_never_in_adl() {
+        // The placeholder was `YYYY[-MM[-DD]]`, which is the notation and not
+        // the question (issue #197).
+        for shape in [
+            Depth { least: 1, most: 2 },
+            Depth { least: 1, most: 3 },
+            Depth { least: 2, most: 3 },
+        ] {
+            let said = super::asked_for(&DATE_PARTS, shape);
+            assert!(!said.contains("YYYY"), "{said}");
+            assert!(!said.contains('['), "{said}");
+            assert!(said.to_lowercase().contains("year"), "{said}");
+        }
+    }
+
+    #[test]
+    fn a_partial_time_and_a_partial_date_are_told_apart() {
+        let shape = Depth { least: 1, most: 3 };
+        let lowered = |said: &str| said.to_lowercase();
+        assert!(lowered(super::asked_for(&TIME_PARTS, shape)).contains("hour"));
+        assert!(lowered(super::asked_for(&DATE_PARTS, shape)).contains("year"));
+        assert!(
+            lowered(super::asked_for(
+                &DATE_TIME_PARTS,
+                Depth { least: 1, most: 6 }
+            ))
+            .contains("date")
         );
     }
 }

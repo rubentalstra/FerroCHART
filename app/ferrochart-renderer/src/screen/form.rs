@@ -99,7 +99,19 @@ pub(crate) fn Form() -> impl IntoView {
 /// The whole form of one definition, drawn as controls a clinician fills.
 fn tree(definition: &FormDefinition) -> AnyView {
     let language = definition.default_language.clone();
-    let undetermined = definition.undetermined().count();
+    // An open slot is a place the template deliberately left for extra
+    // content (openEHR AM Release-2.3.0 `AOM2.html` section 4.5.8), so it is
+    // not counted here. Counting it made every form of the committed pack open
+    // with a warning about itself, 116 of 121 of them (issue #180).
+    let undetermined = definition
+        .undetermined()
+        .filter(|content| {
+            !matches!(
+                content.reason,
+                ferrochart_form::group::UndeterminedReason::OpenSlot { .. }
+            )
+        })
+        .count();
     let unread = (!definition.is_current_format()).then(|| {
         view! {
             <Notice tone=Tone::Warn title="This form states another format version.">
@@ -114,12 +126,15 @@ fn tree(definition: &FormDefinition) -> AnyView {
     let hole = (undetermined > 0).then(|| {
         view! {
             <Notice tone=Tone::Warn title="The template left content undetermined.">
-                {format!("{undetermined} nodes are recorded and drawn nowhere.")}
+                {format!(
+                    "{undetermined} {} recorded and drawn nowhere.",
+                    if undetermined == 1 { "node is" } else { "nodes are" },
+                )}
             </Notice>
         }
     });
     // The state is created from the definition, so a repeatable group opens
-    // showing the occurrences the template requires and never fewer than one.
+    // showing exactly the occurrences the template requires.
     let state = FormState::new(definition);
     view! {
         <div class="space-y-3">

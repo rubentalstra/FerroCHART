@@ -31,6 +31,7 @@ design = []
 console_error_panic_hook.workspace = true
 ferrochart-form.workspace = true
 gloo-net.workspace = true
+js-sys.workspace = true
 icondata_core.workspace = true
 icondata_lu.workspace = true
 leptos.workspace = true
