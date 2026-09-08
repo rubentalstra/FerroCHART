@@ -21,6 +21,19 @@ the build order.
 
 ## [Unreleased]
 
+### Changed
+
+- **The renderer says what a field collects instead of naming a Reference
+  Model class** (#178). A choice between unlabelled alternatives offered
+  `DV_COUNT` and `DV_QUANTITY` as its options and now offers "a whole number"
+  and "a measurement"; an undetermined hole read "ITEM_TREE is left
+  undetermined." and now reads "The template leaves a group of fields here
+  undetermined."; the line under it says what the template does and does not
+  admit without spelling `ELEMENT` or `DV_INTERVAL`. The class name is a fact
+  about the specification, and the audience came to build a form. The
+  refusal message built in `ferrochart-compose` and the unlabelled-field
+  fallback are the rest of #178 and are not fixed here.
+
 ## [0.1.0] - 2026-09-08
 
 ### Added

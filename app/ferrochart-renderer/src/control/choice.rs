@@ -61,8 +61,13 @@ pub(crate) fn ChoiceControl(
         .enumerate()
         .map(|(at, alternative)| {
             let label = localized(&alternative.label, &language);
+            // A template that states no label for an alternative leaves the
+            // reader picking between kinds of value, so the option says what
+            // the value IS rather than naming its Reference Model class. The
+            // audience is somebody building a form, not somebody reading the
+            // specification.
             let shown = if label.is_empty() {
-                alternative.rm_type.as_str().to_owned()
+                crate::plain::describe(alternative.rm_type.as_str())
             } else {
                 label
             };

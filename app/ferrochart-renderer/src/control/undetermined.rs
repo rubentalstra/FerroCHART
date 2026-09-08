@@ -21,24 +21,46 @@ pub(crate) fn why(reason: &UndeterminedReason) -> String {
         UndeterminedReason::OpenSlot {
             ref includes,
             ref excludes,
-        } => format!(
-            "An archetype slot the template leaves open: {} archetypes admitted, {} refused.",
-            includes.len(),
-            excludes.len()
-        ),
+        } => open_slot(includes.len(), excludes.len()),
         UndeterminedReason::UnconstrainedValue => {
-            "An ELEMENT whose value the template constrains not at all, so every data type \
-             there is would be a guess."
+            "The template asks for a value here and never says what kind of value, so there is \
+             no control to draw."
                 .to_owned()
         }
         UndeterminedReason::UntypedInterval => {
-            "A DV_INTERVAL whose element type the template never states, so neither end has a \
-             control."
+            "The template asks for a range here and never says what the two ends measure, so \
+             there is no control to draw."
                 .to_owned()
         }
         _ => "The template left this undetermined for a reason this renderer does not know."
             .to_owned(),
     }
+}
+
+/// The one line an open slot gets, counting what the template admits.
+fn open_slot(admitted: usize, refused: usize) -> String {
+    let admits = if admitted == 0 {
+        "The template leaves room here for extra content and never says what fits.".to_owned()
+    } else {
+        format!(
+            "The template leaves room here for extra content, and names {admitted} {} it \
+             accepts.",
+            plural(admitted, "kind", "kinds")
+        )
+    };
+    if refused == 0 {
+        admits
+    } else {
+        format!(
+            "{admits} It rules out {refused} {}.",
+            plural(refused, "kind", "kinds")
+        )
+    }
+}
+
+/// The singular or the plural of a word, by a count.
+fn plural(count: usize, one: &'static str, many: &'static str) -> &'static str {
+    if count == 1 { one } else { many }
 }
 
 /// The hole the template left, drawn where the content would have been.
@@ -55,7 +77,10 @@ pub(crate) fn UndeterminedView(
 ) -> impl IntoView {
     let label = crate::label::of(&content.label, &language, &content.key);
     let title = if label.is_empty() {
-        format!("{} is left undetermined.", content.rm_type)
+        format!(
+            "The template leaves {} here undetermined.",
+            crate::plain::describe(content.rm_type.as_str())
+        )
     } else {
         format!("{label} is left undetermined.")
     };
@@ -92,13 +117,46 @@ mod tests {
     }
 
     #[test]
-    fn an_open_slot_says_how_many_archetypes_it_admits() {
+    fn an_open_slot_says_how_many_kinds_of_content_it_admits() {
         let reason = UndeterminedReason::OpenSlot {
             includes: vec![ferrochart_form::group::SlotAssertion::ArchetypeIdPattern(
                 "a.*".to_owned(),
             )],
             excludes: Vec::new(),
         };
-        assert!(why(&reason).contains("1 archetypes admitted"));
+        assert!(
+            why(&reason).contains("names 1 kind it accepts"),
+            "{}",
+            why(&reason)
+        );
+    }
+    #[test]
+    fn no_reason_names_a_reference_model_class() {
+        // The audience came to build a form, so the screen never spells a
+        // Reference Model class name at them.
+        let reasons = [
+            UndeterminedReason::OpenSlot {
+                includes: vec![],
+                excludes: vec![],
+            },
+            UndeterminedReason::UnconstrainedValue,
+            UndeterminedReason::UntypedInterval,
+        ];
+        for reason in &reasons {
+            let text = why(reason);
+            assert!(
+                !text.contains("DV_") && !text.contains("ELEMENT") && !text.contains("CLUSTER"),
+                "{text}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_counts_read_as_english() {
+        assert!(super::open_slot(1, 1).contains("names 1 kind it accepts"));
+        assert!(super::open_slot(1, 1).contains("rules out 1 kind."));
+        assert!(super::open_slot(3, 2).contains("names 3 kinds it accepts"));
+        assert!(super::open_slot(3, 2).contains("rules out 2 kinds."));
+        assert!(super::open_slot(0, 0).contains("never says what fits"));
     }
 }
