@@ -29,6 +29,9 @@
 //! defect class this project exists to prevent, so a screen that renders a
 //! report renders that list too.
 
+// TODO(#152): draw a refusal on the repeat it belongs to. The occurrence
+// address exists at the seam and is dropped before the report is built.
+
 // The lookup is what a control calls, and the controls are issue #137. Its
 // own tests exercise every function, so the lint fires in one configuration
 // and not the other, which is what `allow` is for here.
