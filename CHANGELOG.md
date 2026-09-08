@@ -21,6 +21,20 @@ the build order.
 
 ## [Unreleased]
 
+### Changed
+
+- **The published documents are externally tagged, and `FORMAT_VERSION` is 2**
+  (#154). A variant is spelled `{"quantity": {…}}` where version 1 wrote
+  `{"kind": "quantity", …}`. The reason is measured rather than aesthetic: an
+  internally or adjacently tagged enum cannot be deserialised in one pass, so
+  serde buffers the input through `Content` and monomorphises the whole subtree
+  twice. Over the renderer that cost **33269 gzipped bytes, 7.6% of the bundle
+  a reader downloads**, confirmed by building both ways. The same buffer is
+  what #103 broke against, when a dependency enabling
+  `serde_json/arbitrary_precision` stopped these documents deserialising with
+  no line changed in this tree. An externally tagged enum never enters that
+  code path, so the change removes a hazard class as well as the bytes.
+
 ### Fixed
 
 - A refusal from the composition builder is drawn on the repeat it came from

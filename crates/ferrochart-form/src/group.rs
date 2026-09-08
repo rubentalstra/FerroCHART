@@ -50,7 +50,7 @@ pub struct FormGroup {
 
 /// One member of a group.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "item", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum FormItem {
     /// A nested group.
@@ -105,7 +105,7 @@ pub struct UndeterminedContent {
 
 /// Why a piece of content is undetermined.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "reason", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum UndeterminedReason {
     /// An archetype slot the template leaves open.
@@ -139,7 +139,7 @@ pub enum UndeterminedReason {
 
 /// One assertion on an archetype slot.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "assertion", content = "value", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum SlotAssertion {
     /// A regular expression over archetype identifiers.

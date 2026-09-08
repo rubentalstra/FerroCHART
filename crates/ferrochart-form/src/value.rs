@@ -57,7 +57,7 @@ pub struct CodedOption {
 /// which one a node carries decides whether the form needs a terminology
 /// server at all.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "source", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum ValueSet {
     /// Every code the template lists, all from one terminology.
@@ -94,7 +94,7 @@ pub struct EnumeratedSet {
 
 /// A value set a terminology server has to expand.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "binding", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum ExpansionSource {
     /// A set named by a local `ac`-code.
@@ -130,7 +130,7 @@ pub enum ExpansionSource {
 /// `C_PRIMITIVE_OBJECT.constraint_status`. ADL 1.4 has no way to say this, so
 /// a field derived from an ADL 1.4 template leaves it unstated.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "strictness", content = "value", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum BindingStrictness {
     /// The value must come from the set.
@@ -153,7 +153,7 @@ pub enum BindingStrictness {
 /// values don't". Only the former reaches a form, so a form definition carries
 /// no assumed values at all.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Prefill {
     /// A `DV_BOOLEAN` value.
@@ -202,15 +202,12 @@ mod tests {
     use crate::ids::{TerminologyName, local_terminology};
 
     #[test]
-    fn a_value_set_serializes_under_a_tag_that_names_its_source() {
+    fn a_value_set_serializes_under_the_name_of_its_source() {
         let set = ValueSet::OpenTerminology {
             terminology: TerminologyName::new("SNOMED-CT"),
         };
         let json = serde_json::to_string(&set).expect("a value set serializes");
-        assert_eq!(
-            json,
-            r#"{"source":"open_terminology","terminology":"SNOMED-CT"}"#
-        );
+        assert_eq!(json, r#"{"open_terminology":{"terminology":"SNOMED-CT"}}"#);
     }
 
     #[test]
@@ -227,12 +224,12 @@ mod tests {
     }
 
     #[test]
-    fn a_prefill_carries_its_type_beside_its_value() {
+    fn a_prefill_nests_under_the_name_of_its_variant() {
         let prefill = Prefill::Coded {
             code: Code::new(local_terminology(), "at0004"),
             rubric: Some("Sitting".to_owned()),
         };
         let json = serde_json::to_string(&prefill).expect("a prefill serializes");
-        assert!(json.starts_with(r#"{"type":"coded","value":{"#), "{json}");
+        assert!(json.starts_with(r#"{"coded":{"#), "{json}");
     }
 }

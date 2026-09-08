@@ -3,7 +3,7 @@ source: crates/ferrochart-compile/tests/it/snapshot.rs
 expression: form
 ---
 {
-  "format_version": 1,
+  "format_version": 2,
   "template_id": "Phone - JM Work",
   "default_language": "en",
   "languages": [
@@ -42,218 +42,224 @@ expression: form
     "is_deprecated": false,
     "items": [
       {
-        "item": "field",
-        "key": {
-          "steps": [
-            {
-              "rm_attribute": "",
-              "node_id": "at0000",
-              "archetype_id": "openEHR-EHR-CLUSTER.electronic_communication.v1",
-              "rm_type": "CLUSTER",
-              "pinned_name": "Phone - work number",
-              "sibling_ordinal": 0
-            },
-            {
-              "rm_attribute": "items",
-              "node_id": "at0001",
-              "archetype_id": null,
-              "rm_type": "ELEMENT",
-              "pinned_name": null,
-              "sibling_ordinal": 0
+        "field": {
+          "key": {
+            "steps": [
+              {
+                "rm_attribute": "",
+                "node_id": "at0000",
+                "archetype_id": "openEHR-EHR-CLUSTER.electronic_communication.v1",
+                "rm_type": "CLUSTER",
+                "pinned_name": "Phone - work number",
+                "sibling_ordinal": 0
+              },
+              {
+                "rm_attribute": "items",
+                "node_id": "at0001",
+                "archetype_id": null,
+                "rm_type": "ELEMENT",
+                "pinned_name": null,
+                "sibling_ordinal": 0
+              }
+            ],
+            "is_positional": false
+          },
+          "rm_type": "DV_TEXT",
+          "label": {
+            "en": "Type"
+          },
+          "help": {
+            "en": "The type or form of electronic communication."
+          },
+          "occurrences": {
+            "minimum": 0,
+            "maximum": 1
+          },
+          "kind": {
+            "text": {
+              "patterns": [],
+              "options": [],
+              "options_closed": false
             }
-          ],
-          "is_positional": false
-        },
-        "rm_type": "DV_TEXT",
-        "label": {
-          "en": "Type"
-        },
-        "help": {
-          "en": "The type or form of electronic communication."
-        },
-        "occurrences": {
-          "minimum": 0,
-          "maximum": 1
-        },
-        "kind": {
-          "kind": "text",
-          "patterns": [],
-          "options": [],
-          "options_closed": false
-        },
-        "name_constraint": null,
-        "is_ordered": false,
-        "is_unique": false,
-        "null_flavour": {
-          "is_offered": true,
-          "options": [
-            {
-              "code": {
-                "terminology": "openehr",
-                "code": "253"
+          },
+          "name_constraint": null,
+          "is_ordered": false,
+          "is_unique": false,
+          "null_flavour": {
+            "is_offered": true,
+            "options": [
+              {
+                "code": {
+                  "terminology": "openehr",
+                  "code": "253"
+                },
+                "rubric": "unknown"
               },
-              "rubric": "unknown"
-            },
-            {
-              "code": {
-                "terminology": "openehr",
-                "code": "271"
+              {
+                "code": {
+                  "terminology": "openehr",
+                  "code": "271"
+                },
+                "rubric": "no information"
               },
-              "rubric": "no information"
-            },
-            {
-              "code": {
-                "terminology": "openehr",
-                "code": "272"
+              {
+                "code": {
+                  "terminology": "openehr",
+                  "code": "272"
+                },
+                "rubric": "masked"
               },
-              "rubric": "masked"
-            },
-            {
-              "code": {
-                "terminology": "openehr",
-                "code": "273"
-              },
-              "rubric": "not applicable"
-            }
-          ],
-          "accepts_reason": true
-        },
-        "prefill": null,
-        "is_deprecated": false,
-        "is_fixed": false
+              {
+                "code": {
+                  "terminology": "openehr",
+                  "code": "273"
+                },
+                "rubric": "not applicable"
+              }
+            ],
+            "accepts_reason": true
+          },
+          "prefill": null,
+          "is_deprecated": false,
+          "is_fixed": false
+        }
       },
       {
-        "item": "field",
-        "key": {
-          "steps": [
-            {
-              "rm_attribute": "",
-              "node_id": "at0000",
-              "archetype_id": "openEHR-EHR-CLUSTER.electronic_communication.v1",
-              "rm_type": "CLUSTER",
-              "pinned_name": "Phone - work number",
-              "sibling_ordinal": 0
-            },
-            {
-              "rm_attribute": "items",
-              "node_id": "at0002",
-              "archetype_id": null,
-              "rm_type": "ELEMENT",
-              "pinned_name": null,
-              "sibling_ordinal": 1
+        "field": {
+          "key": {
+            "steps": [
+              {
+                "rm_attribute": "",
+                "node_id": "at0000",
+                "archetype_id": "openEHR-EHR-CLUSTER.electronic_communication.v1",
+                "rm_type": "CLUSTER",
+                "pinned_name": "Phone - work number",
+                "sibling_ordinal": 0
+              },
+              {
+                "rm_attribute": "items",
+                "node_id": "at0002",
+                "archetype_id": null,
+                "rm_type": "ELEMENT",
+                "pinned_name": null,
+                "sibling_ordinal": 1
+              }
+            ],
+            "is_positional": false
+          },
+          "rm_type": "DV_TEXT",
+          "label": {
+            "en": "Value"
+          },
+          "help": {
+            "en": "The unique combination of alphanumeric characters, relevant for representation of 'Type'."
+          },
+          "occurrences": {
+            "minimum": 1,
+            "maximum": 1
+          },
+          "kind": {
+            "text": {
+              "patterns": [],
+              "options": [],
+              "options_closed": false
             }
-          ],
-          "is_positional": false
-        },
-        "rm_type": "DV_TEXT",
-        "label": {
-          "en": "Value"
-        },
-        "help": {
-          "en": "The unique combination of alphanumeric characters, relevant for representation of 'Type'."
-        },
-        "occurrences": {
-          "minimum": 1,
-          "maximum": 1
-        },
-        "kind": {
-          "kind": "text",
-          "patterns": [],
-          "options": [],
-          "options_closed": false
-        },
-        "name_constraint": null,
-        "is_ordered": false,
-        "is_unique": false,
-        "null_flavour": {
-          "is_offered": false,
-          "options": [],
-          "accepts_reason": false
-        },
-        "prefill": null,
-        "is_deprecated": false,
-        "is_fixed": false
+          },
+          "name_constraint": null,
+          "is_ordered": false,
+          "is_unique": false,
+          "null_flavour": {
+            "is_offered": false,
+            "options": [],
+            "accepts_reason": false
+          },
+          "prefill": null,
+          "is_deprecated": false,
+          "is_fixed": false
+        }
       },
       {
-        "item": "field",
-        "key": {
-          "steps": [
-            {
-              "rm_attribute": "",
-              "node_id": "at0000",
-              "archetype_id": "openEHR-EHR-CLUSTER.electronic_communication.v1",
-              "rm_type": "CLUSTER",
-              "pinned_name": "Phone - work number",
-              "sibling_ordinal": 0
-            },
-            {
-              "rm_attribute": "items",
-              "node_id": "at0003",
-              "archetype_id": null,
-              "rm_type": "ELEMENT",
-              "pinned_name": null,
-              "sibling_ordinal": 2
+        "field": {
+          "key": {
+            "steps": [
+              {
+                "rm_attribute": "",
+                "node_id": "at0000",
+                "archetype_id": "openEHR-EHR-CLUSTER.electronic_communication.v1",
+                "rm_type": "CLUSTER",
+                "pinned_name": "Phone - work number",
+                "sibling_ordinal": 0
+              },
+              {
+                "rm_attribute": "items",
+                "node_id": "at0003",
+                "archetype_id": null,
+                "rm_type": "ELEMENT",
+                "pinned_name": null,
+                "sibling_ordinal": 2
+              }
+            ],
+            "is_positional": false
+          },
+          "rm_type": "DV_TEXT",
+          "label": {
+            "en": "Purpose"
+          },
+          "help": {
+            "en": "The purpose or use for the identified type of electronic communication."
+          },
+          "occurrences": {
+            "minimum": 0,
+            "maximum": 1
+          },
+          "kind": {
+            "text": {
+              "patterns": [],
+              "options": [],
+              "options_closed": false
             }
-          ],
-          "is_positional": false
-        },
-        "rm_type": "DV_TEXT",
-        "label": {
-          "en": "Purpose"
-        },
-        "help": {
-          "en": "The purpose or use for the identified type of electronic communication."
-        },
-        "occurrences": {
-          "minimum": 0,
-          "maximum": 1
-        },
-        "kind": {
-          "kind": "text",
-          "patterns": [],
-          "options": [],
-          "options_closed": false
-        },
-        "name_constraint": null,
-        "is_ordered": false,
-        "is_unique": false,
-        "null_flavour": {
-          "is_offered": true,
-          "options": [
-            {
-              "code": {
-                "terminology": "openehr",
-                "code": "253"
+          },
+          "name_constraint": null,
+          "is_ordered": false,
+          "is_unique": false,
+          "null_flavour": {
+            "is_offered": true,
+            "options": [
+              {
+                "code": {
+                  "terminology": "openehr",
+                  "code": "253"
+                },
+                "rubric": "unknown"
               },
-              "rubric": "unknown"
-            },
-            {
-              "code": {
-                "terminology": "openehr",
-                "code": "271"
+              {
+                "code": {
+                  "terminology": "openehr",
+                  "code": "271"
+                },
+                "rubric": "no information"
               },
-              "rubric": "no information"
-            },
-            {
-              "code": {
-                "terminology": "openehr",
-                "code": "272"
+              {
+                "code": {
+                  "terminology": "openehr",
+                  "code": "272"
+                },
+                "rubric": "masked"
               },
-              "rubric": "masked"
-            },
-            {
-              "code": {
-                "terminology": "openehr",
-                "code": "273"
-              },
-              "rubric": "not applicable"
-            }
-          ],
-          "accepts_reason": true
-        },
-        "prefill": null,
-        "is_deprecated": false,
-        "is_fixed": false
+              {
+                "code": {
+                  "terminology": "openehr",
+                  "code": "273"
+                },
+                "rubric": "not applicable"
+              }
+            ],
+            "accepts_reason": true
+          },
+          "prefill": null,
+          "is_deprecated": false,
+          "is_fixed": false
+        }
       }
     ],
     "undetermined": [
@@ -288,14 +294,14 @@ expression: form
           "maximum": null
         },
         "reason": {
-          "reason": "open_slot",
-          "includes": [
-            {
-              "assertion": "archetype_id_pattern",
-              "value": "openEHR-EHR-CLUSTER\\.language(-[a-zA-Z0-9_]+)*\\.v1"
-            }
-          ],
-          "excludes": []
+          "open_slot": {
+            "includes": [
+              {
+                "archetype_id_pattern": "openEHR-EHR-CLUSTER\\.language(-[a-zA-Z0-9_]+)*\\.v1"
+              }
+            ],
+            "excludes": []
+          }
         }
       }
     ]

@@ -22,10 +22,8 @@ expression: "serde_json::to_string_pretty(&values()).unwrap()"
     ],
     "occurrence": 0,
     "entered": {
-      "entered": "value",
       "value": {
-        "type": "quantity",
-        "value": {
+        "quantity": {
           "magnitude": 37.2,
           "units": "Cel",
           "precision": 1
@@ -52,10 +50,8 @@ expression: "serde_json::to_string_pretty(&values()).unwrap()"
     ],
     "occurrence": 0,
     "entered": {
-      "entered": "value",
       "value": {
-        "type": "quantity",
-        "value": {
+        "quantity": {
           "magnitude": 36.8,
           "units": "Cel",
           "precision": 1
@@ -83,10 +79,8 @@ expression: "serde_json::to_string_pretty(&values()).unwrap()"
     ],
     "occurrence": 0,
     "entered": {
-      "entered": "value",
       "value": {
-        "type": "text",
-        "value": "a synthetic entry"
+        "text": "a synthetic entry"
       }
     }
   },
@@ -110,10 +104,8 @@ expression: "serde_json::to_string_pretty(&values()).unwrap()"
     ],
     "occurrence": 1,
     "entered": {
-      "entered": "value",
       "value": {
-        "type": "text",
-        "value": "a second synthetic entry"
+        "text": "a second synthetic entry"
       }
     }
   },
@@ -134,10 +126,8 @@ expression: "serde_json::to_string_pretty(&values()).unwrap()"
     "group_path": [],
     "occurrence": 0,
     "entered": {
-      "entered": "value",
       "value": {
-        "type": "coded",
-        "value": {
+        "coded": {
           "terminology": "local",
           "code": "at0010",
           "rubric": "a synthetic rubric"
@@ -162,10 +152,8 @@ expression: "serde_json::to_string_pretty(&values()).unwrap()"
     "group_path": [],
     "occurrence": 0,
     "entered": {
-      "entered": "value",
       "value": {
-        "type": "scale",
-        "value": {
+        "scale": {
           "terminology": "local",
           "code": "at0011",
           "rubric": "a synthetic symbol",
@@ -191,10 +179,8 @@ expression: "serde_json::to_string_pretty(&values()).unwrap()"
     "group_path": [],
     "occurrence": 0,
     "entered": {
-      "entered": "value",
       "value": {
-        "type": "proportion",
-        "value": {
+        "proportion": {
           "numerator": 1.0,
           "denominator": 4.0,
           "kind": 2,
@@ -220,17 +206,13 @@ expression: "serde_json::to_string_pretty(&values()).unwrap()"
     "group_path": [],
     "occurrence": 0,
     "entered": {
-      "entered": "value",
       "value": {
-        "type": "interval",
-        "value": {
+        "interval": {
           "lower": {
-            "type": "count",
-            "value": 1
+            "count": 1
           },
           "upper": {
-            "type": "count",
-            "value": 9
+            "count": 9
           },
           "lower_included": true,
           "upper_included": false
@@ -255,10 +237,8 @@ expression: "serde_json::to_string_pretty(&values()).unwrap()"
     "group_path": [],
     "occurrence": 0,
     "entered": {
-      "entered": "value",
       "value": {
-        "type": "date_time",
-        "value": "2026-09-08T12:00:00Z"
+        "date_time": "2026-09-08T12:00:00Z"
       }
     }
   },
@@ -279,8 +259,7 @@ expression: "serde_json::to_string_pretty(&values()).unwrap()"
     "group_path": [],
     "occurrence": 0,
     "entered": {
-      "entered": "null",
-      "value": {
+      "null": {
         "code": "271",
         "reason": "no information"
       }

@@ -408,7 +408,7 @@ impl Section {
 /// AOM 2 Rules package evaluate an assertion after entry rather than deciding
 /// what a person sees, so a visibility rule is authored rather than derived.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "visibility", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Visibility {
     /// Always, which is what an item with no rule does.
@@ -430,7 +430,7 @@ pub enum Visibility {
 /// small and closed, because a condition FerroCHART cannot evaluate is a
 /// condition a renderer cannot honour.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "test", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Condition {
     /// The node carries a value.
