@@ -16,7 +16,8 @@
 use leptos::prelude::*;
 
 use crate::api::error::ApiError;
-use crate::kit::notice::{Notice, Tone};
+use crate::kit::notice::Notice;
+use crate::kit::tone::Tone;
 
 /// How much of an answer's body is shown before it is cut.
 ///

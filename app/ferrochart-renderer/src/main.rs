@@ -9,9 +9,10 @@
 //! graph rather than from intent.
 //!
 //! This module is the entry point and nothing else. The design system lives
-//! in [`kit`], the frame in [`shell`], the screens in [`screen`], the token
-//! measurements in [`tokens`], and every request the browser makes in
-//! [`api`], which is the only module that opens one.
+//! in [`kit`], the frame in [`shell`], the screens in [`screen`], the
+//! controls a clinician types into in [`control`], what they type in
+//! [`state`], the token measurements in [`tokens`], and every request the
+//! browser makes in [`api`], which is the only module that opens one.
 
 // Leptos's `#[component]` macro emits `pub` items whatever visibility the
 // function carries. Nothing in a binary crate is reachable from outside it,
@@ -24,7 +25,9 @@
 
 mod api;
 mod app;
+mod control;
 mod design;
+mod focus;
 mod icon;
 mod kit;
 mod label;
@@ -32,6 +35,7 @@ mod nav;
 mod placement;
 mod screen;
 mod shell;
+mod state;
 mod storage;
 mod theme;
 mod tokens;

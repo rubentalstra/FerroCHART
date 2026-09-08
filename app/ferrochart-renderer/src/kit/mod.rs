@@ -13,7 +13,17 @@
 //! `:focus-visible` rule in that stylesheet's base layer draws every
 //! indicator, so a control cannot ship without one.
 
+pub(crate) mod badge;
+pub(crate) mod dialog;
+pub(crate) mod empty;
 pub(crate) mod field;
 pub(crate) mod notice;
 pub(crate) mod page_header;
+pub(crate) mod segmented;
+pub(crate) mod skeleton;
+pub(crate) mod stat;
 pub(crate) mod surface;
+pub(crate) mod table;
+pub(crate) mod tabs;
+pub(crate) mod toast;
+pub(crate) mod tone;
