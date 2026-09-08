@@ -189,7 +189,7 @@ pub(crate) fn content_item(
 /// Writes the template identifier onto the node the template roots at.
 ///
 /// openEHR RM Release-1.1.0 `common.html` section 3.2.3 makes
-/// `ARCHETYPED.template_id` the "[g]lobally unique template identifier, if a
+/// `ARCHETYPED.template_id` the "\[g\]lobally unique template identifier, if a
 /// template was active at this point in the structure". A template rooted
 /// below COMPOSITION is not active at the document FerroCHART wraps around
 /// it, because that document's archetype comes from configuration rather than
