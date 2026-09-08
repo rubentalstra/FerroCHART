@@ -24,12 +24,7 @@
       "glob": "*_bg.wasm",
       "max_gzip_bytes": 470000,
       "max_growth_gzip_bytes": 60000,
-      "measured_gzip_bytes": 441161,
-      "step_change": {
-        "to": 441161,
-        "reason": "eighteen field controls and ten kit affordances (#137), over the form contract #138 linked",
-        "issue": 154
-      }
+      "measured_gzip_bytes": 440032
     },
     "js": {
       "glob": "*.js",
@@ -41,7 +36,7 @@
       "glob": "*.css",
       "max_gzip_bytes": 12000,
       "max_growth_gzip_bytes": 2000,
-      "measured_gzip_bytes": 4842
+      "measured_gzip_bytes": 4790
     }
   }
 }

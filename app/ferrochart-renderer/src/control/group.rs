@@ -69,7 +69,7 @@ pub(crate) fn GroupView(
     let key = group.key.clone();
     let minimum = group.occurrences.minimum;
     let maximum = group.occurrences.maximum;
-    let label = localized(&group.label, &language);
+    let label = crate::label::of(&group.label, &language, &group.key);
     let help = localized(&group.help, &language);
 
     let occurrences = {

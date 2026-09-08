@@ -190,7 +190,7 @@ pub(crate) fn FieldView(
     /// The language a label is shown in.
     language: LanguageTag,
 ) -> impl IntoView {
-    let label = localized(&field.label, &language);
+    let label = crate::label::of(&field.label, &language, &field.key);
     let help = localized(&field.help, &language);
     let repeatable = field.occurrences.is_repeatable();
     let mandatory = field.occurrences.is_mandatory();

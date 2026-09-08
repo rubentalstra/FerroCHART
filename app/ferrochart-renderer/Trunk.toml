@@ -23,6 +23,9 @@ port = 8081
 [[proxy]]
 backend = "http://127.0.0.1:8080/health"
 
+[[proxy]]
+backend = "http://127.0.0.1:8080/api"
+
 [tools]
 # Trunk downloads the official standalone binary, so there is no Node and no
 # npm anywhere in this build.

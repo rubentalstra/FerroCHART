@@ -23,6 +23,18 @@ the build order.
 
 ### Added
 
+- The form screen draws the controls (#26). `/ui/forms/{template_id}` fetched
+  a definition and rendered its group tree as headings and labels, because the
+  request module and the controls were built in parallel and nothing joined
+  them. It now renders `control::group::FormBody`, so a clinician sees the
+  form rather than its outline: inputs, the null-flavour affordance beside
+  each field, a repeatable group carrying its occurrence bounds, and a field
+  the template fixed saying so instead of offering an entry.
+- `trunk serve` proxies `/api` as well as `/health`, so a local session runs
+  the whole surface rather than half of it.
+
+### Added
+
 - The renderer's conversation with the server (#138). One module,
   `app/ferrochart-renderer/src/api`, owns every request the browser makes over
   `gloo-net`, and a test scans the crate's own sources and fails when any other

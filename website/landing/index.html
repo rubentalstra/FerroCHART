@@ -74,15 +74,16 @@
     <section class="hero">
       <div class="wrap">
         <img class="hero-logo" src="./assets/brand/ferrochart-icon.svg" alt="FerroCHART" width="88" height="88">
-        <p class="status-pill" role="note">v0.0.3 published. A compiler and its supply chain.</p>
+        <p class="status-pill" role="note">v0.0.5 published. The round trip runs, against a mock.</p>
         <h1>openEHR operational templates, compiled into forms, in pure Rust.</h1>
         <p class="sub">
           FerroCHART walks an operational template and derives a field from the
           Reference Model type and the constraint at each node. The layout,
           labels, and visibility rules a person authors on top live in a
           separate overlay, so a template revision replays that work and
-          reports what happened to it. Nothing renders a form to a clinician
-          yet, and the page below says exactly where the line is.
+          reports what happened to it. A browser renders the form and posts
+          what a clinician entered, and the page below says exactly where the
+          line still is.
         </p>
         <div class="cta">
           <a class="btn btn-primary" href="./docs/">Read the documentation</a>
@@ -132,7 +133,7 @@
           </div>
         </div>
         <p class="figures-note">
-          Measured at v0.0.3. The
+          Measured at v0.0.5. The
           <a href="./docs/evaluate/build-order.html">build order</a> says what
           each release adds, and the tracker is the live version.
         </p>
@@ -317,9 +318,9 @@
           <span class="eyebrow">Where the project is</span>
           <h2>What works, and what does not</h2>
           <p>
-            A release today is a compiler and its supply chain. It is not
-            something a ward could use, and this list is how you tell the two
-            apart.
+            The whole path runs, from an operational template to a COMPOSITION
+            and back. It has never met a CDR that enforces openEHR's rules for
+            itself, and this list is how you tell the two apart.
           </p>
         </div>
         <div class="grid status-grid">
@@ -328,17 +329,18 @@
             <ul>
               <li>Both ADL generations read into one internal constraint model.</li>
               <li>The derivation table and the form definition it produces, over the whole vendored corpus.</li>
-              <li>The overlay store, its key, and the replay report, under test in the repository. They ship in v0.0.4.</li>
+              <li>The overlay store, its key, and the replay report of what matched, moved, disappeared or became ambiguous.</li>
+              <li>A browser renders the form: a control for each of the eighteen field kinds, repeatable groups, null flavours, and a visible hole where a template determined nothing.</li>
+              <li>Entered values are judged against the operational template before any request, built into a COMPOSITION, posted over ITS-REST and read back into the same form.</li>
               <li>Releases for four Linux targets, a container image, and a compose file, signed and attested.</li>
             </ul>
           </article>
           <article class="card state state-no">
             <h3>Does not work yet</h3>
             <ul>
-              <li>Nothing renders a form to a clinician. The renderer arrives with v0.1.0.</li>
-              <li>Nothing builds a COMPOSITION or commits one to a CDR. That arrives with v0.0.5.</li>
-              <li>There is no authoring surface for the overlay, so you cannot lay a form out by hand yet.</li>
-              <li>No round trip has been proven against a running CDR.</li>
+              <li>No round trip has been proven against a running CDR. Every test of the commit path answers a mock, so nothing has yet enforced openEHR's rules back at us.</li>
+              <li>There is no authoring surface for the overlay, so you cannot lay a form out by hand yet. A form renders in template order.</li>
+              <li>The WCAG 2.2 AA claim is held per screen and has not been audited end to end.</li>
             </ul>
           </article>
         </div>
