@@ -23,6 +23,21 @@ the build order.
 
 ### Changed
 
+- **A duration is a number and a unit** (#198). "Age at death" drew Years,
+  Months, Weeks, Days, Hours, Minutes and Seconds as seven number boxes plus a
+  checkbox, for a question a person answers with "82". The family history form
+  carried fourteen of those boxes, seven for the age at death and seven for
+  the age at onset. It is now one number and one unit, and where the template
+  admits a single unit there is no picker at all. A compound duration stays
+  reachable behind "and…", so the rare case works and the common case costs
+  nothing. The sign is offered only where a range could admit a negative
+  duration, so an age bounded at zero no longer asks whether it counts
+  backwards.
+- Two parts of a duration naming one unit are refused. `assemble` writes the
+  first match per unit, so the second was being dropped without a word.
+
+### Changed
+
 - **A form is a list of questions with answers, and most of what it drew was
   neither** (#190). Four of the five lines a field drew were not the value.
   - A field carries a value **or** a reason there is none, never both. The
