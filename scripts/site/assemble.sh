@@ -18,7 +18,12 @@
 # book's absolute /docs/ asset paths only resolve when the book sits under
 # that prefix.
 #
-#   scripts/site/assemble.sh _site && python3 -m http.server -d _site
+# `.claude/rules/rust-style.md` bans Python across this repository, so the
+# instruction names a server that ships with the tooling already pinned here.
+#
+#   scripts/site/assemble.sh _site && miniserve _site
+#
+# Any static server rooted at _site does; the point is that /docs/ resolves.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 

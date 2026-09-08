@@ -6,6 +6,7 @@
   - [The design](evaluate/design.md)
   - [Build order](evaluate/build-order.md)
   - [Pinned versions](evaluate/versions.md)
+  - [Write your own renderer](evaluate/write-your-own-renderer.md)
   - [Licensing](evaluate/licensing.md)
 - [Operate](operate/README.md)
   - [Configuration](operate/configuration.md)
