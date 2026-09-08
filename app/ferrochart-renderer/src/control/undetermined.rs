@@ -1,11 +1,14 @@
 // SPDX-FileCopyrightText: Ruben Talstra
 // SPDX-License-Identifier: BUSL-1.1
 
-//! Content the operational template did not determine.
+//! Content the operational template did not determine, and content it left
+//! room for.
 //!
-//! It captures nothing and it is never skipped. The whole point of recording
-//! it is that a person can see the template left a hole rather than that the
-//! compiler lost one, so it is drawn where the content would have been.
+//! Neither captures anything and neither is ever skipped, because the point of
+//! recording one is that a person can see the template left it rather than
+//! that the compiler lost it. The two read differently, though: an open
+//! archetype slot is a place the template meant to leave open, and a value it
+//! never typed is a hole (issue #180).
 
 use ferrochart_form::group::{UndeterminedContent, UndeterminedReason};
 use ferrochart_form::ids::LanguageTag;
@@ -63,6 +66,17 @@ fn plural(count: usize, one: &'static str, many: &'static str) -> &'static str {
     if count == 1 { one } else { many }
 }
 
+/// Whether the reason is a place to add content rather than a hole.
+///
+/// openEHR AM Release-2.3.0 `AOM2.html` section 4.5.8 gives `ARCHETYPE_SLOT`
+/// the attribute `is_closed`, "closed to further filling either in further
+/// specialisations or at runtime", and defaults it to false. So an open slot
+/// is a runtime extension point the template meant to leave open, and drawing
+/// it as a warning said the template had gone wrong (issue #180).
+const fn is_a_place_to_add(reason: &UndeterminedReason) -> bool {
+    matches!(*reason, UndeterminedReason::OpenSlot { .. })
+}
+
 /// The hole the template left, drawn where the content would have been.
 #[component]
 #[expect(
@@ -81,11 +95,21 @@ pub(crate) fn UndeterminedView(
         &content.key,
         &crate::plain::describe(content.rm_type.as_str()),
     );
-    let title = format!("{label} is left undetermined.");
+    let extendable = is_a_place_to_add(&content.reason);
+    let title = if extendable {
+        format!("{label} takes extra content.")
+    } else {
+        format!("{label} is left undetermined.")
+    };
+    let tone = if extendable {
+        Tone::Neutral
+    } else {
+        Tone::Warn
+    };
     let path = content.key.to_string();
 
     view! {
-        <Notice tone=Tone::Warn title=title detail=why(&content.reason)>
+        <Notice tone=tone title=title detail=why(&content.reason)>
             <p class=CODE>{path}</p>
         </Notice>
     }
@@ -156,5 +180,25 @@ mod tests {
         assert!(super::open_slot(3, 2).contains("names 3 kinds it accepts"));
         assert!(super::open_slot(3, 2).contains("rules out 2 kinds."));
         assert!(super::open_slot(0, 0).contains("never says what fits"));
+    }
+    #[test]
+    fn an_open_slot_is_a_place_to_add_and_not_a_hole() {
+        // openEHR AM Release-2.3.0 `AOM2.html` section 4.5.8 defaults
+        // `is_closed` to false, so a slot that survived into the template is
+        // one it meant to leave open (#180).
+        assert!(super::is_a_place_to_add(&UndeterminedReason::OpenSlot {
+            includes: vec![],
+            excludes: vec![],
+        }));
+    }
+
+    #[test]
+    fn a_value_the_template_never_typed_is_still_a_hole() {
+        assert!(!super::is_a_place_to_add(
+            &UndeterminedReason::UnconstrainedValue
+        ));
+        assert!(!super::is_a_place_to_add(
+            &UndeterminedReason::UntypedInterval
+        ));
     }
 }

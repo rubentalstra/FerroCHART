@@ -323,8 +323,7 @@ pub(crate) fn DurationControl(
 
     view! {
         <div class="flex flex-col gap-2">
-            {rows}
-            <Show when=move || !one_unit && shown.get() < most>
+            {rows} <Show when=move || !one_unit && shown.get() < most>
                 <button
                     type="button"
                     class="self-start text-xs text-ink-muted underline underline-offset-2 hover:text-ink"
@@ -332,13 +331,8 @@ pub(crate) fn DurationControl(
                 >
                     "and…"
                 </button>
-            </Show>
-            <Show when=move || signed>
-                <Backwards
-                    id=slot.part("sign")
-                    negative=negative
-                    record=recorder
-                />
+            </Show> <Show when=move || signed>
+                <Backwards id=slot.part("sign") negative=negative record=recorder />
             </Show>
         </div>
         <RefusalNote refused=refused />

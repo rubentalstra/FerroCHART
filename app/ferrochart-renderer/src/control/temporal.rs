@@ -512,7 +512,11 @@ fn Timezone(
                 let mine = here.as_deref() == Some(zone.as_str());
                 let value = zone.clone();
                 let text = zone.clone();
-                view! { <option value=value selected=mine>{text}</option> }
+                view! {
+                    <option value=value selected=mine>
+                        {text}
+                    </option>
+                }
             })
             .collect()
     });
@@ -564,9 +568,7 @@ fn Timezone(
                     {options.clone()}
                 </select>
                 <Show when=move || !zone.get().is_empty()>
-                    <span class=HINT>
-                        {move || format!("{} here, at that moment", zone.get())}
-                    </span>
+                    <span class=HINT>{move || format!("{} here, at that moment", zone.get())}</span>
                 </Show>
             </Show>
         </div>
