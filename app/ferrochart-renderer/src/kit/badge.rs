@@ -57,12 +57,4 @@ mod tests {
             "the shape owns the hairline width"
         );
     }
-
-    #[test]
-    fn the_badge_draws_no_focus_ring_of_its_own() {
-        assert!(
-            !BADGE.contains("focus:") && !BADGE.contains("focus-visible:"),
-            "the stylesheet's base layer owns the focus indicator"
-        );
-    }
 }

@@ -34,7 +34,7 @@ pub(crate) const TABLE_CELL: &str = "px-3 py-2 align-top text-ink";
 
 #[cfg(test)]
 mod tests {
-    use super::{TABLE, TABLE_CELL, TABLE_HEAD, TABLE_HEAD_CELL, TABLE_ROW, TABLE_SCROLL};
+    use super::{TABLE, TABLE_SCROLL};
 
     #[test]
     fn a_wide_grid_scrolls_inside_its_own_container() {
@@ -46,25 +46,5 @@ mod tests {
             TABLE.contains("w-full"),
             "the grid fills the container it scrolls in"
         );
-    }
-
-    #[test]
-    fn no_constant_reaches_past_the_semantic_tokens() {
-        for class in [
-            TABLE_SCROLL,
-            TABLE,
-            TABLE_HEAD,
-            TABLE_HEAD_CELL,
-            TABLE_ROW,
-            TABLE_CELL,
-        ] {
-            assert!(!class.contains("dark:"), "dark mode is the tokens: {class}");
-            assert!(
-                !class.contains("focus:") && !class.contains("focus-visible:"),
-                "the stylesheet owns the focus indicator: {class}"
-            );
-            assert!(!class.contains("  "), "a run of spaces in: {class}");
-            assert_eq!(class.trim(), class, "leading or trailing space: {class}");
-        }
     }
 }

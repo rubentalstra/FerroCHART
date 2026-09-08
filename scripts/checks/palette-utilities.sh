@@ -4,7 +4,8 @@
 #
 # Every screen styles against the semantic tokens of
 # `app/ferrochart-renderer/style/tailwind.css`, never against a raw palette
-# utility and never with a per-element `dark:` override. That rule is what
+# utility and never with a per-element `dark:` override, and no control draws
+# its own focus ring. That rule is what
 # keeps both themes in lockstep, and it is the rule a hurried screen breaks
 # first: one `dark:bg-slate-900` compiles, looks right in the theme it was
 # written in, and is wrong in the other one forever.
@@ -50,6 +51,18 @@ scan() {
 }
 
 scan "$ramp" "a raw palette utility; style against a semantic token"
+
+# The focus indicator is ONE `:focus-visible` rule in the stylesheet's base
+# layer, so no control draws its own and none can ship without one. What is
+# refused is a class that draws a RING or an OUTLINE of its own, and
+# `outline-none`, which removes the indicator and leaves nothing behind it.
+#
+# A `focus:` utility that changes something else is legitimate and stays
+# legal. The skip link is the case that proves it: WCAG 2.2 success criterion
+# 2.4.1 wants it revealed on focus, so it carries `focus:not-sr-only` and a
+# position, and it draws no ring of its own.
+scan '(focus|focus-visible):(ring|outline)' "a control drawing its own focus indicator; the stylesheet's base layer owns it"
+scan '"[^"]*\boutline-none\b' "removing the focus indicator leaves a control with none"
 scan '\bdark:' "a per-element dark: override; dark mode is the tokens"
 scan '#[0-9a-fA-F]{6}\b' "a hex colour outside the stylesheet"
 
