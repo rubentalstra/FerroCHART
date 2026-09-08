@@ -81,6 +81,14 @@ One screen drawing every affordance the kit defines, once. A second button
 style would have to appear here beside the first, which is what keeps the
 screens above consistent by construction rather than by review.
 
+It is a build-time surface and a release does not carry it. Drawing every
+affordance means instantiating every control a second time, which cost 51506
+gzipped bytes, 12.5% of what a clinician downloads. It is behind the `design`
+cargo feature, which is on by default: `trunk serve` brings it up at
+`/ui/design` and the browser battery photographs it, while the release bundle
+is built `--no-default-features` and answers that address the way it answers
+any address it does not serve.
+
 ![The living style guide, drawing every affordance once](img/renderer/design.png)
 
 ![The style guide on the dark ground](img/renderer/design-dark.png)

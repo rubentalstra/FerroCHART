@@ -38,6 +38,7 @@ pub(crate) enum Slot {
 
 /// The rail, in order. Adding a screen means adding a line here and nothing
 /// else.
+#[cfg(feature = "design")]
 pub(crate) const SLOTS: [Slot; 7] = [
     Slot::Item(FORMS, "Forms", icondata_lu::LuClipboardList),
     Slot::Item(TEMPLATES, "Templates", icondata_lu::LuFileCode2),
@@ -46,6 +47,17 @@ pub(crate) const SLOTS: [Slot; 7] = [
     Slot::Divider,
     Slot::Item(SETTINGS, "Settings", icondata_lu::LuSettings),
     Slot::Item(DESIGN, "Design", icondata_lu::LuPalette),
+];
+
+/// The rail, in order, in a build that carries no style guide.
+#[cfg(not(feature = "design"))]
+pub(crate) const SLOTS: [Slot; 6] = [
+    Slot::Item(FORMS, "Forms", icondata_lu::LuClipboardList),
+    Slot::Item(TEMPLATES, "Templates", icondata_lu::LuFileCode2),
+    Slot::Item(LAYOUT, "Layout", icondata_lu::LuLayoutTemplate),
+    Slot::Item(COMMITS, "Commits", icondata_lu::LuGitCommitHorizontal),
+    Slot::Divider,
+    Slot::Item(SETTINGS, "Settings", icondata_lu::LuSettings),
 ];
 
 /// The section a path belongs to, or `None` when no entry owns it.

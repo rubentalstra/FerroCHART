@@ -23,6 +23,17 @@ the build order.
 
 ### Changed
 
+- **The living style guide is no longer in a clinician's download**, and the
+  renderer bundle fell from 410995 to 359486 gzipped, a saving of 51506 bytes
+  or 12.5% (#154). The design system draws every affordance the kit defines,
+  which instantiates every control a second time, and it is a surface for
+  whoever works on the kit rather than for a person filling a form. It is
+  behind the `design` cargo feature now, which is on by default: `trunk serve`
+  brings it up at `/ui/design` and the browser battery photographs it, while
+  the release bundle is built `--no-default-features`. That build answers
+  `/ui/design` the way it answers any address it does not serve, and the rail
+  carries no entry for it. The feature is on by default so that an affordance
+  the kit defines and nothing draws is still a dead-code error (#186).
 - **The renderer says what a field collects instead of naming a Reference
   Model class** (#178). A choice between unlabelled alternatives offered
   `DV_COUNT` and `DV_QUANTITY` as its options and now offers "a whole number"

@@ -13,6 +13,8 @@ use leptos_meta::{Meta, Title, provide_meta_context};
 use leptos_router::components::{ParentRoute, Route, Router, Routes};
 use leptos_router::path;
 
+#[cfg(feature = "design")]
+use crate::design::DesignSystem;
 use crate::kit::page_header::{Crumb, PageHeader};
 use crate::kit::surface::CARD_PAD;
 use crate::nav;
@@ -40,11 +42,22 @@ pub(crate) fn App() -> impl IntoView {
                     <Route path=path!("layout") view=Layout />
                     <Route path=path!("commits") view=Commits />
                     <Route path=path!("settings") view=Settings />
-                    <Route path=path!("design") view=crate::design::DesignSystem />
+                    <Route path=path!("design") view=DesignSystem />
                 </ParentRoute>
             </Routes>
         </Router>
     }
+}
+
+/// The style guide, in a build that does not carry it.
+///
+/// The route stays so the router has one shape rather than two, and a build
+/// without the guide answers its address the way it answers any address it
+/// does not serve.
+#[cfg(not(feature = "design"))]
+#[component]
+fn DesignSystem() -> impl IntoView {
+    view! { <NotFound /> }
 }
 
 /// A screen that has its frame and not yet its content.
