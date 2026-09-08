@@ -39,6 +39,16 @@ pub struct Config {
     /// server refuses to start.
     pub templates: Option<PathBuf>,
 
+    /// The directory of authored layouts the server reads at startup, where
+    /// the operator named one.
+    ///
+    /// No specification governs this: our own design. Absent means the server
+    /// holds no layout and every form draws in template order, which is what
+    /// a deployment that authored none wants. A directory that IS named has
+    /// to exist and every layout in it has to read, or the server refuses to
+    /// start.
+    pub overlays: Option<PathBuf>,
+
     /// Whether the server serves the renderer under `/ui`.
     ///
     /// On by default, and `FERROCHART_UI=off` drops the routes for a
@@ -149,11 +159,16 @@ impl Config {
             .filter(|value| !value.trim().is_empty())
             .map(PathBuf::from);
 
+        let overlays = var("OVERLAYS")?
+            .filter(|value| !value.trim().is_empty())
+            .map(PathBuf::from);
+
         Ok(Self {
             listen,
             cdr_url: required("CDR_URL", "the openEHR CDR's ITS-REST base URL")?,
             term_url: required("TERM_URL", "the FHIR terminology server's base URL")?,
             templates,
+            overlays,
             ui: switch("UI", true)?,
         })
     }

@@ -31,6 +31,7 @@ use ferrochart_form::values::FormValues;
 use serde::Deserialize;
 
 use crate::api::error::ApiError;
+use crate::overlays::OverlayStore;
 use crate::store::TemplateStore;
 
 /// What every handler shares: the templates, and the CDR to commit to.
@@ -38,6 +39,8 @@ use crate::store::TemplateStore;
 pub struct ServerState {
     /// The compiled templates this server serves.
     templates: Arc<TemplateStore>,
+    /// The layouts a person authored over them.
+    overlays: Arc<OverlayStore>,
     /// The client for the configured CDR.
     cdr: CdrClient,
     /// Whether this deployment serves the renderer under `/ui`.
@@ -50,9 +53,23 @@ impl ServerState {
     pub fn new(templates: Arc<TemplateStore>, cdr: CdrClient) -> Self {
         Self {
             templates,
+            overlays: Arc::new(OverlayStore::new()),
             cdr,
             ui: true,
         }
+    }
+
+    /// Serves `overlays` as the layouts authored over those templates.
+    #[must_use]
+    pub fn with_overlays(mut self, overlays: Arc<OverlayStore>) -> Self {
+        self.overlays = overlays;
+        self
+    }
+
+    /// The layouts this server holds.
+    #[must_use]
+    pub fn overlays(&self) -> &OverlayStore {
+        &self.overlays
     }
 
     /// Serves the renderer under `/ui` when `ui` is true.
@@ -82,6 +99,10 @@ pub fn routes(state: ServerState) -> Router {
         .route(
             "/api/templates/{template_id}/definition",
             get(templates::definition),
+        )
+        .route(
+            "/api/templates/{template_id}/layout",
+            get(templates::layout),
         )
         .route(
             "/api/templates/{template_id}/validation",

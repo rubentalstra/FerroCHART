@@ -115,6 +115,14 @@ impl Screen {
             .collect()
     }
 
+    /// The template file stem, for the screens that draw a form.
+    pub(crate) fn stem(&self) -> Option<&str> {
+        match *self {
+            Self::Form { ref stem, .. } => Some(stem),
+            _ => None,
+        }
+    }
+
     /// What the screen is called, which names every failure on it.
     pub(crate) fn name(&self) -> String {
         match *self {

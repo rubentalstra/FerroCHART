@@ -12,6 +12,7 @@
     reason = "test assertions"
 )]
 
+mod committed;
 mod corpus;
 mod geometry;
 mod real_revision;

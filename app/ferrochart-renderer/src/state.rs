@@ -75,6 +75,25 @@ impl FormState {
         self.values.read().get_in(key, path, occurrence).cloned()
     }
 
+    /// What was entered at `key`, nearest to `path`.
+    ///
+    /// A visibility rule names a node and the item it governs sits somewhere
+    /// under a repeating group, so the two are not always at the same address.
+    /// The read starts at `path` and shortens one step at a time, so a rule
+    /// reading a node inside the same occurrence sees that occurrence's answer
+    /// and a rule reading a node above every repeat sees the one answer there
+    /// is. No specification governs this: our own design.
+    pub(crate) fn nearest(&self, key: &NodeKey, path: &Path) -> Option<Entered> {
+        let values = self.values.read();
+        let mut at = path.to_vec();
+        loop {
+            if let Some(found) = values.get_in(key, &at, 0) {
+                return Some(found.clone());
+            }
+            at.pop()?;
+        }
+    }
+
     /// Records a value at one address.
     pub(crate) fn set(&self, key: &NodeKey, path: &Path, occurrence: usize, datum: Datum) {
         self.values.update(|values| {

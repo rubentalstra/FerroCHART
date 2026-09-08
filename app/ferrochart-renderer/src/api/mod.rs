@@ -31,6 +31,7 @@ pub(crate) mod route;
 use ferrochart_form::definition::{FORMAT_VERSION, FormDefinition};
 use ferrochart_form::envelope::Envelope;
 use ferrochart_form::ids::TemplateId;
+use ferrochart_form::layout::FormLayout;
 use ferrochart_form::validation::ValidationReport;
 use ferrochart_form::values::FormValues;
 use gloo_net::http::Request;
@@ -42,7 +43,15 @@ use crate::api::error::ApiError;
 const JSON: &str = "application/json";
 
 /// A document that states which format version it is written in.
+///
+/// The expected version belongs to the document rather than to the surface: a
+/// form definition and a layout are separate contracts with separate version
+/// lines (`ferrochart_form::layout::LAYOUT_FORMAT_VERSION`), so one number for
+/// every body would refuse a layout that is in its current format.
 trait Versioned {
+    /// The version this client reads of this document.
+    const READS: u32;
+
     /// The version the document states.
     fn format_version(&self) -> u32;
 }
@@ -143,30 +152,48 @@ impl<'v> Submission<'v> {
 }
 
 impl Versioned for TemplateList {
+    const READS: u32 = FORMAT_VERSION;
+
     fn format_version(&self) -> u32 {
         self.format_version
     }
 }
 
 impl Versioned for FormDefinition {
+    const READS: u32 = FORMAT_VERSION;
+
+    fn format_version(&self) -> u32 {
+        self.format_version
+    }
+}
+
+impl Versioned for FormLayout {
+    const READS: u32 = ferrochart_form::layout::LAYOUT_FORMAT_VERSION;
+
     fn format_version(&self) -> u32 {
         self.format_version
     }
 }
 
 impl Versioned for Judgement {
+    const READS: u32 = FORMAT_VERSION;
+
     fn format_version(&self) -> u32 {
         self.format_version
     }
 }
 
 impl Versioned for Committed {
+    const READS: u32 = FORMAT_VERSION;
+
     fn format_version(&self) -> u32 {
         self.format_version
     }
 }
 
 impl Versioned for ReadBack {
+    const READS: u32 = FORMAT_VERSION;
+
     fn format_version(&self) -> u32 {
         self.format_version
     }
@@ -190,6 +217,19 @@ pub(crate) async fn templates() -> Result<TemplateList, ApiError> {
 /// As [`templates`].
 pub(crate) async fn definition(template_id: &str) -> Result<FormDefinition, ApiError> {
     let url = route::definition(template_id);
+    read(&url).await
+}
+
+/// The layout a person authored over one template.
+///
+/// A template nobody laid out answers with a layout that decides nothing, so
+/// there is no absent case here to distinguish.
+///
+/// # Errors
+///
+/// As [`templates`].
+pub(crate) async fn layout(template_id: &str) -> Result<FormLayout, ApiError> {
+    let url = route::layout(template_id);
     read(&url).await
 }
 
@@ -316,7 +356,7 @@ where
         return Err(error::refused(url, status, body));
     }
     let document: T = error::decoded(url, status, &body)?;
-    error::format_checked(url, status, document.format_version())?;
+    error::format_checked(url, status, document.format_version(), T::READS)?;
     Ok(document)
 }
 

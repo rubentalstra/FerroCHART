@@ -81,6 +81,11 @@ readonly TEMPLATES=(
 
 # Where the staged templates and the failure evidence go. Neither is tracked.
 readonly STAGED="$root/target/ui-e2e-templates"
+
+# The one authored layout this repository ships. The server reads it at
+# startup and serves it beside the definition, so a journey drives a form that
+# grows as it is answered rather than one that asks everything at once.
+readonly OVERLAYS="$root/e2e/overlays"
 readonly FAILURES_DIR="$root/target/ui-e2e-failures"
 
 # Seconds to wait for the server and the browser to answer. Both are already
@@ -267,6 +272,7 @@ if [[ -z "$base_url" ]]; then
     FERROCHART_CDR_URL="http://127.0.0.1:1/openehr" \
     FERROCHART_TERM_URL="http://127.0.0.1:1/r4" \
     FERROCHART_TEMPLATES="$STAGED" \
+    FERROCHART_OVERLAYS="$OVERLAYS" \
     RUST_LOG="${RUST_LOG:-info}" \
     target/release/ferrochart &
   server_pid=$!

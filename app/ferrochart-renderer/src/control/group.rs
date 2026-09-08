@@ -16,6 +16,7 @@
 use ferrochart_form::definition::FormDefinition;
 use ferrochart_form::group::{FormGroup, FormItem, GroupShape};
 use ferrochart_form::ids::LanguageTag;
+use ferrochart_form::key::NodeKey;
 use leptos::prelude::*;
 
 use crate::control::field::FieldView;
@@ -27,6 +28,7 @@ use crate::kit::field::HINT;
 use crate::kit::notice::Notice;
 use crate::kit::surface::{CARD_PAD, CARD_TITLE};
 use crate::kit::tone::Tone;
+use crate::overlay::Laid;
 use crate::state::{FormState, Path, descend, root_path};
 
 /// The whole form, rooted in the group the template root became.
@@ -38,7 +40,13 @@ pub(crate) fn FormBody(
     state: FormState,
     /// The language labels are shown in.
     language: LanguageTag,
+    /// The layout a person authored over this form.
+    laid: Laid,
 ) -> impl IntoView {
+    // The layout travels through context rather than through a prop on every
+    // component: a control ten groups deep reads it without each group above
+    // it having to carry it, and a group is already recursive.
+    provide_context(laid);
     view! {
         <div class="flex flex-col gap-4">
             <GroupView group=definition.root state=state path=root_path() language=language />
@@ -69,8 +77,13 @@ pub(crate) fn GroupView(
     let key = group.key.clone();
     let minimum = group.occurrences.minimum;
     let maximum = group.occurrences.maximum;
-    let label = crate::label::of(&group.label, &language, &group.key, "a group of fields");
-    let help = localized(&group.help, &language);
+    let laid = Laid::from_context();
+    let label = laid.label(&group.key, &language).unwrap_or_else(|| {
+        crate::label::of(&group.label, &language, &group.key, "a group of fields")
+    });
+    let help = laid
+        .help(&group.key, &language)
+        .unwrap_or_else(|| localized(&group.help, &language));
 
     let occurrences = {
         let key = key.clone();
@@ -190,6 +203,41 @@ fn is_plumbing(group: &FormGroup) -> bool {
         && !group.occurrences.is_repeatable()
 }
 
+/// One item, drawn only while the rule a person authored over it holds.
+///
+/// An item with no rule is drawn with nothing around it, so a form nobody laid
+/// out costs no wrapper per node. A rule reads the values through the form's
+/// own signal, so ticking the box it names draws the item in.
+fn gated<V>(laid: &Laid, key: &NodeKey, state: FormState, inside: &Path, draw: V) -> AnyView
+where
+    V: Fn() -> AnyView + Send + Sync + 'static,
+{
+    if !laid.rules(key) {
+        return draw();
+    }
+    let laid = laid.clone();
+    let key = key.clone();
+    let inside = inside.clone();
+    let shows = move || laid.shows(&key, state, &inside);
+    view! { <Show when=shows>{draw()}</Show> }.into_any()
+}
+
+/// Where one item sits among its siblings.
+///
+/// An item a person put in an order sits at the number they gave; every other
+/// item keeps the position the template gave it. The sort is stable, so two
+/// items at one number stay in template order relative to each other. No
+/// specification governs this: our own design.
+fn ranked(laid: &Laid, item: &FormItem, index: usize) -> u32 {
+    let key = match *item {
+        FormItem::Group(ref nested) => &nested.key,
+        FormItem::Field(ref field) => &field.key,
+        _ => return u32::try_from(index).unwrap_or(u32::MAX),
+    };
+    laid.order(key)
+        .unwrap_or_else(|| u32::try_from(index).unwrap_or(u32::MAX))
+}
+
 /// Everything one occurrence of a group holds: its items, then the holes the
 /// template left in it.
 fn contents(
@@ -198,31 +246,59 @@ fn contents(
     inside: &Path,
     language: &LanguageTag,
 ) -> Vec<AnyView> {
-    let mut drawn: Vec<AnyView> = group
+    let laid = Laid::from_context();
+    let mut ordered: Vec<(u32, &FormItem)> = group
         .items
         .iter()
-        .map(|item| match *item {
+        .enumerate()
+        .map(|(index, item)| (ranked(&laid, item, index), item))
+        .collect();
+    ordered.sort_by_key(|&(rank, _)| rank);
+    let mut drawn: Vec<AnyView> = ordered
+        .into_iter()
+        .map(|(_, item)| match *item {
             FormItem::Group(ref nested) if is_plumbing(nested) => {
-                contents(nested, state, inside, language).into_any()
+                // A plumbing node draws nothing of its own, so a rule on it
+                // governs everything it holds.
+                gated(&laid, &nested.key, state, inside, {
+                    let nested = (**nested).clone();
+                    let inside = inside.clone();
+                    let language = language.clone();
+                    move || contents(&nested, state, &inside, &language).into_any()
+                })
             }
-            FormItem::Group(ref nested) => view! {
-                <GroupView
-                    group=(**nested).clone()
-                    state=state
-                    path=inside.clone()
-                    language=language.clone()
-                />
-            }
-            .into_any(),
-            FormItem::Field(ref field) => view! {
-                <FieldView
-                    field=(**field).clone()
-                    state=state
-                    path=inside.clone()
-                    language=language.clone()
-                />
-            }
-            .into_any(),
+            FormItem::Group(ref nested) => gated(&laid, &nested.key, state, inside, {
+                let nested = (**nested).clone();
+                let inside = inside.clone();
+                let language = language.clone();
+                move || {
+                    view! {
+                        <GroupView
+                            group=nested.clone()
+                            state=state
+                            path=inside.clone()
+                            language=language.clone()
+                        />
+                    }
+                    .into_any()
+                }
+            }),
+            FormItem::Field(ref field) => gated(&laid, &field.key, state, inside, {
+                let field = (**field).clone();
+                let inside = inside.clone();
+                let language = language.clone();
+                move || {
+                    view! {
+                        <FieldView
+                            field=field.clone()
+                            state=state
+                            path=inside.clone()
+                            language=language.clone()
+                        />
+                    }
+                    .into_any()
+                }
+            }),
             // `FormItem` is `#[non_exhaustive]`, so the compiler asks for
             // this arm.
             _ => view! { <Notice tone=Tone::Warn title="This renderer does not know this kind of item." /> }

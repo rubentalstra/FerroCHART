@@ -164,3 +164,93 @@ async fn no_screen_names_the_reference_model_at_the_reader() {
         outcome.expect("the journey ran and the browser session ended cleanly");
     }
 }
+
+/// The form grows as it is answered, because a person laid it out that way.
+///
+/// `e2e/overlays/family-history-summary-item-r2.json` is the one authored
+/// layout this repository serves. It renames the deceased question, moves the
+/// alias to the end, and hides the two death questions behind the answer to
+/// it. No specification governs any of that: it is what the overlay is for,
+/// and until issue #201 the browser read none of it.
+///
+/// The journey is the proof that the three arrive: the authored name is on
+/// screen, the death questions are not, and answering yes brings them in.
+#[tokio::test]
+async fn a_form_the_overlay_lays_out_grows_as_it_is_answered() {
+    let Some(base) = renderer() else {
+        return;
+    };
+    let Some(screen) = Screen::forms()
+        .into_iter()
+        .find(|form| form.stem().is_some_and(|stem| stem == LAID_OUT))
+    else {
+        // The battery drives a template set the script names, and a run that
+        // does not include this one has nothing to prove here.
+        return;
+    };
+    let address = screen.address(&base);
+    let name = screen.name();
+    let outcome = session()
+        .await
+        .run_and_quit(|driver| async move {
+            let page = Page::open(driver, &name, &address).await;
+            screen.prove(&page).await;
+
+            // The authored name, which no archetype rubric produces.
+            page.element(
+                By::XPath(format!("//main//span[normalize-space()='{DECEASED}']")),
+                "the question under the name a person wrote over it",
+            )
+            .await;
+
+            // The two questions the rule governs, before it holds.
+            for hidden in GATED {
+                page.none(
+                    By::XPath(format!("//main//span[normalize-space()='{hidden}']")),
+                    &format!("`{hidden}`, which the layout hides until the answer calls for it"),
+                )
+                .await;
+            }
+
+            // The authored order: the alias sits after the comment, and the
+            // template puts it second.
+            let labels = page.texts(By::Css("main span.block.font-medium")).await;
+            let place = |wanted: &str| labels.iter().position(|read| read == wanted);
+            if let (Some(alias), Some(comment)) = (place("Alias"), place("Comment")) {
+                assert!(
+                    alias > comment,
+                    "the alias is drawn at {alias} and the comment at {comment}, so the authored order did not reach the browser"
+                );
+            }
+
+            page.click(
+                By::XPath(format!(
+                    "//main//fieldset[legend[normalize-space()='{DECEASED}']]\
+                     //input[@type='checkbox']"
+                )),
+                "the answer the rule reads",
+            )
+            .await;
+
+            for shown in GATED {
+                page.element(
+                    By::XPath(format!("//main//span[normalize-space()='{shown}']")),
+                    &format!("`{shown}`, which the answer brings in"),
+                )
+                .await;
+            }
+            page.quiet().await;
+            Ok::<(), WebDriverError>(())
+        })
+        .await;
+    outcome.expect("the journey ran and the browser session ended cleanly");
+}
+
+/// The template the committed overlay was authored over.
+const LAID_OUT: &str = "family-history-summary-item-r2";
+
+/// The label the overlay writes over the deceased question.
+const DECEASED: &str = "Has this family member died?";
+
+/// The questions the overlay hides until that one is answered yes.
+const GATED: [&str; 2] = ["Age at death", "Date of death"];

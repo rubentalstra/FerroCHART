@@ -45,6 +45,7 @@ mod icon;
 mod kit;
 mod label;
 mod nav;
+mod overlay;
 mod placement;
 mod plain;
 mod screen;

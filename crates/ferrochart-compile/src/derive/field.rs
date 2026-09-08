@@ -1261,27 +1261,12 @@ fn meaning_band(
 }
 
 /// Whether the constraint admits exactly one value, so the template has
-/// already decided it and nothing is entered.
+/// already decided WHICH value the field carries.
 ///
-/// openEHR AM Release-2.3.0 `AOM1.4.html` section 6.2.2 is where the rule is
-/// visible in the specification: a `C_BOOLEAN` with one of `true_valid` and
-/// `false_valid` set has fixed the value. No specification governs the same
-/// reading of a one-member list, and FerroCHART applies it: a field with one
-/// admitted value collects no decision.
+/// The rule itself is `FieldKind::only_admitted`, so the derivation and the
+/// renderer read one answer rather than two copies (issue #207).
 pub(crate) fn is_fixed(kind: &FieldKind) -> bool {
-    match *kind {
-        FieldKind::Boolean(ref field) => field.true_allowed != field.false_allowed,
-        FieldKind::Text(ref field) => {
-            field.options_closed && field.options.len() == 1 && field.patterns.is_empty()
-        }
-        FieldKind::Coded(ref field) => match field.value_set {
-            ValueSet::Enumerated(ref set) => set.options.len() == 1,
-            _ => false,
-        },
-        FieldKind::Count(ref field) => field.options.len() == 1 && field.ranges.is_empty(),
-        FieldKind::Ordinal(ref field) => field.options.len() == 1,
-        _ => false,
-    }
+    kind.only_admitted().is_some()
 }
 
 /// One alternative of a choice.
