@@ -303,6 +303,36 @@ async fn form(page: &Page, template_id: &str) {
         "a control a clinician can enter a value into",
     )
     .await;
+    add_one_optional_section(page).await;
+}
+
+/// Opens the first section the template says may be absent.
+///
+/// A group whose template says `0..*` opens with none of it, which is the
+/// template's own statement (issue #202). That leaves the section drawn as a
+/// heading and an "Add one", so a battery that stopped there would never see
+/// the fields inside one, and the book's screenshot would show a form nobody
+/// had opened.
+///
+/// So the journey adds one and proves the fields arrived. The capture runs the
+/// same proof, which is why the picture in the book shows a section that has
+/// been opened.
+async fn add_one_optional_section(page: &Page) {
+    // By its text rather than by position: the "No value" beside a field is a
+    // button too, and it comes first in document order.
+    let add = By::XPath("//main//button[normalize-space()='Add one'][not(@disabled)]");
+    if page.count(add.clone()).await == 0 {
+        return;
+    }
+    let before = page.count(By::Css("main section fieldset")).await;
+    page.click(add, "the control that adds an occurrence").await;
+    page.at_least(
+        By::Css("main section fieldset"),
+        before.saturating_add(1),
+        "the fields of a section the reader opened",
+    )
+    .await;
+    no_refusal(page).await;
 }
 
 /// The design system draws the affordances the kit defines.
