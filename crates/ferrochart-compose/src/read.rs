@@ -16,6 +16,7 @@ use ferrochart_form::definition::FormDefinition;
 use ferrochart_form::field::FormField;
 use ferrochart_form::group::{FormGroup, FormItem};
 use ferrochart_form::key::NodeKey;
+use openehr_rm::v1_2::common::archetyped::archetyped::Archetyped;
 use openehr_rm::v1_2::composition::composition::Composition;
 use openehr_rm::v1_2::composition::content::content_item::ContentItem;
 use openehr_rm::v1_2::composition::content::entry::activity::Activity;
@@ -111,6 +112,43 @@ fn descend(group: &FormGroup, path: &[usize], found: &mut ReadBack) -> Vec<usize
     grown
 }
 
+/// Every template identifier the document states, wherever it states one.
+///
+/// A template rooted at COMPOSITION states its identifier at the document
+/// root; one rooted below it states it on the node it roots at, because that
+/// is where a template is active (openEHR RM Release-1.1.0 `common.html`
+/// section 3.2.3, and issue #163). Reading both places keeps the guard honest
+/// for either shape rather than going quiet for the one it was not written
+/// against.
+fn stated_template(composition: &Composition) -> impl Iterator<Item = &str> {
+    let root = composition
+        .archetype_details
+        .as_ref()
+        .and_then(|details| details.template_id.as_ref())
+        .map(|id| id.value.as_str());
+    let content = composition
+        .content
+        .iter()
+        .flat_map(|items| items.iter())
+        .filter_map(content_archetyped)
+        .filter_map(|details| details.template_id.as_ref())
+        .map(|id| id.value.as_str());
+    root.into_iter().chain(content)
+}
+
+/// The `ARCHETYPED` a content item carries, where it is an archetype root.
+fn content_archetyped(item: &ContentItem) -> Option<&Archetyped> {
+    match *item {
+        ContentItem::Section(ref it) => it.archetype_details.as_ref(),
+        ContentItem::Observation(ref it) => it.archetype_details.as_ref(),
+        ContentItem::Evaluation(ref it) => it.archetype_details.as_ref(),
+        ContentItem::AdminEntry(ref it) => it.archetype_details.as_ref(),
+        ContentItem::Instruction(ref it) => it.archetype_details.as_ref(),
+        ContentItem::Action(ref it) => it.archetype_details.as_ref(),
+        ContentItem::GenericEntry(ref it) => it.archetype_details.as_ref(),
+    }
+}
+
 /// Reads `composition` back into the values `definition` describes.
 ///
 /// # Errors
@@ -121,15 +159,12 @@ pub fn values(
     definition: &FormDefinition,
     composition: &Composition,
 ) -> Result<ReadBack, ReadError> {
-    if let Some(stated) = composition
-        .archetype_details
-        .as_ref()
-        .and_then(|details| details.template_id.as_ref())
-        .filter(|stated| stated.value != definition.template_id.as_str())
+    if let Some(found) =
+        stated_template(composition).find(|stated| *stated != definition.template_id.as_str())
     {
         return Err(ReadError::WrongTemplate {
             expected: definition.template_id.as_str().to_owned(),
-            found: stated.value.clone(),
+            found: found.to_owned(),
         });
     }
 

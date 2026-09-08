@@ -181,13 +181,32 @@ fn every_built_composition_carries_what_the_reference_model_requires() {
         // `Archetyped_valid: is_archetype_root xor archetype_details = Void`,
         // and `Rm_version_valid: not rm_version.is_empty`.
         assert_eq!(json["archetype_details"]["rm_version"], "1.1.0", "{name}");
-        assert!(
-            !json["archetype_details"]["template_id"]["value"]
-                .as_str()
-                .unwrap_or("")
-                .is_empty(),
-            "{name}"
+
+        // `common.html` section 3.2.3 states the template id "if a template
+        // was active at this point in the structure", so it sits at the
+        // document root only when the template roots there. A template rooted
+        // below COMPOSITION states it on the node it roots at, and stating it
+        // at the wrapper made a real CDR refuse the document (issue #163).
+        let at_root = json["archetype_details"]["template_id"]["value"].as_str();
+        let on_content = json["content"][0]["archetype_details"]["template_id"]["value"].as_str();
+        let stated: Vec<&str> = [at_root, on_content].into_iter().flatten().collect();
+        assert_eq!(
+            stated.len(),
+            1,
+            "{name}: the template id is stated once, and it is stated {stated:?}"
         );
+        assert!(!stated[0].is_empty(), "{name}");
+        if form.root.rm_type.as_str() == "COMPOSITION" {
+            assert!(
+                at_root.is_some(),
+                "{name}: the template roots at the document"
+            );
+        } else {
+            assert!(
+                on_content.is_some(),
+                "{name}: the template roots below the document"
+            );
+        }
 
         // `LOCATABLE.uid` is 0..1 and the client cannot know the version
         // identity before the commit, so it is never written.

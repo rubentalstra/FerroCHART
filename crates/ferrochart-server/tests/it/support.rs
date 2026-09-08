@@ -25,8 +25,8 @@ use crate::filler;
 /// It is rooted at COMPOSITION, which is what lets a CDR judge the document
 /// FerroCHART sends against the template FerroCHART derived the form from.
 /// The pack's other 113 templates are rooted at an ENTRY or a SECTION, and
-/// what a CDR does with a COMPOSITION built around one of those is a separate
-/// question from whether this gate works.
+/// `live::a_real_cdr_accepts_a_composition_around_a_template_rooted_below_it`
+/// is what covers those.
 pub(crate) const TEMPLATE: &str = "openehr-suspected-covid-19-assessment-v0.opt";
 
 /// The identifier that template states for itself.
@@ -34,22 +34,34 @@ pub(crate) const TEMPLATE_ID: &str = "openEHR-Suspected Covid-19 assessment.v0";
 
 /// The template's canonical XML.
 pub(crate) fn template_xml() -> String {
-    fs::read_to_string(path()).expect("the committed template reads")
+    xml_at(&path())
+}
+
+/// The canonical XML of the committed template at `path`.
+pub(crate) fn xml_at(path: &Path) -> String {
+    fs::read_to_string(path).expect("the committed template reads")
+}
+
+/// Where the committed templates live.
+pub(crate) fn corpus() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/templates/ckm")
 }
 
 /// Where the template lives.
 fn path() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../corpus/templates/ckm")
-        .join(TEMPLATE)
+    corpus().join(TEMPLATE)
 }
 
 /// The form, the gate and a full set of entries.
 pub(crate) fn case() -> (FormDefinition, TemplateValidator, FormValues) {
-    let xml = template_xml();
-    let template = ferrochart_compile::adl14::from_xml(&xml).expect("the template reads");
+    case_at(&template_xml())
+}
+
+/// The form, the gate and a full set of entries for one template's `xml`.
+pub(crate) fn case_at(xml: &str) -> (FormDefinition, TemplateValidator, FormValues) {
+    let template = ferrochart_compile::adl14::from_xml(xml).expect("the template reads");
     let definition = ferrochart_compile::derive::form(&template).expect("the template derives");
-    let validator = TemplateValidator::from_opt14_xml(&xml).expect("the template flattens");
+    let validator = TemplateValidator::from_opt14_xml(xml).expect("the template flattens");
     let values = filler::fill(&definition);
     (definition, validator, values)
 }

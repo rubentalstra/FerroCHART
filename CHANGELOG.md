@@ -21,6 +21,23 @@ the build order.
 
 ## [Unreleased]
 
+### Fixed
+
+- A COMPOSITION built around a template rooted below COMPOSITION states its
+  template identifier where the template is active, and a real CDR now accepts
+  it (#163). It was written at the wrapper COMPOSITION, a document FerroCHART
+  supplies from configuration and where no template is active, so FerroEHR
+  4.1.1 refused **66 of 66** such templates with `expected RM type conforming
+  to OBSERVATION but found COMPOSITION`. Every one had passed FerroCHART's own
+  gate first, which is the failure this project is least allowed to have.
+  openEHR RM Release-1.1.0 `common.html` section 3.2.3 makes the identifier
+  conditional: it is stated "if a template was active at this point in the
+  structure".
+- The read-back looks for the template identifier wherever it legitimately
+  sits, rather than at the document root alone, so the guard that refuses a
+  composition from another template keeps working for the 113 templates whose
+  identifier moved.
+
 ### Changed
 
 - The tied-sibling fold cites ADL 1.4 section 5.3.4.2 rule VCOC rather than

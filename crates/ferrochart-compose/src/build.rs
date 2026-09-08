@@ -97,9 +97,11 @@ pub fn composition(
     let content = if rooted_at_composition {
         tree::content_of(root, values, root_path, envelope, language)?
     } else {
-        vec![tree::content_item(
-            root, values, root_path, envelope, language,
-        )?]
+        // The template roots at this node rather than at the document, so
+        // this is where a template is active and where its id belongs.
+        let mut item = tree::content_item(root, values, root_path, envelope, language)?;
+        tree::mark_template_root(&mut item, &definition.template_id);
+        vec![item]
     };
 
     let stated_context = if rooted_at_composition {
@@ -135,7 +137,7 @@ pub fn composition(
         archetype_node_id: archetype.clone(),
         uid: None,
         links: None,
-        archetype_details: Some(archetyped(&archetype, definition)),
+        archetype_details: Some(archetyped(&archetype, definition, rooted_at_composition)),
         feeder_audit: None,
         language: crate::envelope::language_code(envelope),
         territory: crate::envelope::territory_code(envelope),
@@ -235,15 +237,16 @@ fn composer(composer: &Composer) -> PartyProxy {
 /// `Is_archetype_root: is_archetype_root`. A node identified by its own
 /// at-code is not a root and carries nothing.
 ///
-/// The template id is absent here. `common.html` section 3.2.3: "Normally, a
-/// template would only be used at the top of a top-level structure", so it is
-/// written once, at the composition root, by [`archetyped`].
+/// The template id is absent here and written afterwards on the single node
+/// the template roots at.
 pub(crate) fn nested_archetyped(group: &FormGroup) -> Option<Archetyped> {
     let archetype = group.archetype_id.as_ref()?;
     Some(Archetyped {
         archetype_id: ArchetypeId {
             value: archetype.as_str().to_owned(),
         },
+        // Absent here, and stamped afterwards on the one node that is the
+        // template's own root, by [`tree::mark_template_root`].
         template_id: None,
         rm_version: RM_VERSION.to_owned(),
     })
@@ -253,15 +256,17 @@ pub(crate) fn nested_archetyped(group: &FormGroup) -> Option<Archetyped> {
 ///
 /// `Archetyped_valid: is_archetype_root xor archetype_details = Void`, and the
 /// root of a template is always an archetype root.
-fn archetyped(archetype: &str, definition: &FormDefinition) -> Archetyped {
+fn archetyped(archetype: &str, definition: &FormDefinition, is_template_root: bool) -> Archetyped {
     Archetyped {
         archetype_id: ArchetypeId {
             value: archetype.to_owned(),
         },
-        // `common.html` section 3.2.3: "Normally, a template would only be
-        // used at the top of a top-level structure", so the template id is
-        // written at the composition root and nowhere below it.
-        template_id: Some(TemplateId {
+        // `common.html` section 3.2.3 makes the template id conditional:
+        // "Globally unique template identifier, if a template was active at
+        // this point in the structure". A template rooted below COMPOSITION
+        // is not active at the document FerroCHART wraps around it, so the id
+        // is written at the node the template roots at instead.
+        template_id: is_template_root.then(|| TemplateId {
             value: definition.template_id.as_str().to_owned(),
         }),
         rm_version: RM_VERSION.to_owned(),
