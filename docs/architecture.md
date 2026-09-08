@@ -1248,6 +1248,30 @@ JSON shape in the renderer, which forks a model this repository already owns.
 The moved file named nothing but `ferrochart-form`, so this move also removed a
 dependency direction rather than adding one.
 
+**A slot addresses one field inside one instance of every repeating group above
+it.** No specification governs this: our own design. A `Slot` is a `NodeKey`, an
+occurrence path, and an occurrence. The key names the field in the definition,
+the occurrence names which repeat of the field itself, and the occurrence path
+carries one index per REPEATING ancestor group, outermost first. Both indices
+are needed because a repeatable node produces several data nodes that share one
+`archetype_node_id` (openEHR BASE Release-1.2.0 `architecture_overview.html`
+section 10.4: "a single archetype node may be replicated in the data").
+
+The path carries one index per repeating ancestor rather than one per ancestor.
+A `NodeKey` is already a step chain from the root, so which ancestors a field
+has is a fact of the definition, and which repeat of each is the only thing the
+definition cannot supply. Counting only the repeating ones also means adding a
+non-repeating group to a template does not shift every path beneath it. A group
+repeats when its occurrences admit more than one, and the builder appends an
+index at every such group whether or not a value names one, because a path that
+sometimes carries an index and sometimes does not cannot be read back. Where no
+value names a repeating group, the builder makes exactly one instance at index
+zero, and the emptiness rules of the Reference Model classes drop it when
+nothing was entered under it. A field with no repeating ancestor has an empty
+path, so a template with no repeating group is addressed exactly as it was
+before the path existed. The read-back inverts this by assigning indices in
+document order from zero, which is the only order the data carries.
+
 **The closure promises are checked, not asserted.**
 `scripts/checks/crate-closure.sh` reads the resolved dependency graph and fails
 when `ferrochart-form` links any other crate of this tree, when

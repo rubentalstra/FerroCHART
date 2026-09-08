@@ -89,14 +89,20 @@ pub fn composition(
     // at an ENTRY or a SECTION instead, and the envelope is built around them.
     let rooted_at_composition = root.rm_type.as_str() == "COMPOSITION";
 
+    // The root of a form is one node, so the walk starts under no repeating
+    // group at all and the path grows only as it descends into one.
+    let root_path: &[usize] = &[];
+
     let content = if rooted_at_composition {
-        tree::content_of(root, values, envelope, language)?
+        tree::content_of(root, values, root_path, envelope, language)?
     } else {
-        vec![tree::content_item(root, values, envelope, language)?]
+        vec![tree::content_item(
+            root, values, root_path, envelope, language,
+        )?]
     };
 
     let stated_context = if rooted_at_composition {
-        tree::context_of(root, values, envelope, language)?
+        tree::context_of(root, values, root_path, envelope, language)?
     } else {
         event_context(envelope)
     };
@@ -362,9 +368,22 @@ pub(crate) fn null_flavour_rubric(code: &str) -> &'static str {
         .map_or("", |&(_, rubric)| rubric)
 }
 
-/// Every value entered against `key`, in occurrence order.
-pub(crate) fn entered_for<'v>(values: &'v FormValues, key: &NodeKey) -> Vec<&'v Entered> {
-    let mut found: Vec<_> = values.iter().filter(|(slot, _)| slot.key == *key).collect();
+/// Every value entered against `key` under one occurrence path, in occurrence
+/// order.
+///
+/// The path is part of the address: the same field inside the second instance
+/// of a repeating group is a different slot from the one inside the first, and
+/// a lookup that ignored the path would put both into whichever instance it
+/// happened to be building.
+pub(crate) fn entered_for<'v>(
+    values: &'v FormValues,
+    key: &NodeKey,
+    path: &[usize],
+) -> Vec<&'v Entered> {
+    let mut found: Vec<_> = values
+        .iter()
+        .filter(|(slot, _)| slot.key == *key && slot.group_path == path)
+        .collect();
     found.sort_by_key(|(slot, _)| slot.occurrence);
     found.into_iter().map(|(_, entered)| entered).collect()
 }

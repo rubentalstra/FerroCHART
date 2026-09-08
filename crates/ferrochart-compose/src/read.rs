@@ -15,6 +15,7 @@
 use ferrochart_form::definition::FormDefinition;
 use ferrochart_form::field::FormField;
 use ferrochart_form::group::{FormGroup, FormItem};
+use ferrochart_form::key::NodeKey;
 use openehr_rm::v1_2::composition::composition::Composition;
 use openehr_rm::v1_2::composition::content::content_item::ContentItem;
 use openehr_rm::v1_2::composition::content::entry::activity::Activity;
@@ -37,6 +38,15 @@ use ferrochart_form::values::{Entered, FormValues};
 /// same, or every sibling reads into the first form group and the rest come
 /// back empty.
 type Seen = std::collections::BTreeMap<String, Tally>;
+
+/// How many instances of one repeating group have arrived under one occurrence
+/// path.
+///
+/// The builder gives every instance of a repeating group an index, and the
+/// slots beneath it carry that index. The read-back has to hand out the same
+/// indices, and the only order the data carries is document order, so the nth
+/// instance of a group under one path is instance n.
+type Repeats = std::collections::BTreeMap<(NodeKey, Vec<usize>), usize>;
 
 /// How many data nodes of one identity arrived, and how many form nodes were
 /// waiting for them.
@@ -75,6 +85,30 @@ pub struct ReadBack {
     pub ambiguous: Vec<String>,
     /// The per-identity counters the walk keeps. Not part of the result.
     seen: Seen,
+    /// The per-group instance counters the walk keeps. Not part of the result.
+    repeats: Repeats,
+}
+
+/// The occurrence path below one matched group.
+///
+/// A group the template lets repeat contributes its instance index, counted in
+/// document order from zero, and one that cannot repeat contributes nothing.
+/// This is the inverse of what the builder appends, so a value comes back into
+/// the slot it was built from.
+fn descend(group: &FormGroup, path: &[usize], found: &mut ReadBack) -> Vec<usize> {
+    if !group.occurrences.is_repeatable() {
+        return path.to_vec();
+    }
+    let seen = found
+        .repeats
+        .entry((group.key.clone(), path.to_vec()))
+        .or_default();
+    let index = *seen;
+    *seen += 1;
+    let mut grown = Vec::with_capacity(path.len() + 1);
+    grown.extend_from_slice(path);
+    grown.push(index);
+    grown
 }
 
 /// Reads `composition` back into the values `definition` describes.
@@ -122,6 +156,8 @@ pub fn values(
     }
     let empty: Vec<ContentItem> = Vec::new();
     let content = composition.content.as_deref().unwrap_or(&empty);
+    // The root is one node, so nothing above it repeats.
+    let root_path: &[usize] = &[];
 
     if root.rm_type.as_str() == "COMPOSITION" {
         // `EVENT_CONTEXT.other_context` is the one place a template can put
@@ -135,12 +171,13 @@ pub fn values(
                 group,
                 "other_context",
                 "/context",
+                root_path,
                 context.other_context.as_ref(),
                 &mut found,
             );
         }
         for (index, item) in content.iter().enumerate() {
-            content_item(root, "content", index, item, &mut found);
+            content_item(root, "content", index, item, root_path, &mut found);
         }
     } else {
         // The envelope was built around a template rooted at an entry, so the
@@ -163,7 +200,7 @@ pub fn values(
                 name,
             );
             if matched.is_some() {
-                read_against(root, &path, item, &mut found);
+                read_against(root, &path, root_path, item, &mut found);
             } else {
                 found.uncovered.push(path);
             }
@@ -187,19 +224,27 @@ fn content_item(
     attribute: &str,
     index: usize,
     item: &ContentItem,
+    path: &[usize],
     found: &mut ReadBack,
 ) {
-    let path = format!("/{attribute}[{index}]");
+    let rm_path = format!("/{attribute}[{index}]");
     let (node_id, name) = content_identity(item);
     let Some(group) = child_matching(parent, attribute, node_id, name, found) else {
-        found.uncovered.push(path);
+        found.uncovered.push(rm_path);
         return;
     };
-    read_against(group, &path, item, found);
+    let inner = descend(group, path, found);
+    read_against(group, &rm_path, &inner, item, found);
 }
 
 /// Reads a content item against the form group that matched it.
-fn read_against(group: &FormGroup, path: &str, item: &ContentItem, found: &mut ReadBack) {
+fn read_against(
+    group: &FormGroup,
+    rm_path: &str,
+    path: &[usize],
+    item: &ContentItem,
+    found: &mut ReadBack,
+) {
     match *item {
         ContentItem::Section(ref section) => {
             let empty: Vec<ContentItem> = Vec::new();
@@ -210,22 +255,36 @@ fn read_against(group: &FormGroup, path: &str, item: &ContentItem, found: &mut R
                 .iter()
                 .enumerate()
             {
-                content_item(group, "items", index, child, found);
+                content_item(group, "items", index, child, path, found);
             }
         }
         ContentItem::Observation(ref entry) => {
-            history(group, "data", path, &entry.data, found);
+            history(group, "data", rm_path, path, &entry.data, found);
             if let Some(ref state) = entry.state {
-                history(group, "state", path, state, found);
+                history(group, "state", rm_path, path, state, found);
             }
-            structure(group, "protocol", path, entry.protocol.as_ref(), found);
+            structure(
+                group,
+                "protocol",
+                rm_path,
+                path,
+                entry.protocol.as_ref(),
+                found,
+            );
         }
         ContentItem::Evaluation(ref entry) => {
-            structure(group, "data", path, Some(&entry.data), found);
-            structure(group, "protocol", path, entry.protocol.as_ref(), found);
+            structure(group, "data", rm_path, path, Some(&entry.data), found);
+            structure(
+                group,
+                "protocol",
+                rm_path,
+                path,
+                entry.protocol.as_ref(),
+                found,
+            );
         }
         ContentItem::AdminEntry(ref entry) => {
-            structure(group, "data", path, Some(&entry.data), found);
+            structure(group, "data", rm_path, path, Some(&entry.data), found);
         }
         ContentItem::Instruction(ref entry) => {
             let empty: Vec<Activity> = Vec::new();
@@ -236,7 +295,7 @@ fn read_against(group: &FormGroup, path: &str, item: &ContentItem, found: &mut R
                 .iter()
                 .enumerate()
             {
-                let inner = format!("{path}/activities[{index}]");
+                let inner = format!("{rm_path}/activities[{index}]");
                 let Some(node) = child_matching(
                     group,
                     "activities",
@@ -247,24 +306,47 @@ fn read_against(group: &FormGroup, path: &str, item: &ContentItem, found: &mut R
                     found.uncovered.push(inner);
                     continue;
                 };
+                let under = descend(node, path, found);
                 structure(
                     node,
                     "description",
                     &inner,
+                    &under,
                     Some(&activity.description),
                     found,
                 );
             }
-            structure(group, "protocol", path, entry.protocol.as_ref(), found);
+            structure(
+                group,
+                "protocol",
+                rm_path,
+                path,
+                entry.protocol.as_ref(),
+                found,
+            );
         }
         ContentItem::Action(ref entry) => {
-            structure(group, "description", path, Some(&entry.description), found);
-            structure(group, "protocol", path, entry.protocol.as_ref(), found);
+            structure(
+                group,
+                "description",
+                rm_path,
+                path,
+                Some(&entry.description),
+                found,
+            );
+            structure(
+                group,
+                "protocol",
+                rm_path,
+                path,
+                entry.protocol.as_ref(),
+                found,
+            );
         }
         // A `GENERIC_ENTRY` holds data no archetype governs (openEHR RM
         // Release-1.1.0 `ehr.html` section 8.3.9), so no form field can
         // cover it and it is reported rather than read.
-        ContentItem::GenericEntry(_) => found.uncovered.push(path.to_owned()),
+        ContentItem::GenericEntry(_) => found.uncovered.push(rm_path.to_owned()),
     }
 }
 
@@ -272,11 +354,12 @@ fn read_against(group: &FormGroup, path: &str, item: &ContentItem, found: &mut R
 fn history(
     parent: &FormGroup,
     attribute: &str,
-    path: &str,
+    rm_path: &str,
+    path: &[usize],
     history: &History<ItemStructure>,
     found: &mut ReadBack,
 ) {
-    let path = format!("{path}/{attribute}");
+    let rm_path = format!("{rm_path}/{attribute}");
     let Some(group) = child_matching(
         parent,
         attribute,
@@ -284,12 +367,12 @@ fn history(
         text_of(&history.name),
         found,
     ) else {
-        found.uncovered.push(path);
+        found.uncovered.push(rm_path);
         return;
     };
     let empty: Vec<Event<ItemStructure>> = Vec::new();
     for (index, event) in history.events.as_ref().unwrap_or(&empty).iter().enumerate() {
-        let inner = format!("{path}/events[{index}]");
+        let inner = format!("{rm_path}/events[{index}]");
         let (node_id, name, data, state) = match *event {
             Event::PointEvent(ref it) => (
                 &it.archetype_node_id,
@@ -308,8 +391,9 @@ fn history(
             found.uncovered.push(inner);
             continue;
         };
-        structure(node, "data", &inner, Some(data), found);
-        structure(node, "state", &inner, state, found);
+        let under = descend(node, path, found);
+        structure(node, "data", &inner, &under, Some(data), found);
+        structure(node, "state", &inner, &under, state, found);
     }
 }
 
@@ -317,14 +401,15 @@ fn history(
 fn structure(
     parent: &FormGroup,
     attribute: &str,
-    path: &str,
+    rm_path: &str,
+    path: &[usize],
     structure: Option<&ItemStructure>,
     found: &mut ReadBack,
 ) {
     let Some(structure) = structure else {
         return;
     };
-    let path = format!("{path}/{attribute}");
+    let rm_path = format!("{rm_path}/{attribute}");
     let (node_id, name, items) = match *structure {
         ItemStructure::ItemTree(ref it) => (
             &it.archetype_node_id,
@@ -339,11 +424,11 @@ fn structure(
                 text_of(&it.name),
                 found,
             ) else {
-                found.uncovered.push(path);
+                found.uncovered.push(rm_path);
                 return;
             };
             for (index, element) in it.items.as_deref().unwrap_or_default().iter().enumerate() {
-                element_under(group, &path, index, element, found);
+                element_under(group, &rm_path, path, index, element, found);
             }
             return;
         }
@@ -355,10 +440,10 @@ fn structure(
                 text_of(&it.name),
                 found,
             ) else {
-                found.uncovered.push(path);
+                found.uncovered.push(rm_path);
                 return;
             };
-            element_under(group, &path, 0, &it.item, found);
+            element_under(group, &rm_path, path, 0, &it.item, found);
             return;
         }
         ItemStructure::ItemTable(ref it) => {
@@ -369,33 +454,40 @@ fn structure(
                 text_of(&it.name),
                 found,
             ) else {
-                found.uncovered.push(path);
+                found.uncovered.push(rm_path);
                 return;
             };
             for (index, row) in it.rows.as_deref().unwrap_or_default().iter().enumerate() {
-                let inner = format!("{path}/rows[{index}]");
+                let inner = format!("{rm_path}/rows[{index}]");
                 for (column, element) in row.items.iter().enumerate() {
-                    item_under(group, &inner, column, element, found);
+                    item_under(group, &inner, path, column, element, found);
                 }
             }
             return;
         }
     };
     let Some(group) = child_matching(parent, attribute, node_id, name, found) else {
-        found.uncovered.push(path);
+        found.uncovered.push(rm_path);
         return;
     };
     for (index, item) in items.iter().enumerate() {
-        item_under(group, &path, index, item, found);
+        item_under(group, &rm_path, path, index, item, found);
     }
 }
 
 /// Reads one `ITEM`, which is a `CLUSTER` or an `ELEMENT`.
-fn item_under(parent: &FormGroup, path: &str, index: usize, item: &Item, found: &mut ReadBack) {
+fn item_under(
+    parent: &FormGroup,
+    rm_path: &str,
+    path: &[usize],
+    index: usize,
+    item: &Item,
+    found: &mut ReadBack,
+) {
     match *item {
-        Item::Element(ref element) => element_under(parent, path, index, element, found),
+        Item::Element(ref element) => element_under(parent, rm_path, path, index, element, found),
         Item::Cluster(ref cluster) => {
-            let inner = format!("{path}/items[{index}]");
+            let inner = format!("{rm_path}/items[{index}]");
             let Some(group) = child_matching(
                 parent,
                 "items",
@@ -406,8 +498,9 @@ fn item_under(parent: &FormGroup, path: &str, index: usize, item: &Item, found: 
                 found.uncovered.push(inner);
                 return;
             };
+            let under = descend(group, path, found);
             for (child, item) in cluster.items.iter().enumerate() {
-                item_under(group, &inner, child, item, found);
+                item_under(group, &inner, &under, child, item, found);
             }
         }
     }
@@ -416,12 +509,13 @@ fn item_under(parent: &FormGroup, path: &str, index: usize, item: &Item, found: 
 /// Reads one `ELEMENT` into the field the form has for it.
 fn element_under(
     parent: &FormGroup,
-    path: &str,
+    rm_path: &str,
+    path: &[usize],
     index: usize,
     element: &Element,
     found: &mut ReadBack,
 ) {
-    let inner = format!("{path}/items[{index}]");
+    let inner = format!("{rm_path}/items[{index}]");
     let Some(field) = field_matching(
         parent,
         &element.archetype_node_id,
@@ -456,8 +550,10 @@ fn element_under(
             return;
         }
     };
-    let occurrence = found.values.occurrences_of(&field.key);
-    found.values.set_at(field.key.clone(), occurrence, entered);
+    let occurrence = found.values.occurrences_in(&field.key, path);
+    found
+        .values
+        .set_in(field.key.clone(), path.to_vec(), occurrence, entered);
 }
 
 /// The node id and name a content item carries.

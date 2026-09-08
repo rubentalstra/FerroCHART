@@ -50,6 +50,7 @@ use ferrochart_form::values::{Entered, FormValues};
 pub(crate) fn content_of(
     root: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Vec<ContentItem>, BuildError> {
@@ -61,9 +62,43 @@ pub(crate) fn content_of(
         if attribute_of(group) != "content" {
             continue;
         }
-        built.push(content_item(group, values, envelope, language)?);
+        for inner in instances_of(group, values, path) {
+            built.push(content_item(group, values, &inner, envelope, language)?);
+        }
     }
     Ok(built)
+}
+
+/// The occurrence path each instance of one child group is built under.
+///
+/// A group the template lets repeat contributes one index to the path of
+/// everything below it, so the same field in the second instance is a
+/// different slot from the one in the first. A group that cannot repeat
+/// contributes nothing and passes its parent's path down unchanged. No
+/// specification governs this addressing: our own design
+/// (`docs/architecture.md` section 11).
+fn instances_of(group: &FormGroup, values: &FormValues, path: &[usize]) -> Vec<Vec<usize>> {
+    if !group.occurrences.is_repeatable() {
+        return vec![path.to_vec()];
+    }
+    let named = values.group_occurrences(&group.key, path);
+    if named.is_empty() {
+        // A group the template requires is still built when no value names
+        // it, and the emptiness rules below drop whatever comes out empty.
+        return vec![extended(path, 0)];
+    }
+    named
+        .into_iter()
+        .map(|index| extended(path, index))
+        .collect()
+}
+
+/// `path` with one more occurrence index on the end.
+fn extended(path: &[usize], index: usize) -> Vec<usize> {
+    let mut grown = Vec::with_capacity(path.len() + 1);
+    grown.extend_from_slice(path);
+    grown.push(index);
+    grown
 }
 
 /// The `EVENT_CONTEXT` a composition group states, where it states one.
@@ -79,6 +114,7 @@ pub(crate) fn content_of(
 pub(crate) fn context_of(
     root: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Option<EventContext>, BuildError> {
@@ -92,7 +128,7 @@ pub(crate) fn context_of(
     let Some(setting) = envelope.setting.as_ref() else {
         return Ok(None);
     };
-    let other = items_under(group, "other_context", values, envelope, language)?;
+    let other = items_under(group, "other_context", values, path, envelope, language)?;
     Ok(Some(EventContext {
         // Both 1..1, and no committed template constrains either, so the
         // session supplies them.
@@ -114,27 +150,28 @@ pub(crate) fn context_of(
 pub(crate) fn content_item(
     group: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<ContentItem, BuildError> {
     match group.rm_type.as_str() {
         "SECTION" => Ok(ContentItem::Section(section(
-            group, values, envelope, language,
+            group, values, path, envelope, language,
         )?)),
         "OBSERVATION" => Ok(ContentItem::Observation(observation(
-            group, values, envelope, language,
+            group, values, path, envelope, language,
         )?)),
         "EVALUATION" => Ok(ContentItem::Evaluation(evaluation(
-            group, values, envelope, language,
+            group, values, path, envelope, language,
         )?)),
         "ADMIN_ENTRY" => Ok(ContentItem::AdminEntry(admin_entry(
-            group, values, envelope, language,
+            group, values, path, envelope, language,
         )?)),
         "INSTRUCTION" => Ok(ContentItem::Instruction(instruction(
-            group, values, envelope, language,
+            group, values, path, envelope, language,
         )?)),
         "ACTION" => Ok(ContentItem::Action(action(
-            group, values, envelope, language,
+            group, values, path, envelope, language,
         )?)),
         other => Err(BuildError::Invariant {
             key: group.key.clone(),
@@ -154,6 +191,7 @@ pub(crate) fn content_item(
 fn section(
     group: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Section, BuildError> {
@@ -165,7 +203,9 @@ fn section(
         if attribute_of(child) != "items" {
             continue;
         }
-        items.push(content_item(child, values, envelope, language)?);
+        for inner in instances_of(child, values, path) {
+            items.push(content_item(child, values, &inner, envelope, language)?);
+        }
     }
     Ok(Section {
         name: name_of(group, language),
@@ -186,16 +226,18 @@ fn section(
 fn observation(
     group: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Observation, BuildError> {
-    let data = history_under(group, "data", values, envelope, language)?.ok_or_else(|| {
-        BuildError::Invariant {
-            key: group.key.clone(),
-            invariant: "OBSERVATION.data",
-            detail: "an observation must carry a HISTORY, and the form has none".to_owned(),
-        }
-    })?;
+    let data =
+        history_under(group, "data", values, path, envelope, language)?.ok_or_else(|| {
+            BuildError::Invariant {
+                key: group.key.clone(),
+                invariant: "OBSERVATION.data",
+                detail: "an observation must carry a HISTORY, and the form has none".to_owned(),
+            }
+        })?;
     Ok(Observation {
         name: name_of(group, language),
         archetype_node_id: node_id_of(&group.key, group),
@@ -209,11 +251,11 @@ fn observation(
         workflow_id: None,
         subject: subject(&envelope.subject),
         provider: None,
-        protocol: items_under(group, "protocol", values, envelope, language)?
+        protocol: items_under(group, "protocol", values, path, envelope, language)?
             .map(|tree| ItemStructure::ItemTree(Box::new(tree))),
         guideline_id: None,
         data,
-        state: history_under(group, "state", values, envelope, language)?,
+        state: history_under(group, "state", values, path, envelope, language)?,
     })
 }
 
@@ -221,10 +263,11 @@ fn observation(
 fn evaluation(
     group: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Evaluation, BuildError> {
-    let data = items_under(group, "data", values, envelope, language)?.ok_or_else(|| {
+    let data = items_under(group, "data", values, path, envelope, language)?.ok_or_else(|| {
         BuildError::Invariant {
             key: group.key.clone(),
             invariant: "EVALUATION.data",
@@ -244,7 +287,7 @@ fn evaluation(
         workflow_id: None,
         subject: subject(&envelope.subject),
         provider: None,
-        protocol: items_under(group, "protocol", values, envelope, language)?
+        protocol: items_under(group, "protocol", values, path, envelope, language)?
             .map(|tree| ItemStructure::ItemTree(Box::new(tree))),
         guideline_id: None,
         data: ItemStructure::ItemTree(Box::new(data)),
@@ -255,10 +298,11 @@ fn evaluation(
 fn admin_entry(
     group: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<AdminEntry, BuildError> {
-    let data = items_under(group, "data", values, envelope, language)?.ok_or_else(|| {
+    let data = items_under(group, "data", values, path, envelope, language)?.ok_or_else(|| {
         BuildError::Invariant {
             key: group.key.clone(),
             invariant: "ADMIN_ENTRY.data",
@@ -292,6 +336,7 @@ fn admin_entry(
 fn instruction(
     group: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Instruction, BuildError> {
@@ -303,8 +348,10 @@ fn instruction(
         if attribute_of(child) != "activities" {
             continue;
         }
-        if let Some(built) = activity(child, values, envelope, language)? {
-            activities.push(built);
+        for inner in instances_of(child, values, path) {
+            if let Some(built) = activity(child, values, &inner, envelope, language)? {
+                activities.push(built);
+            }
         }
     }
     Ok(Instruction {
@@ -320,7 +367,7 @@ fn instruction(
         workflow_id: None,
         subject: subject(&envelope.subject),
         provider: None,
-        protocol: items_under(group, "protocol", values, envelope, language)?
+        protocol: items_under(group, "protocol", values, path, envelope, language)?
             .map(|tree| ItemStructure::ItemTree(Box::new(tree))),
         guideline_id: None,
         narrative: name_of(group, language),
@@ -339,10 +386,12 @@ fn instruction(
 fn activity(
     group: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Option<Activity>, BuildError> {
-    let Some(description) = items_under(group, "description", values, envelope, language)? else {
+    let Some(description) = items_under(group, "description", values, path, envelope, language)?
+    else {
         return Ok(None);
     };
     Ok(Some(Activity {
@@ -370,16 +419,15 @@ fn activity(
 fn action(
     group: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Action, BuildError> {
-    let description =
-        items_under(group, "description", values, envelope, language)?.ok_or_else(|| {
-            BuildError::Invariant {
-                key: group.key.clone(),
-                invariant: "ACTION.description",
-                detail: "an action must carry an ITEM_STRUCTURE, and the form has none".to_owned(),
-            }
+    let description = items_under(group, "description", values, path, envelope, language)?
+        .ok_or_else(|| BuildError::Invariant {
+            key: group.key.clone(),
+            invariant: "ACTION.description",
+            detail: "an action must carry an ITEM_STRUCTURE, and the form has none".to_owned(),
         })?;
     Ok(Action {
         name: name_of(group, language),
@@ -394,12 +442,12 @@ fn action(
         workflow_id: None,
         subject: subject(&envelope.subject),
         provider: None,
-        protocol: items_under(group, "protocol", values, envelope, language)?
+        protocol: items_under(group, "protocol", values, path, envelope, language)?
             .map(|tree| ItemStructure::ItemTree(Box::new(tree))),
         guideline_id: None,
         // 1..1, from the session.
         time: datum::date_time(&envelope.now),
-        ism_transition: ism_transition(group, values, language),
+        ism_transition: ism_transition(group, values, path, language),
         instruction_details: None,
         description: ItemStructure::ItemTree(Box::new(description)),
     })
@@ -411,7 +459,12 @@ fn action(
 /// group. Where the form states no transition, the action is recorded as
 /// having happened, which is `532|active|` in that group. No specification
 /// says what a form with no transition means: our own design.
-fn ism_transition(group: &FormGroup, values: &FormValues, language: &LanguageTag) -> IsmTransition {
+fn ism_transition(
+    group: &FormGroup,
+    values: &FormValues,
+    path: &[usize],
+    language: &LanguageTag,
+) -> IsmTransition {
     let entered = group.items.iter().find_map(|item| match *item {
         FormItem::Group(ref child) if attribute_of(child) == "ism_transition" => Some(child),
         _ => None,
@@ -425,7 +478,7 @@ fn ism_transition(group: &FormGroup, values: &FormValues, language: &LanguageTag
                         .terminal()
                         .is_some_and(|step| step.rm_attribute.as_str() == "current_state") =>
                 {
-                    entered_for(values, &field.key)
+                    entered_for(values, &field.key, path)
                         .first()
                         .and_then(|entry| match **entry {
                             Entered::Value(ferrochart_form::values::Datum::Coded {
@@ -458,6 +511,7 @@ fn history_under(
     group: &FormGroup,
     attribute: &str,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Option<History<ItemStructure>>, BuildError> {
@@ -472,7 +526,9 @@ fn history_under(
         if attribute_of(child) != "events" {
             continue;
         }
-        events.push(event(child, values, envelope, language)?);
+        for inner in instances_of(child, values, path) {
+            events.push(event(child, values, &inner, envelope, language)?);
+        }
     }
     if events.is_empty() {
         return Ok(None);
@@ -498,10 +554,11 @@ fn history_under(
 fn event(
     group: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Event<ItemStructure>, BuildError> {
-    let data = items_under(group, "data", values, envelope, language)?.ok_or_else(|| {
+    let data = items_under(group, "data", values, path, envelope, language)?.ok_or_else(|| {
         BuildError::Invariant {
             key: group.key.clone(),
             invariant: "EVENT.data",
@@ -528,7 +585,7 @@ fn event(
         feeder_audit: None,
         // 1..1, from the session.
         time: datum::date_time(&envelope.now),
-        state: items_under(group, "state", values, envelope, language)?
+        state: items_under(group, "state", values, path, envelope, language)?
             .map(|tree| ItemStructure::ItemTree(Box::new(tree))),
         data: ItemStructure::ItemTree(Box::new(data)),
     }))
@@ -543,13 +600,14 @@ fn items_under(
     group: &FormGroup,
     attribute: &str,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Option<ItemTree>, BuildError> {
     let Some(node) = child_group_any(group, attribute) else {
         return Ok(None);
     };
-    let items = items_of(node, values, envelope, language)?;
+    let items = items_of(node, values, path, envelope, language)?;
     if items.is_empty() {
         return Ok(None);
     }
@@ -568,6 +626,7 @@ fn items_under(
 fn items_of(
     group: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Vec<Item>, BuildError> {
@@ -575,20 +634,26 @@ fn items_of(
     for item in &group.items {
         match *item {
             FormItem::Field(ref field) => {
-                for element in elements_of(field, values, language)? {
+                for element in elements_of(field, values, path, language)? {
                     items.push(Item::Element(element));
                 }
             }
             FormItem::Group(ref child) => match child.rm_type.as_str() {
                 "CLUSTER" => {
-                    if let Some(cluster) = cluster(child, values, envelope, language)? {
-                        items.push(Item::Cluster(cluster));
+                    for inner in instances_of(child, values, path) {
+                        if let Some(cluster) = cluster(child, values, &inner, envelope, language)? {
+                            items.push(Item::Cluster(cluster));
+                        }
                     }
                 }
                 // A nested structure below a structure is folded into its
                 // parent's items: `ITEM_TREE.items` takes ITEMs, not another
                 // ITEM_STRUCTURE (section 4.3.5).
-                _ => items.extend(items_of(child, values, envelope, language)?),
+                _ => {
+                    for inner in instances_of(child, values, path) {
+                        items.extend(items_of(child, values, &inner, envelope, language)?);
+                    }
+                }
             },
             // `FormItem` is non-exhaustive, so a kind added later reaches
             // here. Dropping it would lose content silently, which is the one
@@ -614,10 +679,11 @@ fn items_of(
 fn cluster(
     group: &FormGroup,
     values: &FormValues,
+    path: &[usize],
     envelope: &Envelope,
     language: &LanguageTag,
 ) -> Result<Option<Cluster>, BuildError> {
-    let items = items_of(group, values, envelope, language)?;
+    let items = items_of(group, values, path, envelope, language)?;
     let Ok(items) = NonEmptyVec::try_from(items) else {
         return Ok(None);
     };
@@ -639,10 +705,11 @@ fn cluster(
 fn elements_of(
     field: &ferrochart_form::field::FormField,
     values: &FormValues,
+    path: &[usize],
     language: &LanguageTag,
 ) -> Result<Vec<Element>, BuildError> {
     let mut built = Vec::new();
-    for entered in entered_for(values, &field.key) {
+    for entered in entered_for(values, &field.key, path) {
         check_null_flavour(entered)?;
         let (value, null_flavour, null_reason) = match *entered {
             Entered::Value(ref datum) => (

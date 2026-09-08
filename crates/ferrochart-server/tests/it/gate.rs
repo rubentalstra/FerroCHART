@@ -52,8 +52,16 @@ async fn a_composition_the_template_refuses_never_reaches_the_wire() {
             .clone(),
         ref other => panic!("the field is {other:?}"),
     };
-    values.set(
+    // The occurrence path the filler reached the field by, so the value lands
+    // in a node the builder writes rather than beside one.
+    let group_path = values
+        .iter()
+        .find(|(slot, _)| slot.key == field.key)
+        .map_or_else(Vec::new, |(slot, _)| slot.group_path.clone());
+    values.set_in(
         field.key.clone(),
+        group_path,
+        0,
         Entered::Value(Datum::Quantity {
             magnitude: 1_000_000.0,
             units,

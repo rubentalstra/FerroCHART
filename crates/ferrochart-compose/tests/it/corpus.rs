@@ -17,6 +17,7 @@ use ferrochart_compose::build;
 use ferrochart_compose::envelope::{CATEGORY_EVENT, Composer, Envelope, Setting, Subject, UTF8};
 use ferrochart_compose::error::BuildError;
 use ferrochart_form::definition::FormDefinition;
+use ferrochart_form::group::{FormGroup, FormItem};
 
 use crate::filler;
 
@@ -106,6 +107,49 @@ fn every_template_that_describes_a_document_builds_one() {
 }
 
 #[test]
+fn the_pack_still_derives_the_repeats_the_addressing_exists_for() {
+    // A floor, not a target. The occurrence path costs nothing on a template
+    // with no repeating group, so a derivation that stopped seeing repeats
+    // would leave every test above green while the case this addressing
+    // exists for went untested. Deriving more repeats is not a failure.
+    let mut with_repeat = 0_usize;
+    let mut under_repeat = 0_usize;
+    for (_, form) in forms() {
+        if form
+            .root
+            .walk_groups()
+            .any(|group| group.occurrences.is_repeatable())
+        {
+            with_repeat = with_repeat.saturating_add(1);
+        }
+        count_repeats(&form.root, false, &mut under_repeat);
+    }
+    assert!(
+        with_repeat >= 67,
+        "only {with_repeat} templates of the pack carry a repeatable group, \
+         which is fewer than the derivation used to find"
+    );
+    assert!(
+        under_repeat >= 1868,
+        "only {under_repeat} fields of the pack sit under a repeat, which is \
+         fewer than the derivation used to find"
+    );
+}
+
+/// Counts the fields of a subtree that sit under at least one repeating group.
+fn count_repeats(group: &FormGroup, under: bool, fields: &mut usize) {
+    for item in &group.items {
+        match *item {
+            FormItem::Field(_) if under => *fields = fields.saturating_add(1),
+            FormItem::Group(ref child) => {
+                count_repeats(child, under || child.occurrences.is_repeatable(), fields);
+            }
+            _ => {}
+        }
+    }
+}
+
+#[test]
 fn every_built_composition_carries_what_the_reference_model_requires() {
     // The attributes the Reference Model declares 1..1 and a form never
     // shows. A CDR refusing a COMPOSITION FerroCHART built is always our bug,
@@ -178,10 +222,18 @@ fn a_null_flavour_outside_the_openehr_group_is_refused() {
     }) else {
         return;
     };
-    let field = form.fields().next().expect("the form has a field");
+    // The slot the filler already entered, so the null flavour lands where the
+    // builder walks: a field under a repeating group is addressed by that
+    // group's occurrence as well as by its key.
     let mut values = filler::fill(&form);
-    values.set(
-        field.key.clone(),
+    let (key, group_path, occurrence) = {
+        let (slot, _) = values.iter().next().expect("the filler entered a value");
+        (slot.key.clone(), slot.group_path.clone(), slot.occurrence)
+    };
+    values.set_in(
+        key,
+        group_path,
+        occurrence,
         Entered::Null {
             code: LocalCode::new("999"),
             reason: None,
