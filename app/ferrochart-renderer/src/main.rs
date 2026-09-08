@@ -33,6 +33,7 @@ mod kit;
 mod label;
 mod nav;
 mod placement;
+mod plain;
 mod screen;
 mod shell;
 mod state;
