@@ -12,7 +12,9 @@
 
 use ferrochart_form::group::{FormGroup, FormItem};
 use ferrochart_form::ids::LanguageTag;
+use ferrochart_form::ids::TemplateId;
 use openehr_base::containers::NonEmptyVec;
+use openehr_base::v1_3::base_types::identification::template_id::TemplateId as RmTemplateId;
 use openehr_rm::v1_2::common::generic::party_proxy::PartyProxy;
 use openehr_rm::v1_2::common::generic::party_self::PartySelf;
 use openehr_rm::v1_2::composition::content::content_item::ContentItem;
@@ -181,6 +183,39 @@ pub(crate) fn content_item(
                  describes a fragment rather than a document"
             ),
         }),
+    }
+}
+
+/// Writes the template identifier onto the node the template roots at.
+///
+/// openEHR RM Release-1.1.0 `common.html` section 3.2.3 makes
+/// `ARCHETYPED.template_id` the "\[g\]lobally unique template identifier, if a
+/// template was active at this point in the structure". A template rooted
+/// below COMPOSITION is not active at the document FerroCHART wraps around
+/// it, because that document's archetype comes from configuration rather than
+/// from the template, so the identifier belongs on the node the template
+/// actually roots at. The same section's next sentence, that a template is
+/// normally used "at the top of a top-level structure", describes the common
+/// case and does not lift the condition in the first.
+///
+/// A CDR reads the identifier to decide which template to judge the document
+/// against, so writing it at the wrapper made a conformant CDR compare an
+/// OBSERVATION-rooted template against a COMPOSITION and refuse the document
+/// (issue #163).
+pub(crate) fn mark_template_root(item: &mut ContentItem, template: &TemplateId) {
+    let details = match *item {
+        ContentItem::Section(ref mut it) => it.archetype_details.as_mut(),
+        ContentItem::Observation(ref mut it) => it.archetype_details.as_mut(),
+        ContentItem::Evaluation(ref mut it) => it.archetype_details.as_mut(),
+        ContentItem::AdminEntry(ref mut it) => it.archetype_details.as_mut(),
+        ContentItem::Instruction(ref mut it) => it.archetype_details.as_mut(),
+        ContentItem::Action(ref mut it) => it.archetype_details.as_mut(),
+        ContentItem::GenericEntry(ref mut it) => it.archetype_details.as_mut(),
+    };
+    if let Some(details) = details {
+        details.template_id = Some(RmTemplateId {
+            value: template.as_str().to_owned(),
+        });
     }
 }
 
