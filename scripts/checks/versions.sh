@@ -30,7 +30,11 @@
 #   8. docs toolchain      the mdBook, mdbook-toc and mdbook-mermaid defaults of
 #                          .github/actions/docs-toolchain/action.yml against
 #                          docs/VERSIONS.md.
-#   9. licence             LICENSE is the Business Source License 1.1 and no
+#   9. renderer toolchain the Trunk and Tailwind pins of
+#                          app/ferrochart-renderer/Trunk.toml and the trunk and
+#                          leptosfmt versions the ci.yml renderer job installs,
+#                          against docs/VERSIONS.md.
+#  10. licence             LICENSE is the Business Source License 1.1 and no
 #                          first-party file claims MIT or Apache-2.0 as its own.
 #
 # Usage:
@@ -334,6 +338,62 @@ if [ -f "$release_image" ]; then
   fi
 else
   note "no $release_image yet, skipped"
+fi
+
+echo "== renderer toolchain (app/ferrochart-renderer/Trunk.toml, ci.yml <-> docs/VERSIONS.md)"
+# The renderer's bundle is what a reader downloads, so the two tools that
+# produce it are pins like any other. Trunk's own requirement is a floor
+# (>=x.y.z) and CI installs an exact version; both have to name the pinned one.
+trunk_toml=app/ferrochart-renderer/Trunk.toml
+if [ -f "$trunk_toml" ]; then
+  want_trunk="$(pin_of "Trunk" docs/VERSIONS.md)"
+  found_trunk="$(sed -nE 's|^trunk-version[[:space:]]*=[[:space:]]*">=([^"]+)".*|\1|p' "$trunk_toml" | head -n1)"
+  want_tw="$(pin_of "Tailwind CSS standalone CLI" docs/VERSIONS.md)"
+  found_tw="$(sed -nE 's|^tailwindcss[[:space:]]*=[[:space:]]*"([^"]+)".*|\1|p' "$trunk_toml" | head -n1)"
+  if [ -z "$want_trunk" ]; then
+    bad "docs/VERSIONS.md has no 'Trunk' row"
+  elif [ -z "$found_trunk" ]; then
+    bad "$trunk_toml states no trunk-version floor"
+  elif [ "$found_trunk" != "$want_trunk" ]; then
+    bad "Trunk: $trunk_toml requires >=$found_trunk, docs/VERSIONS.md pins $want_trunk"
+  else
+    note "OK: Trunk $found_trunk"
+  fi
+  if [ -z "$want_tw" ]; then
+    bad "docs/VERSIONS.md has no 'Tailwind CSS standalone CLI' row"
+  elif [ -z "$found_tw" ]; then
+    bad "$trunk_toml pins no tailwindcss version"
+  elif [ "$found_tw" != "$want_tw" ]; then
+    bad "Tailwind: $trunk_toml pins $found_tw, docs/VERSIONS.md pins $want_tw"
+  else
+    note "OK: Tailwind $found_tw"
+  fi
+else
+  note "no $trunk_toml yet, skipped"
+fi
+
+ci=.github/workflows/ci.yml
+if [ -f "$ci" ] && [ -f "$trunk_toml" ]; then
+  want_trunk="$(pin_of "Trunk" docs/VERSIONS.md)"
+  found="$(sed -nE 's|.*tool:[[:space:]]*trunk@([^,[:space:]]+).*|\1|p' "$ci" | head -n1)"
+  if [ -z "$found" ]; then
+    bad "$ci installs trunk without pinning a version"
+  elif [ "$found" != "$want_trunk" ]; then
+    bad "trunk: $ci installs $found, docs/VERSIONS.md pins $want_trunk"
+  else
+    note "OK: the renderer job installs trunk $found"
+  fi
+  want_lf="$(pin_of "leptosfmt" docs/VERSIONS.md)"
+  found_lf="$(sed -nE 's|.*cargo install leptosfmt --locked --version[[:space:]]+([^[:space:]]+).*|\1|p' "$ci" | head -n1)"
+  if [ -z "$want_lf" ]; then
+    bad "docs/VERSIONS.md has no 'leptosfmt' row"
+  elif [ -z "$found_lf" ]; then
+    bad "$ci installs leptosfmt without pinning a version"
+  elif [ "$found_lf" != "$want_lf" ]; then
+    bad "leptosfmt: $ci installs $found_lf, docs/VERSIONS.md pins $want_lf"
+  else
+    note "OK: the renderer job installs leptosfmt $found_lf"
+  fi
 fi
 
 echo "== docs toolchain (.github/actions/docs-toolchain <-> docs/VERSIONS.md)"

@@ -369,6 +369,67 @@ jobs:
       - uses: ./.github/actions/setup-rust
       - run: bash scripts/checks/serde-json-features.sh
 
+  # The renderer. It ships to a browser, so it is checked on the target it
+  # ships to: wasm32-unknown-unknown is the only place a dependency that
+  # cannot compile for a browser shows up. The bundle is built, measured
+  # against its budget, and the design system's own gates run beside it.
+  renderer:
+    name: renderer
+    needs: detect
+    if: needs.detect.outputs.cargo == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The bundle budget reads its baseline out of the merge base, so the
+          # history has to be there.
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-rust
+        with:
+          components: clippy,rustfmt
+          cache-key: renderer
+      - name: Add the WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
+      - uses: taiki-e/install-action@0758d235715de2f3551eacc980d9ae8fce9342c3 # v2.87.3
+        with:
+          tool: trunk@0.21.14, cargo-nextest
+      # install-action has no leptosfmt recipe and would fall back to
+      # cargo-binstall guessing an asset name, so this one is a cargo install
+      # at the version docs/VERSIONS.md pins.
+      - name: Install leptosfmt
+        run: cargo install leptosfmt --locked --version 0.1.33
+      - name: Formatting, including the view macros
+        run: |
+          set -euo pipefail
+          cargo fmt -p ferrochart-renderer --check
+          leptosfmt --check app/ferrochart-renderer/src
+      - name: Clippy on the target the crate ships to
+        run: >-
+          cargo clippy -p ferrochart-renderer --locked
+          --target wasm32-unknown-unknown --all-targets --all-features
+          -- -D warnings
+      - name: Tests, including the token contrast gate
+        run: cargo nextest run -p ferrochart-renderer --locked --no-tests=pass
+      - name: Every screen styles against the semantic tokens
+        run: bash scripts/checks/palette-utilities.sh
+      - name: Build the release bundle
+        working-directory: app/ferrochart-renderer
+        run: trunk build --release --locked
+      - name: The bundle is inside its ceiling and its per-change budget
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${BASE:-}" ]]; then
+            bash scripts/checks/bundle-size.sh --base "$BASE"
+          else
+            bash scripts/checks/bundle-size.sh --verify-recorded
+          fi
+
   msrv:
     name: msrv (cargo-hack)
     needs: detect
@@ -436,6 +497,7 @@ jobs:
       - cargo-deny
       - crate-closure
       - serde-json-features
+      - renderer
       - msrv
       - dependency-review
     if: always()

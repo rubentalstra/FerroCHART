@@ -116,6 +116,22 @@ it, so every row below is live.
 The deliverable is a server binary, so the MSRV tracks the pinned stable
 toolchain.
 
+## Renderer toolchain
+
+The renderer is a Leptos client-side binary built by Trunk
+(`docs/architecture.md` section 10). Trunk downloads the Tailwind standalone
+binary itself, so there is no Node and no npm anywhere in this build.
+
+| Item | Pin | Repeated in |
+|---|---|---|
+| Trunk | 0.21.14 | `app/ferrochart-renderer/Trunk.toml` `trunk-version`, the `renderer` job of `ci.yml` |
+| Tailwind CSS standalone CLI | 4.3.3 | `app/ferrochart-renderer/Trunk.toml` `[tools]` `tailwindcss` |
+| leptosfmt | 0.1.33 | the `renderer` job of `ci.yml` |
+
+`leptosfmt` is a `cargo install --locked --version` rather than a
+`taiki-e/install-action` entry: the action has no recipe for it and falls back
+to cargo-binstall guessing an asset name.
+
 ## Documentation toolchain
 
 The book under `website/book` is rendered by the pinned mdBook toolchain that

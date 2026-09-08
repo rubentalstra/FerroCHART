@@ -74,6 +74,23 @@ insta = { version = "1.48.0", features = ["json"] }
 # socket rather than against a hand-rolled stub of our own client.
 wiremock = "0.6.5"
 
+# The renderer (docs/architecture.md section 10, issue #101). Leptos in its
+# client-side mode, built by Trunk; the `csr` feature is set once here so no
+# member can pick a different rendering mode. gloo-net drops its default
+# features, which removes the websocket and eventsource trees the renderer
+# never opens. `leptos_icons` takes ONE Lucide family crate: the `icondata`
+# umbrella pulls every pack into the bundle.
+leptos = { version = "0.8.20", features = ["csr"] }
+leptos_meta = "0.8.6"
+leptos_router = "0.8.15"
+leptos_icons = "0.7.1"
+icondata_lu = "0.1.0"
+icondata_core = "0.1.0"
+gloo-net = { version = "0.7.0", default-features = false, features = ["http", "json"] }
+web-sys = "0.3.105"
+wasm-bindgen = "0.2.128"
+console_error_panic_hook = "0.1.7"
+
 ferrochart-form = { path = "crates/ferrochart-form" }
 ferrochart-compile = { path = "crates/ferrochart-compile" }
 ferrochart-webtemplate = { path = "crates/ferrochart-webtemplate" }
