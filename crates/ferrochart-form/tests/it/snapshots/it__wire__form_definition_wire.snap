@@ -15,7 +15,7 @@ expression: "serde_json::to_string_pretty(&definition()).unwrap()"
         {
           "rm_attribute": "",
           "node_id": "at0000",
-          "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+          "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1",
           "rm_type": "OBSERVATION",
           "pinned_name": "Wire probe",
           "sibling_ordinal": 0
@@ -24,7 +24,7 @@ expression: "serde_json::to_string_pretty(&definition()).unwrap()"
       "is_positional": false
     },
     "rm_type": "OBSERVATION",
-    "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+    "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1",
     "label": {
       "en": "Wire probe"
     },
@@ -46,7 +46,7 @@ expression: "serde_json::to_string_pretty(&definition()).unwrap()"
             {
               "rm_attribute": "",
               "node_id": "at0000",
-              "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+              "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1",
               "rm_type": "OBSERVATION",
               "pinned_name": "Wire probe",
               "sibling_ordinal": 0
@@ -85,7 +85,7 @@ expression: "serde_json::to_string_pretty(&definition()).unwrap()"
                 {
                   "rm_attribute": "",
                   "node_id": "at0000",
-                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1",
                   "rm_type": "OBSERVATION",
                   "pinned_name": "Wire probe",
                   "sibling_ordinal": 0
@@ -206,7 +206,7 @@ expression: "serde_json::to_string_pretty(&definition()).unwrap()"
                 {
                   "rm_attribute": "",
                   "node_id": "at0000",
-                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1",
                   "rm_type": "OBSERVATION",
                   "pinned_name": "Wire probe",
                   "sibling_ordinal": 0
@@ -294,7 +294,7 @@ expression: "serde_json::to_string_pretty(&definition()).unwrap()"
                 {
                   "rm_attribute": "",
                   "node_id": "at0000",
-                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+                  "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1",
                   "rm_type": "OBSERVATION",
                   "pinned_name": "Wire probe",
                   "sibling_ordinal": 0
@@ -356,7 +356,7 @@ expression: "serde_json::to_string_pretty(&definition()).unwrap()"
             {
               "rm_attribute": "",
               "node_id": "at0000",
-              "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0",
+              "archetype_id": "openEHR-EHR-OBSERVATION.ferro_wire.v1",
               "rm_type": "OBSERVATION",
               "pinned_name": "Wire probe",
               "sibling_ordinal": 0

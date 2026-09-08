@@ -41,7 +41,7 @@ use ferrochart_form::range::Range;
 use ferrochart_form::text::Localized;
 use ferrochart_form::value::{Code, Prefill};
 
-const ARCHETYPE: &str = "openEHR-EHR-OBSERVATION.ferro_wire.v1.0.0";
+const ARCHETYPE: &str = "openEHR-EHR-OBSERVATION.ferro_wire.v1";
 
 fn english() -> LanguageTag {
     LanguageTag::new("en")
