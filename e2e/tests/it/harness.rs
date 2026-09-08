@@ -85,6 +85,29 @@ return [
   region ? region.scrollHeight - region.clientHeight : 0,
 ];";
 
+/// Collects the words on a screen that name the openEHR model.
+///
+/// No specification governs this: our own design. A person building a form is
+/// not required to know the openEHR Reference Model, so a class name in the
+/// text they read is a defect. Two surfaces are deliberate and exempt: a path
+/// inside a monospaced element, which is what stays available for whoever
+/// wants it, and the bracketed code an unlabelled field carries after what it
+/// collects, which is what tells two siblings apart. #178 bans a BARE class
+/// name or code, and those two are not bare.
+const JARGON: &str = "const pattern = /\\b(DV_[A-Z][A-Z_]*|CODE_PHRASE|ITEM_[A-Z]+|ADMIN_ENTRY|POINT_EVENT|INTERVAL_EVENT|CLUSTER|ELEMENT|OBSERVATION|EVALUATION|INSTRUCTION|SECTION|HISTORY|at[0-9]{4,})\\b/;
+const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+const found = [];
+let node;
+while ((node = walker.nextNode())) {
+  const parent = node.parentElement;
+  if (!parent || parent.closest('code, pre, .font-mono')) { continue; }
+  const text = node.textContent.trim();
+  if (!text) { continue; }
+  const said = text.replace(/\\s*\\([^()]*\\)\\s*$/, '');
+  const hit = said.match(pattern);
+  if (hit) { found.push(hit[0] + ' in \"' + text.slice(0, 120) + '\"'); }
+}
+return found.slice(0, 20);";
 /// The renderer under test, or `None` when nothing names one.
 pub(crate) fn renderer() -> Option<String> {
     match std::env::var(BASE_URL_ENV) {
@@ -177,6 +200,21 @@ impl Page {
     /// The screen this page is on.
     pub(crate) fn screen(&self) -> &str {
         &self.screen
+    }
+
+    /// Every openEHR class name and node code in the text this screen shows.
+    ///
+    /// Empty is the passing answer. What sits inside a monospaced element is
+    /// the deliberate machine-readable surface and is not counted.
+    pub(crate) async fn jargon(&self) -> Vec<String> {
+        let read = self
+            .driver
+            .execute(JARGON, Vec::new())
+            .await
+            .unwrap_or_else(|error| panic!("{}: reading the text drawn: {error}", self.screen));
+        read.convert().unwrap_or_else(|error| {
+            panic!("{}: the jargon walk answered oddly: {error}", self.screen)
+        })
     }
 
     /// Puts `screen` on every failure this page reports from here on.

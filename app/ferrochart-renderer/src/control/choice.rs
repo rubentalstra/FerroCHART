@@ -67,7 +67,7 @@ pub(crate) fn ChoiceControl(
             // audience is somebody building a form, not somebody reading the
             // specification.
             let shown = if label.is_empty() {
-                crate::plain::describe(alternative.rm_type.as_str())
+                crate::plain::sentence_case(crate::plain::of_kind(&alternative.kind))
             } else {
                 label
             };

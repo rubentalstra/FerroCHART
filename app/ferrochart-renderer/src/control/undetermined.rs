@@ -75,15 +75,13 @@ pub(crate) fn UndeterminedView(
     /// The language a label is shown in.
     language: LanguageTag,
 ) -> impl IntoView {
-    let label = crate::label::of(&content.label, &language, &content.key);
-    let title = if label.is_empty() {
-        format!(
-            "The template leaves {} here undetermined.",
-            crate::plain::describe(content.rm_type.as_str())
-        )
-    } else {
-        format!("{label} is left undetermined.")
-    };
+    let label = crate::label::of(
+        &content.label,
+        &language,
+        &content.key,
+        &crate::plain::describe(content.rm_type.as_str()),
+    );
+    let title = format!("{label} is left undetermined.");
     let path = content.key.to_string();
 
     view! {

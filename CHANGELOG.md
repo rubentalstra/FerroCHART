@@ -33,6 +33,20 @@ the build order.
   about the specification, and the audience came to build a form. The
   refusal message built in `ferrochart-compose` and the unlabelled-field
   fallback are the rest of #178 and are not fixed here.
+- **A field the template never labelled says what it collects, and an
+  unlabelled archetype root says its concept** (#178). The fallback was the
+  node identifier, so a form drew a heading reading `at0004` or
+  `openEHR-EHR-OBSERVATION.blood_pressure.v2`. An archetype identifier names a
+  concept (openEHR BASE Release-1.2.0 `base_types.html` section 5.4.10), so a
+  root is now called "Blood pressure"; below one the name leads with the value
+  and keeps the code, as "A whole number (at0004)", because the code is what
+  tells two siblings apart and dropping it would give a group several fields
+  with one name. A browser journey over every screen the battery drives fails
+  the build on an openEHR class name or a node code in the text a person
+  reads, and skips the monospaced surface where the path deliberately stays.
+- A refusal on a link field read "The Reference Model class requires another
+  URI scheme." and now reads "The link has to start with the scheme this field
+  takes." (#178).
 
 ## [0.1.0] - 2026-09-08
 

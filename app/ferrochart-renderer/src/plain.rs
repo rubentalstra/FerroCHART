@@ -14,6 +14,8 @@
 //! `docs/architecture.md` section 10.1 keeps the path available beside the
 //! label rather than in place of it.
 
+use ferrochart_form::field::FieldKind;
+
 /// What a value of `rm_type` is, in plain words.
 ///
 /// An unknown class returns `None`, because a made-up name for a class this
@@ -68,9 +70,65 @@ pub(crate) fn describe(rm_type: &str) -> String {
         .map_or_else(|| rm_type.to_owned(), ToOwned::to_owned)
 }
 
+/// What a field of `kind` collects, in plain words.
+pub(crate) const fn of_kind(kind: &FieldKind) -> &'static str {
+    match *kind {
+        FieldKind::Boolean(_) => "yes or no",
+        FieldKind::Text(_) => "text",
+        FieldKind::Uri(_) => "a link",
+        FieldKind::Coded(_) => "a coded selection",
+        FieldKind::Ordinal(_) => "a scored choice",
+        FieldKind::Count(_) => "a whole number",
+        FieldKind::Quantity(_) => "a measurement",
+        FieldKind::Proportion(_) => "a ratio",
+        FieldKind::Date(_) => "a date",
+        FieldKind::Time(_) => "a time",
+        FieldKind::DateTime(_) => "a date and time",
+        FieldKind::Duration(_) => "a length of time",
+        FieldKind::Identifier(_) => "an identifier",
+        FieldKind::Multimedia(_) => "an attachment",
+        FieldKind::Parsable(_) => "structured text",
+        FieldKind::Interval(_) => "a range",
+        FieldKind::State(_) => "a state",
+        FieldKind::Choice(_) => "one of several kinds of value",
+        // `FieldKind` is non-exhaustive, so a kind added after this build
+        // says the one true thing every kind has in common.
+        _ => "a value",
+    }
+}
+
+/// The concept an archetype identifier names, said as a person says it.
+///
+/// openEHR BASE Release-1.2.0 `base_types.html` section 5.4.10 gives
+/// `ARCHETYPE_ID` the lexical form
+/// `rm_originator '-' rm_name '-' rm_entity '.' concept_name { '-'
+/// specialisation }* '.v' number`, and defines `domain_concept` as the "Name
+/// of the concept represented by this archetype, including specialisation",
+/// so the segment between the first `.` and the version IS the concept name
+/// and needs no guessing.
+pub(crate) fn concept(archetype_id: &str) -> Option<String> {
+    let after_entity = archetype_id.split_once('.')?.1;
+    let domain_concept = after_entity.rsplit_once(".v")?.0;
+    let said = domain_concept
+        .split('-')
+        .filter(|part| !part.is_empty())
+        .map(|part| part.replace('_', " "))
+        .collect::<Vec<_>>()
+        .join(", ");
+    (!said.is_empty()).then(|| sentence_case(&said))
+}
+
+/// `text` with its first character in upper case.
+pub(crate) fn sentence_case(text: &str) -> String {
+    let mut characters = text.chars();
+    characters.next().map_or_else(String::new, |first| {
+        first.to_uppercase().collect::<String>() + characters.as_str()
+    })
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{describe, structure, value_kind};
+    use super::{concept, describe, sentence_case, structure, value_kind};
 
     #[test]
     fn every_field_kind_the_derivation_produces_has_a_plain_name() {
@@ -125,5 +183,35 @@ mod tests {
         for rm_type in ["ITEM_TREE", "ITEM_LIST", "CLUSTER", "SECTION"] {
             assert_eq!(structure(rm_type), Some("a group of fields"), "{rm_type}");
         }
+    }
+    #[test]
+    fn an_archetype_identifier_gives_up_the_concept_it_names() {
+        // openEHR BASE Release-1.2.0 `base_types.html` section 5.4.10.
+        assert_eq!(
+            concept("openEHR-EHR-OBSERVATION.blood_pressure.v2").as_deref(),
+            Some("Blood pressure")
+        );
+        assert_eq!(
+            concept("openEHR-EHR-SECTION.physical_examination-prenatal.v1").as_deref(),
+            Some("Physical examination, prenatal")
+        );
+        assert_eq!(
+            concept("adl-test-instrument.guitar.v1.0.4").as_deref(),
+            Some("Guitar")
+        );
+    }
+
+    #[test]
+    fn text_that_is_not_an_archetype_identifier_names_no_concept() {
+        assert_eq!(concept("at0004"), None);
+        assert_eq!(concept("openEHR-EHR-OBSERVATION"), None);
+        assert_eq!(concept(""), None);
+    }
+
+    #[test]
+    fn a_sentence_starts_in_upper_case_and_survives_being_empty() {
+        assert_eq!(sentence_case("a whole number"), "A whole number");
+        assert_eq!(sentence_case(""), "");
+        assert_eq!(sentence_case("Ärztlich"), "Ärztlich");
     }
 }

@@ -129,3 +129,38 @@ async fn the_ground_a_reader_chose_survives_the_next_screen() {
         .await;
     outcome.expect("the journey ran and the browser session ended cleanly");
 }
+
+/// No screen speaks openEHR at the person reading it.
+///
+/// The audience came to build a form and is not required to know the openEHR
+/// Reference Model, so a class name or a node code in the text a person reads
+/// is a defect (#178). The path and the code stay reachable in the
+/// monospaced surface beside the label, and the walk skips that on purpose.
+#[tokio::test]
+async fn no_screen_names_the_reference_model_at_the_reader() {
+    let Some(base) = renderer() else {
+        return;
+    };
+    let mut screens = vec![Screen::Templates, Screen::Design];
+    screens.extend(Screen::forms());
+    for screen in &screens {
+        let address = screen.address(&base);
+        let name = screen.name();
+        let screen = screen.clone();
+        let outcome = session()
+            .await
+            .run_and_quit(|driver| async move {
+                let page = Page::open(driver, &name, &address).await;
+                screen.prove(&page).await;
+                let found = page.jargon().await;
+                assert!(
+                    found.is_empty(),
+                    "{name} speaks openEHR at the reader: {}",
+                    found.join("; ")
+                );
+                Ok::<(), WebDriverError>(())
+            })
+            .await;
+        outcome.expect("the journey ran and the browser session ended cleanly");
+    }
+}
