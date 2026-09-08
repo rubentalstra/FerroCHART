@@ -721,7 +721,7 @@ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 
 [[package]]
 name = "ferrochart"
-version = "0.0.5"
+version = "0.1.0"
 dependencies = [
  "ferrochart-server",
  "tokio",
@@ -731,7 +731,7 @@ dependencies = [
 
 [[package]]
 name = "ferrochart-cdr"
-version = "0.0.5"
+version = "0.1.0"
 dependencies = [
  "ferrochart-form",
  "http",
@@ -748,7 +748,7 @@ dependencies = [
 
 [[package]]
 name = "ferrochart-compile"
-version = "0.0.5"
+version = "0.1.0"
 dependencies = [
  "ferrochart-form",
  "insta",
@@ -763,7 +763,7 @@ dependencies = [
 
 [[package]]
 name = "ferrochart-compose"
-version = "0.0.5"
+version = "0.1.0"
 dependencies = [
  "ferrochart-compile",
  "ferrochart-form",
@@ -776,7 +776,7 @@ dependencies = [
 
 [[package]]
 name = "ferrochart-form"
-version = "0.0.5"
+version = "0.1.0"
 dependencies = [
  "insta",
  "serde",
@@ -786,7 +786,7 @@ dependencies = [
 
 [[package]]
 name = "ferrochart-overlay"
-version = "0.0.5"
+version = "0.1.0"
 dependencies = [
  "ferrochart-compile",
  "ferrochart-form",
@@ -798,7 +798,7 @@ dependencies = [
 
 [[package]]
 name = "ferrochart-renderer"
-version = "0.0.5"
+version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "ferrochart-form",
@@ -818,7 +818,7 @@ dependencies = [
 
 [[package]]
 name = "ferrochart-server"
-version = "0.0.5"
+version = "0.1.0"
 dependencies = [
  "axum",
  "ferrochart-cdr",
@@ -840,7 +840,7 @@ dependencies = [
 
 [[package]]
 name = "ferrochart-term"
-version = "0.0.5"
+version = "0.1.0"
 dependencies = [
  "ferrochart-compile",
  "ferrochart-form",
@@ -860,7 +860,7 @@ dependencies = [
 
 [[package]]
 name = "ferrochart-validate"
-version = "0.0.5"
+version = "0.1.0"
 dependencies = [
  "ferrochart-compile",
  "ferrochart-compose",
@@ -874,7 +874,7 @@ dependencies = [
 
 [[package]]
 name = "ferrochart-webtemplate"
-version = "0.0.5"
+version = "0.1.0"
 dependencies = [
  "ferrochart-compile",
  "ferrochart-form",

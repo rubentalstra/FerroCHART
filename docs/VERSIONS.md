@@ -205,7 +205,7 @@ version is 0.0.1.
 
 | Item | Pin | Repeated in |
 |---|---|---|
-| Product version | 0.0.5 | root `Cargo.toml` `[workspace.package]` `version`, `CITATION.cff` `version` |
+| Product version | 0.1.0 | root `Cargo.toml` `[workspace.package]` `version`, `CITATION.cff` `version` |
 
 `CITATION.cff` tracks this row exactly, and the guard compares the two whenever
 `CITATION.cff` exists. Once the root `Cargo.toml` lands, the guard also compares

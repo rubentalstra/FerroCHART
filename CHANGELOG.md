@@ -21,6 +21,8 @@ the build order.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-08
+
 ### Added
 
 - "Write your own renderer" in the book, which is the page that makes the
@@ -856,7 +858,8 @@ the build order.
   The configuration is FerroBRIDGE's, adapted from the FHIR and OMOP oracles to
   the openEHR Reference Model, the Archetype Object Model, ITS-REST, and AQL.
 
-[Unreleased]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.5...HEAD
+[Unreleased]: https://github.com/rubentalstra/FerroCHART/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.5...v0.1.0
 [0.0.5]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/rubentalstra/FerroCHART/compare/v0.0.2...v0.0.3
