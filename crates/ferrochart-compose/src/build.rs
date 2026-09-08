@@ -385,11 +385,14 @@ pub(crate) fn entered_for<'v>(
     values: &'v FormValues,
     key: &NodeKey,
     path: &[usize],
-) -> Vec<&'v Entered> {
+) -> Vec<(usize, &'v Entered)> {
     let mut found: Vec<_> = values
         .iter()
         .filter(|(slot, _)| slot.key == *key && slot.group_path == path)
         .collect();
     found.sort_by_key(|(slot, _)| slot.occurrence);
-    found.into_iter().map(|(_, entered)| entered).collect()
+    found
+        .into_iter()
+        .map(|(slot, entered)| (slot.occurrence, entered))
+        .collect()
 }

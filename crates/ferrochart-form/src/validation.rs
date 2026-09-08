@@ -75,6 +75,27 @@ pub struct ValidationFailure {
     pub kind: FailureKind,
     /// Where the judgement came from.
     pub source: FailureSource,
+    /// Which occurrence of the field the failure belongs to, where the
+    /// judgement knows.
+    ///
+    /// The composition builder walks a form with the occurrence of every
+    /// repeating group above each field, so it knows which repeat refused a
+    /// value. A template refusal carries a Reference Model path whose
+    /// positional predicates do not translate to this address, so it states
+    /// none rather than inventing one, and a renderer draws such a failure on
+    /// every repeat of its field. An address that is sometimes right and
+    /// sometimes invented would be worse than none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub at: Option<FailureAt>,
+}
+
+/// Which occurrence of a field a [`ValidationFailure`] belongs to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FailureAt {
+    /// Which occurrence of each repeating ancestor group, outermost first.
+    pub group_path: Vec<usize>,
+    /// Which repeat of the field itself.
+    pub occurrence: usize,
 }
 
 /// The category of a [`ValidationFailure`].
@@ -159,6 +180,7 @@ mod tests {
             message: "a synthetic failure".to_owned(),
             kind: FailureKind::Required,
             source: FailureSource::Template,
+            at: None,
         }
     }
 

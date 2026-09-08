@@ -59,6 +59,25 @@ pub enum BuildError {
         found: usize,
     },
 
+    /// A failure inside one occurrence of a field.
+    ///
+    /// The builder walks a form with the occurrence of every repeating group
+    /// above it, so at the point a value is refused it knows which repeat the
+    /// value came from. The inner error says what is wrong; this one says
+    /// where, so a renderer draws the refusal on the control the clinician
+    /// typed into rather than on every repeat of that field (issue #152).
+    #[error("{source}")]
+    At {
+        /// Which occurrence of each repeating ancestor group, outermost
+        /// first.
+        group_path: Vec<usize>,
+        /// Which repeat of the field itself.
+        occurrence: usize,
+        /// What is wrong.
+        #[source]
+        source: Box<BuildError>,
+    },
+
     /// A null flavour outside the openEHR `null flavours` group.
     ///
     /// `Inv_null_flavour_valid` tests membership of that group, which has
