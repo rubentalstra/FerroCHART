@@ -119,6 +119,14 @@ pub enum FailureSource {
     /// FerroCHART validated the composition against its operational template
     /// before making any request.
     Template,
+    /// The composition builder refused the entered values, so no document was
+    /// ever judged.
+    ///
+    /// The builder works from the form definition alone, so a failure from
+    /// this source is a value the form itself does not admit: a datum of the
+    /// wrong shape, a required field left empty, or more occurrences than the
+    /// field permits.
+    Builder,
     /// A CDR refused the composition and FerroCHART read its error body.
     ///
     /// The reading is best-effort and vendor-specific: openEHR ITS-REST

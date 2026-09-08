@@ -23,6 +23,31 @@ the build order.
 
 ### Added
 
+- The HTTP form surface (#146): `GET /api/templates`,
+  `GET /api/templates/{template_id}/definition`,
+  `POST /api/templates/{template_id}/validation`,
+  `POST /api/ehrs/{ehr_id}/templates/{template_id}/compositions` and
+  `GET /api/ehrs/{ehr_id}/compositions/{uid}/values?template={template_id}`.
+  No specification governs a route of it: openEHR ITS-REST defines the CDR's
+  API and says nothing about a form server in front of one, and
+  `docs/architecture.md` section 11.1 is the design of record. An unknown
+  template is 404, a body the route cannot read is 400, values the template
+  refuses are 422 with the report, and a CDR that refused or never answered is
+  502 carrying the CDR's own status and body.
+- `FERROCHART_TEMPLATES`, a directory of `.opt` operational templates the
+  server compiles at startup into a form definition and a flattened validator
+  per template. A template that will not compile fails the startup naming the
+  file, and so do two files stating one template identifier. The variable is
+  optional, and unset means the server holds no template.
+- The entered-value types (`FormValues`, `Slot`, `Entered`, `Datum`) serialise.
+  A `FormValues` is a JSON array of entries, each spelling out the node key,
+  the occurrence path and the occurrence beside the value, so the occurrence
+  path survives the wire. `ferrochart-form` carries a round trip and a golden
+  wire snapshot for it, the pair the form definition already had.
+- `ValidationFailure` can name the composition builder as its source, so a
+  required field left empty reaches a renderer keyed onto that field rather
+  than as prose it cannot place.
+
 - The design system (#101): the renderer is a Leptos client-side binary built
   by Trunk, and it lands with its frame before its content. Every screen
   styles against semantic tokens, dark mode is the same token names redefined

@@ -58,8 +58,10 @@ percent-encoding = "2.3.2"
 # operation request and response contracts as well as the resources.
 fhir-types = "0.1.85"
 
-# The server surface (docs/architecture.md section 11, issue #41).
-axum = { version = "0.8.9", default-features = false, features = ["http1", "json", "tokio"] }
+# The server surface (docs/architecture.md section 11, issue #41). `query`
+# carries the one query parameter the read-back route takes; the rest of
+# axum's default set stays off.
+axum = { version = "0.8.9", default-features = false, features = ["http1", "json", "query", "tokio"] }
 tokio = { version = "1.53.1", default-features = false, features = ["rt-multi-thread", "macros", "net", "signal"] }
 thiserror = "2.0.20"
 tracing = "0.1.44"

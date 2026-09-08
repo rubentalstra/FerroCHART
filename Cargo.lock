@@ -769,6 +769,7 @@ dependencies = [
  "ferrochart-form",
  "openehr-base",
  "openehr-rm",
+ "serde",
  "serde_json",
  "thiserror 2.0.20",
 ]
@@ -821,11 +822,14 @@ dependencies = [
  "ferrochart-validate",
  "openehr-base",
  "openehr-rm",
+ "reqwest",
+ "serde",
  "serde_json",
  "thiserror 2.0.20",
  "tokio",
  "tracing",
  "url",
+ "wiremock",
 ]
 
 [[package]]
