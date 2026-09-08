@@ -47,9 +47,7 @@ expression: json
         },
         "help": {},
         "default": null,
-        "visibility": {
-          "visibility": "always"
-        },
+        "visibility": "always",
         "widget": null,
         "geometry": {
           "span": null,
