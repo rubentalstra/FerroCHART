@@ -49,6 +49,9 @@ const SEGMENT: &AsciiSet = &CONTROLS
 /// One screen of the renderer.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum Screen {
+    /// The form screen with no template named, which is where the rail lands
+    /// a reader who clicks Forms.
+    Forms,
     /// The template library.
     Templates,
     /// The form one operational template compiles to.
@@ -59,8 +62,17 @@ pub(crate) enum Screen {
         /// the form.
         template_id: String,
     },
+    /// The overlay authoring surface, which has its frame and not its
+    /// content.
+    Layout,
+    /// The commit log, which has its frame and not its content.
+    Commits,
+    /// The settings screen, which has its frame and not its content.
+    Settings,
     /// The living style guide.
     Design,
+    /// An address no route owns.
+    NotFound,
 }
 
 impl Screen {
@@ -77,9 +89,15 @@ impl Screen {
             "{FORMS_ENV} names no form, so there is nothing to render. \
              scripts/ui-e2e.sh sets it from the templates it staged."
         );
-        let mut every = vec![Self::Templates];
+        let mut every = vec![Self::Forms, Self::Templates];
         every.extend(forms);
-        every.push(Self::Design);
+        every.extend([
+            Self::Layout,
+            Self::Commits,
+            Self::Settings,
+            Self::Design,
+            Self::NotFound,
+        ]);
         every
     }
 
@@ -100,17 +118,23 @@ impl Screen {
     /// What the screen is called, which names every failure on it.
     pub(crate) fn name(&self) -> String {
         match *self {
+            Self::Forms => "the form screen with no template named".to_owned(),
             Self::Templates => "the template library".to_owned(),
             Self::Form {
                 ref template_id, ..
             } => format!("the form for `{template_id}`"),
+            Self::Layout => "the overlay authoring surface".to_owned(),
+            Self::Commits => "the commit log".to_owned(),
+            Self::Settings => "the settings screen".to_owned(),
             Self::Design => "the design system".to_owned(),
+            Self::NotFound => "an address no route owns".to_owned(),
         }
     }
 
     /// The screen's address under `base`.
     pub(crate) fn address(&self, base: &str) -> String {
         match *self {
+            Self::Forms => format!("{base}{BASE}/forms"),
             Self::Templates => format!("{base}{BASE}/templates"),
             Self::Form {
                 ref template_id, ..
@@ -118,16 +142,28 @@ impl Screen {
                 let segment = utf8_percent_encode(template_id, SEGMENT);
                 format!("{base}{BASE}/forms/{segment}")
             }
+            Self::Layout => format!("{base}{BASE}/layout"),
+            Self::Commits => format!("{base}{BASE}/commits"),
+            Self::Settings => format!("{base}{BASE}/settings"),
             Self::Design => format!("{base}{BASE}/design"),
+            // A segment no route owns, and one no template identifier can
+            // produce, so the fallback is reached deliberately rather than by
+            // colliding with a form.
+            Self::NotFound => format!("{base}{BASE}/no-screen-owns-this"),
         }
     }
 
     /// The file one capture of this screen is written to, in `theme`.
     pub(crate) fn image(&self, theme: Theme) -> String {
         let stem = match *self {
+            Self::Forms => "forms".to_owned(),
             Self::Templates => "templates".to_owned(),
             Self::Form { ref stem, .. } => format!("form-{stem}"),
+            Self::Layout => "layout".to_owned(),
+            Self::Commits => "commits".to_owned(),
+            Self::Settings => "settings".to_owned(),
             Self::Design => "design".to_owned(),
+            Self::NotFound => "not-found".to_owned(),
         };
         format!("{stem}{}.png", theme.suffix())
     }
@@ -139,14 +175,72 @@ impl Screen {
     /// taken then is a picture of an empty page.
     pub(crate) async fn prove(&self, page: &Page) {
         match *self {
+            Self::Forms => forms_without_a_template(page).await,
             Self::Templates => templates(page).await,
             Self::Form {
                 ref template_id, ..
             } => form(page, template_id).await,
+            Self::Layout => pending(page, "Layout").await,
+            Self::Commits => pending(page, "Commits").await,
+            Self::Settings => pending(page, "Settings").await,
             Self::Design => design(page).await,
+            Self::NotFound => not_found(page).await,
         }
         page.quiet().await;
     }
+}
+
+/// The form screen with no template named sends the reader to the library.
+///
+/// This is where the rail lands anyone who clicks Forms, so a dead end here
+/// is a dead end at the front door. The proof is the way out.
+async fn forms_without_a_template(page: &Page) {
+    page.element(
+        By::Css("main a[href='/ui/templates']"),
+        "the way from an unnamed form to the library",
+    )
+    .await;
+    no_refusal(page).await;
+}
+
+/// A screen with its frame and not yet its content says which one it is.
+///
+/// The proof is the heading and a line of prose under it. A frame that drew
+/// its heading and nothing else would photograph as a screen that lost its
+/// content, which is the failure this catches.
+async fn pending(page: &Page, title: &str) {
+    let heading = page
+        .element(By::Css("main h1"), "the heading of the screen")
+        .await;
+    let headed = heading.text().await.unwrap_or_default();
+    assert_eq!(
+        headed.trim(),
+        title,
+        "{}: the screen is headed `{headed}`",
+        page.screen()
+    );
+    let note = page
+        .element(By::Css("main p"), "what the screen will do")
+        .await;
+    let said = note.text().await.unwrap_or_default();
+    assert!(
+        !said.trim().is_empty(),
+        "{}: the frame says nothing about what it is for",
+        page.screen()
+    );
+    no_refusal(page).await;
+}
+
+/// An address no route owns says so and offers a way back.
+///
+/// A blank page and a 404 are the same pixel count, so the proof is the way
+/// out rather than the absence of content.
+async fn not_found(page: &Page) {
+    page.element(
+        By::Css("main a[href='/ui/templates']"),
+        "the way back from an address no route owns",
+    )
+    .await;
 }
 
 /// The template library lists exactly the templates the server was given.

@@ -31,14 +31,14 @@ readonly SHOTS=website/book/src/operate/img/renderer
 readonly PAGES=website/book/src
 
 # The smallest a real screenshot is, in bytes. A 1440-pixel-wide capture of a
-# screen with nothing on it compresses into a few kilobytes; every screen the
-# battery drives carries text, controls and rules and lands far above this.
+# screen with nothing on it compresses into a few kilobytes; a screen with the
+# rail, the topbar, text and controls lands far above this.
 readonly MIN_BYTES=20000
 
 # The names the capture pass writes: one per screen, optionally on the dark
 # ground. A form's name carries the stem of the template file it was compiled
 # from, which is a committed CKM export.
-readonly NAME_SHAPE='^(templates|design|form-[a-z0-9]+(-[a-z0-9]+)*)(-dark)?\.png$'
+readonly NAME_SHAPE='^(forms|templates|layout|commits|settings|design|not-found|form-[a-z0-9]+(-[a-z0-9]+)*)(-dark)?\.png$'
 
 fail=0
 note() { printf '  %s\n' "$*"; }
