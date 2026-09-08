@@ -44,7 +44,7 @@
     "license": "https://spdx.org/licenses/BUSL-1.1.html",
     "applicationCategory": "HealthApplication",
     "runtimePlatform": "Linux",
-    "version": "0.0.3"
+    "version": "0.1.0"
   }
   </script>
 </head>
@@ -74,16 +74,15 @@
     <section class="hero">
       <div class="wrap">
         <img class="hero-logo" src="./assets/brand/ferrochart-icon.svg" alt="FerroCHART" width="88" height="88">
-        <p class="status-pill" role="note">v0.0.5 published. The round trip runs, against a mock.</p>
+        <p class="status-pill" role="note">v0.1.0 published. The round trip runs against a real CDR, in CI.</p>
         <h1>openEHR operational templates, compiled into forms, in pure Rust.</h1>
         <p class="sub">
           FerroCHART walks an operational template and derives a field from the
           Reference Model type and the constraint at each node. The layout,
           labels, and visibility rules a person authors on top live in a
           separate overlay, so a template revision replays that work and
-          reports what happened to it. A browser renders the form and posts
-          what a clinician entered, and the page below says exactly where the
-          line still is.
+          reports what happened to it. A browser renders the form, and the page
+          below says exactly where the line still is.
         </p>
         <div class="cta">
           <a class="btn btn-primary" href="./docs/">Read the documentation</a>
@@ -133,7 +132,7 @@
           </div>
         </div>
         <p class="figures-note">
-          Measured at v0.0.5. The
+          Measured over the 123 templates this repository vendors. The
           <a href="./docs/evaluate/build-order.html">build order</a> says what
           each release adds, and the tracker is the live version.
         </p>
@@ -260,9 +259,9 @@
               and is never a compile-time dependency of a CDR, so it works
               against the CDR your hospital already runs. A form builder tied
               to one CDR is no use to the people who asked for this. The
-              ITS-REST client, the composition builder, and the FHIR
-              terminology client are decided and scheduled for v0.0.5; they are
-              not written yet.
+              ITS-REST client, the composition builder and the FHIR terminology
+              client are written, and the round trip runs against a real CDR on
+              every pull request.
             </p>
             <ul>
               <li><a href="./docs/evaluate/build-order.html">What each release adds</a></li>
@@ -319,8 +318,9 @@
           <h2>What works, and what does not</h2>
           <p>
             The whole path runs, from an operational template to a COMPOSITION
-            and back. It has never met a CDR that enforces openEHR's rules for
-            itself, and this list is how you tell the two apart.
+            and back, against a CDR that enforces openEHR's rules for itself.
+            What is missing is the half no specification governs, and this list
+            is how you tell the two apart.
           </p>
         </div>
         <div class="grid status-grid">
@@ -330,16 +330,18 @@
               <li>Both ADL generations read into one internal constraint model.</li>
               <li>The derivation table and the form definition it produces, over the whole vendored corpus.</li>
               <li>The overlay store, its key, and the replay report of what matched, moved, disappeared or became ambiguous.</li>
-              <li>A browser renders the form: a control for each of the eighteen field kinds, repeatable groups, null flavours, and a visible hole where a template determined nothing.</li>
+              <li>A browser renders the form: a control for each of the eighteen field kinds, repeatable groups that open with what the template requires, a reason instead of a value, and a visible hole where a template determined nothing.</li>
               <li>Entered values are judged against the operational template before any request, built into a COMPOSITION, posted over ITS-REST and read back into the same form.</li>
+              <li>That round trip runs against a real CDR on every pull request, not against a mock.</li>
               <li>Releases for four Linux targets, a container image, and a compose file, signed and attested.</li>
             </ul>
           </article>
           <article class="card state state-no">
             <h3>Does not work yet</h3>
             <ul>
-              <li>No round trip has been proven against a running CDR. Every test of the commit path answers a mock, so nothing has yet enforced openEHR's rules back at us.</li>
-              <li>There is no authoring surface for the overlay, so you cannot lay a form out by hand yet. A form renders in template order.</li>
+              <li>There is no authoring surface for the overlay, so you cannot lay a form out by hand yet.</li>
+              <li>The browser honours no overlay either, so the visibility rules the model already carries do not reach a form. It renders in template order and shows every field the template admits.</li>
+              <li>No form can commit. The server serves the routes and the browser has the client for them; what is missing is the control on the form.</li>
               <li>The WCAG 2.2 AA claim is held per screen and has not been audited end to end.</li>
             </ul>
           </article>

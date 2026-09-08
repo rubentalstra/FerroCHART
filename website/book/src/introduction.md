@@ -23,13 +23,19 @@ template admits and refusing the rest.
 That picture was taken by the end-to-end battery rather than by hand, and
 [the renderer](operate/renderer.md) has the rest of the screens.
 
-Two things do not work yet. The layout overlay's authoring surface is not
-built, so a form is drawn in template order; the overlay itself is, including
-its replay across a template revision and its report of what matched, moved or
-disappeared. And the round trip has never run against a real CDR: the whole
-build, validate, post and accept path is exercised against a mock, and the
-test that would prove the claim is [issue #126][live]. What each release adds
-is the [build order](evaluate/build-order.md).
+What does not work yet is the layout overlay, which is half the product. Its
+engine is built, including the replay across a template revision and the
+report of what matched, moved or disappeared. Nobody can author one, because
+the screen for it is not built, and the browser honours none of it either, so
+the visibility rules the model already carries do not reach a form. Until both
+land, a form is drawn in template order and shows every field the template
+admits.
+
+The round trip against a real CDR runs on every pull request
+([issue #126][live] is closed): the lane starts FerroEHR from the release's
+own `compose.yaml`, commits a COMPOSITION FerroCHART built and validated,
+reads it back and compares. What each release adds is the
+[build order](evaluate/build-order.md).
 
 The design of record is [`docs/architecture.md`][arch] in the repository,
 where every decision carries a citation to a primary source or an explicit
