@@ -162,6 +162,10 @@ the build order.
 
 ### Fixed
 
+- The last hand-built archetype identifier in the three-part `template_id`
+  form, in `ferrochart-form`'s wire test. #127 corrected the `.opt` fixtures
+  and its check covers those only, so this one sat in a hand-built key and in
+  the committed wire snapshot, disagreeing with `key.rs`'s own example.
 - The synthetic fixtures stated two shapes the Reference Model does not admit
   (#127), both invisible until the commit gate landed something that judges an
   instance. Ten `.opt` fixtures gave an `archetype_id` a three-part version,
