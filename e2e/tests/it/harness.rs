@@ -261,6 +261,51 @@ impl Page {
             .unwrap_or_default()
     }
 
+    /// Types `text` into the first element matching `selector`, replacing
+    /// whatever was in it.
+    pub(crate) async fn fill(&self, selector: By, text: &str, what: &str) {
+        let element = self.element(selector, what).await;
+        let typed = async {
+            element.clear().await?;
+            element.send_keys(text).await
+        };
+        if let Err(error) = typed.await {
+            panic!("{}", self.failure(what, &error.to_string()).await);
+        }
+    }
+
+    /// Chooses the option whose value is `value` in the first `<select>`
+    /// matching `selector`.
+    pub(crate) async fn choose(&self, selector: By, value: &str, what: &str) {
+        let element = self.element(selector, what).await;
+        let chosen = async {
+            thirtyfour::components::SelectElement::new(&element)
+                .await?
+                .select_by_value(value)
+                .await
+        };
+        if let Err(error) = chosen.await {
+            panic!("{}", self.failure(what, &error.to_string()).await);
+        }
+    }
+
+    /// Waits until the first element matching `selector` reads `wanted`,
+    /// and returns what it read.
+    pub(crate) async fn text_becoming(&self, selector: By, wanted: &str, what: &str) -> String {
+        let deadline = Instant::now() + WAIT;
+        loop {
+            let read = self.texts(selector.clone()).await;
+            if let Some(found) = read.iter().find(|line| line.contains(wanted)) {
+                return found.clone();
+            }
+            if Instant::now() >= deadline {
+                let reason = format!("it reads {read:?}, and {wanted:?} was wanted");
+                panic!("{}", self.failure(what, &reason).await);
+            }
+            tokio::time::sleep(POLL).await;
+        }
+    }
+
     /// Fails when anything matches `selector`.
     ///
     /// The caller anchors on something the same render draws before calling

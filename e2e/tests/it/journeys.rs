@@ -254,3 +254,80 @@ const DECEASED: &str = "Has this family member died?";
 
 /// The questions the overlay hides until that one is answered yes.
 const GATED: [&str; 2] = ["Age at death", "Date of death"];
+
+/// A zone is not an offset, and the form resolves it at the instant entered.
+///
+/// openEHR RM Release-1.1.0 `data_types.html` section 7.2.4 types
+/// `DV_DATE_TIME` on `Iso8601_date_time`, so what a value carries is `Z` or
+/// `±hh:mm` and never a zone name. Europe/Amsterdam is `+01:00` in January and
+/// `+02:00` in July, so one zone and two dates have to produce two offsets, and
+/// that conversion is the thing a clinician should not be doing in their head
+/// (issue #197).
+///
+/// The resolution runs against the browser's own IANA database through
+/// `Intl.DateTimeFormat`, so only a browser can prove it.
+#[tokio::test]
+async fn one_zone_and_two_dates_resolve_to_two_offsets() {
+    let Some(base) = renderer() else {
+        return;
+    };
+    let Some(screen) = Screen::forms()
+        .into_iter()
+        .find(|form| form.stem().is_some_and(|stem| stem == LAID_OUT))
+    else {
+        return;
+    };
+    let address = screen.address(&base);
+    let name = screen.name();
+    let outcome = session()
+        .await
+        .run_and_quit(|driver| async move {
+            let page = Page::open(driver, &name, &address).await;
+            screen.prove(&page).await;
+
+            // The date of birth, which the template admits at any precision
+            // and with a timezone beside it.
+            let under = format!("//main//div[div/span[normalize-space()='{DATED}']]");
+            let part = |name: &str| {
+                By::XPath(format!(
+                    "{under}//label[normalize-space()='{name}']/following-sibling::input"
+                ))
+            };
+            let zone = By::XPath(format!("{under}//select"));
+            let resolved = By::XPath(format!("{under}//span[contains(text(), 'at that moment')]"));
+
+            page.fill(part("Year"), "2026", "the year of the date of birth")
+                .await;
+            page.fill(part("Month"), "1", "the month of the date of birth")
+                .await;
+            page.fill(part("Day"), "15", "the day of the date of birth")
+                .await;
+            page.choose(zone, ZONE, "the timezone beside the date of birth")
+                .await;
+            let winter = page
+                .text_becoming(resolved.clone(), "+01:00", "the offset in force in January")
+                .await;
+
+            page.fill(part("Month"), "7", "the month of the date of birth")
+                .await;
+            let summer = page
+                .text_becoming(resolved, "+02:00", "the offset in force in July")
+                .await;
+
+            assert_ne!(
+                winter, summer,
+                "one zone produced one offset for both halves of the year"
+            );
+            page.quiet().await;
+            Ok::<(), WebDriverError>(())
+        })
+        .await;
+    outcome.expect("the journey ran and the browser session ended cleanly");
+}
+
+/// The field whose timezone the journey above resolves.
+const DATED: &str = "Date of birth";
+
+/// A zone whose offset moves with the season, which is what makes the test
+/// mean anything.
+const ZONE: &str = "Europe/Amsterdam";
