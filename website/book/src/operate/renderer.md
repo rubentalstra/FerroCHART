@@ -85,6 +85,17 @@ up, so a form of dates and counts reads across as well as down instead of
 running several screens. Prose, an attachment, a choice and an interval keep
 the row, because each of them uses the width.
 
+A date, a time or a date and time gets a native picker where the template
+pins one precision. Where it admits several there is no native control that
+collects a partial value, so the components are collected one labelled box at
+a time and the form assembles the ISO 8601 string, padding a number typed
+short. A timezone is picked from the list the browser already carries, and
+the form resolves it to the offset in force at the instant entered, because
+openEHR RM Release-1.1.0 `data_types.html` section 7.2.4 types
+`DV_DATE_TIME` on `Iso8601_date_time` and an offset is what that carries.
+Europe/Amsterdam is `+01:00` in January and `+02:00` in July, and working
+that out is not a clinician's job.
+
 The form above is laid out. Its template asks "Deceased?" as a plain question
 in the middle of nine others; the layout renames it "Has this family member
 died?", moves the alias out of second place, and hides the date and the age at

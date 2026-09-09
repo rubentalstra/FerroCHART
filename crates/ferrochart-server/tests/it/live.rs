@@ -21,6 +21,7 @@ use ferrochart_cdr::error::CdrError;
 use ferrochart_cdr::ids::{CompositionId, VersionedObjectUid};
 use ferrochart_cdr::template::Generation;
 use ferrochart_form::ids::TemplateId;
+use ferrochart_form::values::{Datum, Entered};
 use ferrochart_server::commit::{Commit, CommitError};
 use url::Url;
 
@@ -194,4 +195,135 @@ async fn a_real_cdr_accepts_a_composition_around_a_template_rooted_below_it() {
         "the CDR refused a COMPOSITION FerroCHART validated, which is a \
          FerroCHART defect"
     );
+}
+
+#[tokio::test]
+#[ignore = "needs a running CDR: scripts/test-cdr.sh"]
+async fn a_real_cdr_accepts_a_partial_date_and_gives_it_back_unchanged() {
+    // The browser now collects a partial value one component at a time and
+    // assembles the ISO 8601 string itself (issue #197). What it assembles is
+    // only correct if a CDR takes it, so this commits a year alone and a year
+    // with a month, and reads both back.
+    //
+    // openEHR RM Release-1.1.0 `data_types.html` section 7.1.2.2 builds a
+    // partial value by dropping components from the right, so a year alone is
+    // a `DV_DATE` and not a defective one.
+    let client = client();
+    upload(&client).await;
+
+    let (definition, validator, mut values) = support::case();
+    let envelope = support::envelope();
+
+    let field = definition
+        .fields()
+        .find(|field| {
+            matches!(
+                field.kind,
+                ferrochart_form::field::FieldKind::Date(_)
+                    | ferrochart_form::field::FieldKind::DateTime(_)
+            )
+        })
+        .expect("the committed template collects a date");
+    let dated = matches!(field.kind, ferrochart_form::field::FieldKind::Date(_));
+    let group_path = values
+        .iter()
+        .find(|(slot, _)| slot.key == field.key)
+        .map_or_else(Vec::new, |(slot, _)| slot.group_path.clone());
+
+    // Every prefix the template admits, shortest first, which is what the
+    // component boxes let a reader enter.
+    let admitted: Vec<&str> = if dated {
+        vec!["2026", "2026-09", "2026-09-07"]
+    } else {
+        vec!["2026", "2026-09", "2026-09-07", "2026-09-07T12:00:00"]
+    };
+    let mut taken = 0_usize;
+    for partial in admitted {
+        let datum = if dated {
+            Datum::Date(partial.to_owned())
+        } else {
+            Datum::DateTime(partial.to_owned())
+        };
+        if gate_of(&definition, &validator, &envelope)
+            .validated(&{
+                let mut trial = values.clone();
+                trial.set_in(
+                    field.key.clone(),
+                    group_path.clone(),
+                    0,
+                    Entered::Value(datum.clone()),
+                );
+                trial
+            })
+            .is_err()
+        {
+            // A precision the template refuses is not one the form offers,
+            // so it is not one a CDR should be asked about.
+            continue;
+        }
+        taken = taken.saturating_add(1);
+        values.set_in(
+            field.key.clone(),
+            group_path.clone(),
+            0,
+            Entered::Value(datum),
+        );
+        let gate = gate_of(&definition, &validator, &envelope);
+        let ehr = client.create_ehr().await.expect("the CDR creates an EHR");
+        let written = match gate.create(&client, &ehr, &values).await {
+            Ok(written) => written,
+            Err(CommitError::Rejected { source, diagnosis }) => panic!(
+                "the CDR refused the partial date {partial:?}, which FerroCHART \
+                 validated: {source}\n{:#?}",
+                diagnosis.failures
+            ),
+            Err(other) => panic!("committing {partial:?} failed: {other:?}"),
+        };
+
+        let stored = client
+            .read_composition(
+                &ehr,
+                &CompositionId::LatestVersionOf(VersionedObjectUid::new(
+                    written.version.object().as_str(),
+                )),
+            )
+            .await
+            .expect("the CDR gives the composition back")
+            .expect("the composition is not deleted");
+        let read = ferrochart_compose::read::values(&definition, &stored)
+            .expect("the stored composition reads back into this form");
+        let back = read
+            .values
+            .get_in(&field.key, &group_path, 0)
+            .expect("the partial date reads back onto its own field");
+        let wanted = if dated {
+            Datum::Date(partial.to_owned())
+        } else {
+            Datum::DateTime(partial.to_owned())
+        };
+        assert_eq!(
+            *back,
+            Entered::Value(wanted),
+            "the CDR stored {partial:?} and gave back something else"
+        );
+    }
+
+    assert!(
+        taken >= 2,
+        "only {taken} precisions were exercised, so nothing here proves a \
+         partial value survives"
+    );
+}
+
+/// The gate over one form, for a case that needs several.
+fn gate_of<'c>(
+    definition: &'c ferrochart_form::definition::FormDefinition,
+    validator: &'c ferrochart_validate::template::TemplateValidator,
+    envelope: &'c ferrochart_form::envelope::Envelope,
+) -> Commit<'c> {
+    Commit {
+        definition,
+        validator,
+        envelope,
+    }
 }

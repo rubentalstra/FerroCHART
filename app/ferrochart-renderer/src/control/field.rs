@@ -430,7 +430,13 @@ const fn widest(kind: &FieldKind) -> &'static str {
         | FieldKind::Parsable(_)
         | FieldKind::Multimedia(_)
         | FieldKind::Uri(_)
-        | FieldKind::Choice(_) => "",
+        | FieldKind::Choice(_)
+        // The three temporal kinds cap their own control, because a partial
+        // value is a row of component boxes and a pinned one is a picker,
+        // and the two want different widths (issue #197).
+        | FieldKind::Date(_)
+        | FieldKind::Time(_)
+        | FieldKind::DateTime(_) => "",
         _ => "max-w-md",
     }
 }

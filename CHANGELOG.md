@@ -23,6 +23,16 @@ the build order.
 
 ### Added
 
+- A partial date is collected one component at a time (#197). Where the
+  template pins a precision the field keeps its native picker; where it admits
+  several, no native control collects that, and the fallback used to be one
+  text box whose placeholder was the ADL pattern `YYYY[-MM[-DD]]`. It is now a
+  labelled box per component, on the precedent of the GOV.UK Design System's
+  date input. A number typed short is padded, so 9 for September is written
+  09, and a component to the right of an empty one is refused rather than
+  closed up: openEHR RM Release-1.1.0 `data_types.html` section 7.1.2.2 drops
+  components from the right and has no shape for a hole in the middle.
+
 - A group lays its items on a two-column grid from the medium breakpoint up,
   so a form of dates and counts reads across as well as down (#190). Most
   kinds draw one input and share a line; an attachment, a parsable body, a
@@ -229,6 +239,13 @@ the build order.
   takes." (#178).
 
 ### Fixed
+
+- A timezone picked before the date was resolved against the wrong instant
+  (#197). A zone is not an offset, and the offset was resolved once, when the
+  zone was chosen. A reader who picked Europe/Amsterdam and then typed a
+  January date kept whatever offset was in force at the moment they picked. It
+  is re-resolved whenever the zone or the instant changes. A browser journey
+  pins both halves of the year.
 
 - A date field spent half its width on a timezone it does not collect (#190).
   The temporal control drew a two-column grid whatever the field admits, so a

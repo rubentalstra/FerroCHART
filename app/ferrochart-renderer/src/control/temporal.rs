@@ -12,7 +12,8 @@
 //! for an optional one, `X` for one that is not allowed.
 //!
 //! A native picker collects one precision, so a control uses one where the
-//! template fixes the precision and a typed value where it admits several.
+//! template fixes the precision and collects the components one at a time
+//! where it admits several.
 
 use ferrochart_form::field::{ComponentValidity, DateField, DateTimeField, TimeField};
 use ferrochart_form::values::Datum;
@@ -75,71 +76,196 @@ pub(crate) fn date_time_depth(field: &DateTimeField) -> Depth {
     ])
 }
 
-/// The separator and shape of each component of a date.
-pub(crate) static DATE_PARTS: [(&str, &str, &str); 3] = [
-    ("", "[0-9]{4}", "YYYY"),
-    ("-", "[0-9]{2}", "-MM"),
-    ("-", "[0-9]{2}", "-DD"),
-];
-
-/// The separator and shape of each component of a time.
-pub(crate) static TIME_PARTS: [(&str, &str, &str); 3] = [
-    ("", "[0-9]{2}", "hh"),
-    (":", "[0-9]{2}", ":mm"),
-    (":", "[0-9]{2}(\\.[0-9]+)?", ":ss"),
-];
-
-/// The separator and shape of each component of a date and time.
-pub(crate) static DATE_TIME_PARTS: [(&str, &str, &str); 6] = [
-    ("", "[0-9]{4}", "YYYY"),
-    ("-", "[0-9]{2}", "-MM"),
-    ("-", "[0-9]{2}", "-DD"),
-    ("T", "[0-9]{2}", "Thh"),
-    (":", "[0-9]{2}", ":mm"),
-    (":", "[0-9]{2}(\\.[0-9]+)?", ":ss"),
-];
-
-/// The regular expression a typed value of this depth has to match.
+/// One component of a temporal value.
 ///
-/// A component past the last mandatory one is optional, and optional
-/// components nest, because dropping one drops every component to its right.
-pub(crate) fn pattern_for(parts: &[(&str, &str, &str)], shape: Depth) -> String {
-    let mut expression = String::new();
-    let mut open = 0_usize;
-    for (index, (separator, component, _)) in parts.iter().take(shape.most).enumerate() {
-        if index >= shape.least {
-            expression.push('(');
-            open = open.saturating_add(1);
-        }
-        expression.push_str(separator);
-        expression.push_str(component);
-    }
-    for _ in 0..open {
-        expression.push_str(")?");
-    }
-    expression
+/// The separator and the expression are what openEHR AM Release-2.3.0
+/// `AOM1.4.html` sections 6.2.6 to 6.2.9 constrain. The name and the width are
+/// what a person reads and types, because a partial value is collected one
+/// component at a time rather than typed against the whole pattern
+/// (issue #197).
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct Component {
+    /// What separates this component from the one before it.
+    pub(crate) separator: &'static str,
+    /// The regular expression this component's own text has to match.
+    pub(crate) pattern: &'static str,
+    /// What a person calls this component.
+    pub(crate) name: &'static str,
+    /// How many digits the component is written with, which is the width a
+    /// shorter number is padded to.
+    pub(crate) digits: usize,
 }
 
-/// What a reader is being asked for, where no native control collects it.
+/// The components of a date.
+pub(crate) static DATE_PARTS: [Component; 3] = [
+    Component {
+        separator: "",
+        pattern: "[0-9]{4}",
+        name: "Year",
+        digits: 4,
+    },
+    Component {
+        separator: "-",
+        pattern: "[0-9]{2}",
+        name: "Month",
+        digits: 2,
+    },
+    Component {
+        separator: "-",
+        pattern: "[0-9]{2}",
+        name: "Day",
+        digits: 2,
+    },
+];
+
+/// The components of a time.
+pub(crate) static TIME_PARTS: [Component; 3] = [
+    Component {
+        separator: "",
+        pattern: "[0-9]{2}",
+        name: "Hour",
+        digits: 2,
+    },
+    Component {
+        separator: ":",
+        pattern: "[0-9]{2}",
+        name: "Minute",
+        digits: 2,
+    },
+    Component {
+        separator: ":",
+        pattern: "[0-9]{2}(\\.[0-9]+)?",
+        name: "Second",
+        digits: 2,
+    },
+];
+
+/// The components of a date and time.
+pub(crate) static DATE_TIME_PARTS: [Component; 6] = [
+    Component {
+        separator: "",
+        pattern: "[0-9]{4}",
+        name: "Year",
+        digits: 4,
+    },
+    Component {
+        separator: "-",
+        pattern: "[0-9]{2}",
+        name: "Month",
+        digits: 2,
+    },
+    Component {
+        separator: "-",
+        pattern: "[0-9]{2}",
+        name: "Day",
+        digits: 2,
+    },
+    Component {
+        separator: "T",
+        pattern: "[0-9]{2}",
+        name: "Hour",
+        digits: 2,
+    },
+    Component {
+        separator: ":",
+        pattern: "[0-9]{2}",
+        name: "Minute",
+        digits: 2,
+    },
+    Component {
+        separator: ":",
+        pattern: "[0-9]{2}(\\.[0-9]+)?",
+        name: "Second",
+        digits: 2,
+    },
+];
+
+/// The value the entered components spell, or why they spell none.
 ///
-/// The placeholder is the ADL notation for the depth, and `YYYY[-MM[-DD]]` is
-/// addressed to somebody reading the specification. This says the same thing
-/// in the words a person would use (issue #197).
-pub(crate) fn asked_for(parts: &[(&str, &str, &str)], shape: Depth) -> &'static str {
-    // The component table says which of the three this is: a date and a time
-    // both carry three, and only a date leads with a year.
-    let leads_with = parts.first().map(|(_, _, token)| *token);
-    match (parts.len(), leads_with, shape.least, shape.most) {
-        (3, Some("YYYY"), 1, 2) => "Year, and month if known",
-        (3, Some("YYYY"), 1, 3) => "Year, then month and day if known",
-        (3, Some("YYYY"), 2, 3) => "Year and month, then day if known",
-        (3, Some("hh"), 1, 2) => "Hour, and minutes if known",
-        (3, Some("hh"), 1, 3) => "Hour, then minutes and seconds if known",
-        (3, Some("hh"), 2, 3) => "Hour and minutes, then seconds if known",
-        (6, _, _, 3) => "A date",
-        (6, _, _, _) => "Date, and time if known",
-        _ => "As much of it as you know",
+/// openEHR RM Release-1.1.0 `data_types.html` section 7.1.2.2 builds a partial
+/// value by dropping components from the RIGHT, so a gap in the middle is not
+/// a shorter value: it is a value with nothing to say. A component short of
+/// its width is padded with leading zeros, which is the conversion a person
+/// should not be doing in their head (issue #197).
+///
+/// `Ok(None)` is nothing entered at all, which is not a refusal: a field
+/// nobody has typed into yet is empty rather than wrong.
+pub(crate) fn assembled(
+    parts: &[Component],
+    shape: Depth,
+    entered: &[String],
+) -> Result<Option<String>, Refusal> {
+    let mut spelled = String::new();
+    let mut stated = 0_usize;
+    let mut gapped = false;
+    for (index, part) in parts.iter().take(shape.most).enumerate() {
+        let text = entered.get(index).map_or("", |value| value.trim());
+        if text.is_empty() {
+            gapped = true;
+            continue;
+        }
+        if gapped {
+            // A component to the right of an empty one, which the Reference
+            // Model has no shape for.
+            return Err(Refusal::Malformed);
+        }
+        spelled.push_str(part.separator);
+        spelled.push_str(&padded(text, part.digits));
+        stated = index.saturating_add(1);
     }
+    if stated == 0 {
+        return Ok(None);
+    }
+    if stated < shape.least {
+        return Err(Refusal::Malformed);
+    }
+    Ok(Some(spelled))
+}
+
+/// `text` widened to `digits` with leading zeros, where it is short and
+/// numeric.
+///
+/// A reader who types 9 for September means 09, and a fractional second is
+/// left exactly as typed because padding it would change the number.
+fn padded(text: &str, digits: usize) -> String {
+    if text.len() >= digits || !text.chars().all(|digit| digit.is_ascii_digit()) {
+        return text.to_owned();
+    }
+    let mut padded = String::with_capacity(digits);
+    for _ in text.len()..digits {
+        padded.push('0');
+    }
+    padded.push_str(text);
+    padded
+}
+
+/// The components of a value already in the slot, one entry per component the
+/// depth admits.
+///
+/// A value shorter than the depth leaves the components it does not state
+/// empty, which is what the reader sees and what they can extend.
+fn split_components(parts: &[Component], shape: Depth, value: &str) -> Vec<String> {
+    let mut rest = value;
+    let mut found = Vec::with_capacity(shape.most);
+    for part in parts.iter().take(shape.most) {
+        if rest.is_empty() {
+            found.push(String::new());
+            continue;
+        }
+        let Some(body) = rest.strip_prefix(part.separator) else {
+            found.push(String::new());
+            rest = "";
+            continue;
+        };
+        let end = body
+            .char_indices()
+            .find(|&(_, character)| !character.is_ascii_digit() && character != '.')
+            .map_or(body.len(), |(at, _)| at);
+        let (component, remainder) = body.split_at(end);
+        found.push(component.to_owned());
+        rest = remainder;
+    }
+    found
 }
 
 /// The native input type the depth calls for, where one collects exactly it.
@@ -401,8 +527,8 @@ pub(crate) fn TemporalControl(
     /// The native input type the shape calls for, where one collects exactly
     /// it.
     native: Option<(&'static str, Option<&'static str>)>,
-    /// The component table the pattern and the placeholder are built from.
-    parts: &'static [(&'static str, &'static str, &'static str)],
+    /// The component table the value is built from.
+    parts: &'static [Component],
     /// Whether a timezone is collected beside the value.
     timezone: Option<ComponentValidity>,
     /// Where the value goes.
@@ -436,36 +562,49 @@ pub(crate) fn TemporalControl(
         }
     };
 
-    let (input_type, step) = native.unwrap_or(("text", None));
-    let pattern = native.is_none().then(|| pattern_for(parts, shape));
-    // The pattern still gates what the browser accepts; only what a person
-    // reads changes.
-    let placeholder = native.is_none().then(|| asked_for(parts, shape));
-
-    // A date collects no timezone, so the grid it used to draw kept an empty
-    // half beside it and cut the value's own box down to the other half. The
-    // placeholder read "Year, then month and day if kn" (issue #190).
-    let columns = if offers_zone {
-        "grid gap-2 sm:grid-cols-2"
-    } else {
-        "grid gap-2"
-    };
-
-    view! {
-        <div class=columns>
-            <div>
+    // A native picker collects one precision exactly, and there is none that
+    // collects a partial value, so the components are collected one at a time
+    // where the template admits several (issue #197).
+    //
+    // The value and its timezone sit in one wrapping row rather than in a
+    // two-column grid. A grid gave the value half the width whether or not a
+    // timezone was beside it, which stacked six component boxes one per line
+    // (issues #190 and #197).
+    let body = match native {
+        // The picker is capped rather than given the row: a date is a short
+        // answer and a full-width one reads as a text field.
+        Some((input_type, step)) => view! {
+            <div class="w-full max-w-xs">
                 <input
                     id=slot.id.clone()
                     class=INPUT
                     type=input_type
                     step=step
-                    pattern=pattern
-                    placeholder=placeholder
                     prop:value=move || typed.get()
                     on:input=on_value
                 />
             </div>
-            <Show when=move || offers_zone>
+        }
+        .into_any(),
+        None => view! {
+            <Components
+                parts=parts
+                shape=shape
+                id=slot.id.clone()
+                value=typed
+                record=Callback::new({
+                    let record = record.clone();
+                    move |()| record()
+                })
+                refused=refused
+            />
+        }
+        .into_any(),
+    };
+
+    view! {
+        <div class="flex flex-wrap items-end gap-2">
+            {body} <Show when=move || offers_zone>
                 <Timezone
                     id=zone_id.clone()
                     required=zone_required
@@ -480,6 +619,102 @@ pub(crate) fn TemporalControl(
         </div>
         <RefusalNote refused=refused />
     }
+}
+
+/// The components of a partial value, one small box each.
+///
+/// No native control collects a partial date, and the fallback used to be one
+/// text box carrying the ADL pattern as its placeholder: `YYYY[-MM[-DD]]`, the
+/// specification's notation addressed to a clinician (issue #197). A partial
+/// value is a precision choice, so it is drawn as one, on the precedent of the
+/// GOV.UK Design System's date input, which collects a date a person knows as
+/// separate labelled parts
+/// (<https://design-system.service.gov.uk/components/date-input/>).
+///
+/// A component the template requires is marked required; the rest may be left
+/// empty, and the value stops at the first one that is. Everything to the
+/// right of a gap is refused rather than silently dropped, because openEHR RM
+/// Release-1.1.0 `data_types.html` section 7.1.2.2 drops components from the
+/// right and has no shape for a hole in the middle.
+#[component]
+fn Components(
+    /// The component table this value is built from.
+    parts: &'static [Component],
+    /// How many components the template requires and admits.
+    shape: Depth,
+    /// The identifier the field's own label points at, which the first box
+    /// carries so that label names something.
+    id: String,
+    /// The assembled value.
+    value: RwSignal<String>,
+    /// What recording the value looks like to the caller.
+    record: Callback<()>,
+    /// Where a refusal of the components themselves is reported.
+    refused: RwSignal<Option<Refusal>>,
+) -> impl IntoView {
+    let held = split_components(parts, shape, &value.get_untracked());
+    let entered: Vec<RwSignal<String>> = held.into_iter().map(RwSignal::new).collect();
+    let boxes = StoredValue::new(entered.clone());
+
+    let assemble = move || {
+        let typed: Vec<String> = boxes.with_value(|each| each.iter().map(RwSignal::get).collect());
+        match assembled(parts, shape, &typed) {
+            Ok(spelled) => {
+                refused.set(None);
+                value.set(spelled.unwrap_or_default());
+                record.run(());
+            }
+            Err(refusal) => refused.set(Some(refusal)),
+        }
+    };
+
+    let drawn: Vec<_> = parts
+        .iter()
+        .take(shape.most)
+        .enumerate()
+        .map(|(index, part)| {
+            let held = entered.get(index).copied().unwrap_or_else(|| {
+                // Unreachable: `entered` is built from the same table and the
+                // same depth. An empty signal draws an empty box rather than
+                // panicking on a request path.
+                RwSignal::new(String::new())
+            });
+            let required = index < shape.least;
+            let box_id = if index == 0 {
+                id.clone()
+            } else {
+                format!("{id}-{}", part.name.to_ascii_lowercase())
+            };
+            // The width is on the box rather than on the input, because the
+            // input carries `w-full` and a second width class on the same
+            // element is decided by the stylesheet's order rather than by
+            // this one.
+            let width = if part.digits > 2 { "w-24" } else { "w-20" };
+            view! {
+                <div class=width>
+                    <label class=LABEL for=box_id.clone()>
+                        {part.name}
+                    </label>
+                    <input
+                        id=box_id
+                        class=INPUT
+                        type="text"
+                        inputmode="numeric"
+                        maxlength=part.digits.saturating_add(4)
+                        pattern=part.pattern
+                        required=required
+                        prop:value=move || held.get()
+                        on:input=move |event| {
+                            held.set(event_target_value(&event));
+                            assemble();
+                        }
+                    />
+                </div>
+            }
+        })
+        .collect();
+
+    view! { <div class="flex flex-wrap items-end gap-2">{drawn}</div> }
 }
 
 /// The timezone beside a time, chosen from the list the platform carries.
@@ -530,18 +765,36 @@ fn Timezone(
             .collect()
     });
 
+    // A zone is not an offset: Europe/Amsterdam is +01:00 in January and
+    // +02:00 in July, and `Iso8601_date_time` carries the offset (openEHR RM
+    // Release-1.1.0 `data_types.html` section 7.2.4). So the offset is
+    // resolved against the instant, and re-resolved whenever either the zone
+    // or the instant changes. Resolving only on the pick left a summer offset
+    // on a value the reader afterwards moved to January.
+    Effect::new(move |_| {
+        let picked = chosen.get();
+        let at = instant.get();
+        if picked.is_empty() {
+            return;
+        }
+        let resolved = crate::zone::offset_at(&picked, &at).unwrap_or_default();
+        if zone.get_untracked() == resolved {
+            return;
+        }
+        zone.set(resolved);
+        record.run(());
+    });
+
     let pick = move |event: leptos::ev::Event| {
         let picked = event_target_value(&event);
         if picked.is_empty() {
             chosen.set(String::new());
             zone.set(String::new());
-        } else {
-            let at = instant.get_untracked();
-            let resolved = crate::zone::offset_at(&picked, &at);
-            chosen.set(picked);
-            zone.set(resolved.unwrap_or_default());
+            record.run(());
+            return;
         }
-        record.run(());
+        // The effect above resolves it, so the pick only says which zone.
+        chosen.set(picked);
     };
     let typed = move |event: leptos::ev::Event| {
         zone.set(event_target_value(&event));
@@ -592,7 +845,8 @@ mod tests {
 
     use super::{
         DATE_PARTS, DATE_TIME_PARTS, Depth, TIME_PARTS, admit_date, admit_date_time, admit_time,
-        date_depth, date_time_depth, depth, native_date, pattern_for, time_depth, timezone_admits,
+        assembled, date_depth, date_time_depth, depth, native_date, split_components, time_depth,
+        timezone_admits,
     };
     use crate::control::admit::Refusal;
 
@@ -645,7 +899,7 @@ mod tests {
     }
 
     #[test]
-    fn a_fixed_precision_gets_a_native_picker_and_an_open_one_gets_a_pattern() {
+    fn a_fixed_precision_gets_a_native_picker_and_an_open_one_gets_its_components() {
         assert_eq!(
             native_date(Depth { least: 3, most: 3 }),
             Some(("date", None))
@@ -657,16 +911,121 @@ mod tests {
         assert_eq!(native_date(Depth { least: 1, most: 3 }), None);
     }
 
+    /// The components a reader typed, as the control holds them.
+    fn boxes(typed: &[&str]) -> Vec<String> {
+        typed.iter().map(|&text| text.to_owned()).collect()
+    }
+
     #[test]
-    fn the_pattern_nests_every_component_past_the_last_mandatory_one() {
+    fn the_value_stops_at_the_first_component_a_reader_left_empty() {
+        // RM Release-1.1.0 `data_types.html` section 7.1.2.2: components drop
+        // from the right, so leaving the day empty is a year and a month.
+        let shape = Depth { least: 1, most: 3 };
         assert_eq!(
-            pattern_for(&DATE_PARTS, Depth { least: 1, most: 3 }),
-            "[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?"
+            assembled(&DATE_PARTS, shape, &boxes(&["2026", "09", ""])),
+            Ok(Some("2026-09".to_owned()))
         );
         assert_eq!(
-            pattern_for(&DATE_PARTS, Depth { least: 3, most: 3 }),
-            "[0-9]{4}-[0-9]{2}-[0-9]{2}"
+            assembled(&DATE_PARTS, shape, &boxes(&["2026", "", ""])),
+            Ok(Some("2026".to_owned()))
         );
+        assert_eq!(
+            assembled(&DATE_PARTS, shape, &boxes(&["2026", "09", "08"])),
+            Ok(Some("2026-09-08".to_owned()))
+        );
+    }
+
+    #[test]
+    fn nothing_typed_at_all_is_empty_rather_than_refused() {
+        let shape = Depth { least: 1, most: 3 };
+        assert_eq!(
+            assembled(&DATE_PARTS, shape, &boxes(&["", "", ""])),
+            Ok(None)
+        );
+    }
+
+    #[test]
+    fn a_component_to_the_right_of_a_gap_is_refused() {
+        // The Reference Model has no shape for a hole in the middle, so the
+        // day is not silently dropped and the month is not silently invented.
+        let shape = Depth { least: 1, most: 3 };
+        assert_eq!(
+            assembled(&DATE_PARTS, shape, &boxes(&["2026", "", "08"])),
+            Err(Refusal::Malformed)
+        );
+    }
+
+    #[test]
+    fn a_value_short_of_what_the_template_requires_is_refused() {
+        let shape = Depth { least: 3, most: 3 };
+        assert_eq!(
+            assembled(&DATE_PARTS, shape, &boxes(&["2026", "09", ""])),
+            Err(Refusal::Malformed)
+        );
+        assert_eq!(
+            assembled(&DATE_PARTS, shape, &boxes(&["2026", "09", "8"])),
+            Ok(Some("2026-09-08".to_owned()))
+        );
+    }
+
+    #[test]
+    fn a_number_a_reader_typed_short_is_padded_rather_than_refused() {
+        // Typing 9 for September is what a person does, and turning it into
+        // 09 is the conversion they should not be doing themselves (#197).
+        let shape = Depth { least: 1, most: 6 };
+        assert_eq!(
+            assembled(
+                &DATE_TIME_PARTS,
+                shape,
+                &boxes(&["2026", "9", "8", "7", "5", "3"])
+            ),
+            Ok(Some("2026-09-08T07:05:03".to_owned()))
+        );
+    }
+
+    #[test]
+    fn a_fractional_second_is_left_exactly_as_it_was_typed() {
+        // Padding it would change the number rather than its width.
+        let shape = Depth { least: 1, most: 3 };
+        assert_eq!(
+            assembled(&TIME_PARTS, shape, &boxes(&["14", "30", "15.5"])),
+            Ok(Some("14:30:15.5".to_owned()))
+        );
+    }
+
+    #[test]
+    fn a_value_already_entered_comes_back_as_the_components_that_spell_it() {
+        let shape = Depth { least: 1, most: 3 };
+        assert_eq!(
+            split_components(&DATE_PARTS, shape, "2026-09"),
+            boxes(&["2026", "09", ""])
+        );
+        assert_eq!(
+            split_components(&DATE_PARTS, shape, ""),
+            boxes(&["", "", ""])
+        );
+    }
+
+    #[test]
+    fn every_component_a_reader_sees_is_named_in_their_language() {
+        // The control used to be one box carrying `YYYY[-MM[-DD]]`, which is
+        // the ADL notation addressed to a clinician (issue #197).
+        for table in [
+            DATE_PARTS.as_slice(),
+            TIME_PARTS.as_slice(),
+            DATE_TIME_PARTS.as_slice(),
+        ] {
+            for part in table {
+                assert!(!part.name.contains('['), "{}", part.name);
+                assert!(
+                    part.name.chars().all(|letter| letter.is_ascii_alphabetic()),
+                    "{}",
+                    part.name
+                );
+            }
+        }
+        assert_eq!(DATE_PARTS[0].name, "Year");
+        assert_eq!(TIME_PARTS[0].name, "Hour");
     }
 
     #[test]
@@ -726,8 +1085,12 @@ mod tests {
             Err(Refusal::TooCoarse)
         );
         assert_eq!(
-            pattern_for(&DATE_TIME_PARTS, Depth { least: 5, most: 5 }),
-            "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}"
+            assembled(
+                &DATE_TIME_PARTS,
+                Depth { least: 5, most: 5 },
+                &boxes(&["2026", "09", "08", "14", "30"])
+            ),
+            Ok(Some("2026-09-08T14:30".to_owned()))
         );
     }
 
@@ -764,36 +1127,6 @@ mod tests {
         assert_eq!(
             depth(&[ComponentValidity::Optional, ComponentValidity::Optional]),
             Depth { least: 1, most: 3 }
-        );
-    }
-    #[test]
-    fn a_partial_date_is_asked_for_in_words_and_never_in_adl() {
-        // The placeholder was `YYYY[-MM[-DD]]`, which is the notation and not
-        // the question (issue #197).
-        for shape in [
-            Depth { least: 1, most: 2 },
-            Depth { least: 1, most: 3 },
-            Depth { least: 2, most: 3 },
-        ] {
-            let said = super::asked_for(&DATE_PARTS, shape);
-            assert!(!said.contains("YYYY"), "{said}");
-            assert!(!said.contains('['), "{said}");
-            assert!(said.to_lowercase().contains("year"), "{said}");
-        }
-    }
-
-    #[test]
-    fn a_partial_time_and_a_partial_date_are_told_apart() {
-        let shape = Depth { least: 1, most: 3 };
-        let lowered = |said: &str| said.to_lowercase();
-        assert!(lowered(super::asked_for(&TIME_PARTS, shape)).contains("hour"));
-        assert!(lowered(super::asked_for(&DATE_PARTS, shape)).contains("year"));
-        assert!(
-            lowered(super::asked_for(
-                &DATE_TIME_PARTS,
-                Depth { least: 1, most: 6 }
-            ))
-            .contains("date")
         );
     }
 }
