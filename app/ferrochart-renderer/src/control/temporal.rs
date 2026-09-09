@@ -442,8 +442,17 @@ pub(crate) fn TemporalControl(
     // reads changes.
     let placeholder = native.is_none().then(|| asked_for(parts, shape));
 
+    // A date collects no timezone, so the grid it used to draw kept an empty
+    // half beside it and cut the value's own box down to the other half. The
+    // placeholder read "Year, then month and day if kn" (issue #190).
+    let columns = if offers_zone {
+        "grid gap-2 sm:grid-cols-2"
+    } else {
+        "grid gap-2"
+    };
+
     view! {
-        <div class="grid gap-2 sm:grid-cols-2">
+        <div class=columns>
             <div>
                 <input
                     id=slot.id.clone()

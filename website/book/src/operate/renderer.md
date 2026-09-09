@@ -47,8 +47,10 @@ naming the file, so a template listed here is a template that became a form.
 
 ## A form
 
-The screen a clinician works on. Field order is template order and grouping is
-the Reference Model tree, so this screen decides no layout of its own.
+The screen a clinician works on. What the template admits comes from the
+template; how the questions are ordered, named and revealed comes from the
+layout a person authored over it, where the server serves one. A deployment
+with no layout gets template order and the Reference Model tree.
 
 ![A form compiled from an operational template, with its groups and controls](img/renderer/form-family-history-summary-item-r2.png)
 
@@ -59,16 +61,17 @@ its description, and the way to add one. openEHR AM Release-2.3.0
 `AOM1.4.html` section 4.3.6 makes `occurrences` the count a node may appear
 in, so a lower bound of zero is the template saying none of that section is a
 complete answer. The battery opens one before it takes the picture, which is
-why the form below is longer than the one a reader first meets.
+why the pictures show a form with a family member in it.
 
-Each group is a card headed by the label the template gave it. A group whose
-occurrences allow more than one carries its bound as a badge and an add and
-remove pair, and it opens showing the occurrences the template requires. Each
-field draws the control its Reference Model type and its constraint call for:
-a quantity gets a magnitude and the units the template permits, a coded text
-gets a selection over its value set, a date gets the precision the template
-allows. A mandatory field is marked. Content the template left undetermined is
-drawn as a visible hole at the top of the form rather than dropped.
+Each group is a card headed by the name a person gave it, or by the one the
+template gave it. A group whose occurrences allow more than one carries its
+bound as a badge and an add and remove pair, and it opens showing the
+occurrences the template requires. Each field draws the control its Reference
+Model type and its constraint call for: a quantity gets a magnitude and the
+units the template permits, a coded text gets a selection over its value set,
+a date gets the precision the template allows. A mandatory field is marked.
+Content the template left undetermined is drawn as a visible hole rather than
+dropped.
 
 A field carries a value or a reason there is none, and never both: openEHR RM
 Release-1.1.0 `data_structures.html` section 5.2.3 gives `ELEMENT` no state
@@ -77,12 +80,23 @@ that holds the two together. So a field draws its value control and a quiet
 sitting under it. Answering "unknown" is rare and entering a value is the
 reason the form is open, so only one of them takes the width.
 
-Two strings in that picture read oddly, and both are the template's own. The
-archetype's structure node carries the text "Tree" and the description
-"@ internal @", and the compiler passes each through as the group's label and
-its help, because nothing here may invent a label the template did not state.
-Giving that node a name a clinician recognizes is exactly the work the layout
-overlay exists for.
+A question with a short answer takes half the row from the medium breakpoint
+up, so a form of dates and counts reads across as well as down instead of
+running several screens. Prose, an attachment, a choice and an interval keep
+the row, because each of them uses the width.
+
+The form above is laid out. Its template asks "Deceased?" as a plain question
+in the middle of nine others; the layout renames it "Has this family member
+died?", moves the alias out of second place, and hides the date and the age at
+death until the answer is yes. None of that is in the template, and none of it
+could be: openEHR publishes no form artefact, so field order, labels, help
+text, defaults and conditional visibility are all authored. The layout is
+stored separately and keyed by node, which is what lets a template revision
+replay it rather than destroy it.
+
+`FERROCHART_OVERLAYS` is where the server reads them from
+([Configuration](configuration.md)). The surface a person authors one **on**
+is not built yet; the one this book shows was written by hand.
 
 ![A second form, over a different operational template](img/renderer/form-alcohol-consumption-summary-item-r2.png)
 
