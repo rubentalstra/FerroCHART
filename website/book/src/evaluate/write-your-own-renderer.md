@@ -26,20 +26,33 @@ of this tree but `ferrochart-form`, which is the crate that holds the
 published types and no I/O. That check exists to keep this promise honest
 rather than aspirational: if the renderer needed the compiler, so would you.
 
-## The three documents
+## The four documents
 
 | Document | Direction | Rust type |
 |---|---|---|
 | the form definition | the server writes, a client reads | `ferrochart_form::definition::FormDefinition` |
+| the layout | the server writes, a client reads | `ferrochart_form::layout::FormLayout` |
 | the entered values | a client writes, the server reads | `ferrochart_form::values::FormValues` |
 | the validation report | the server writes, a client reads | `ferrochart_form::validation::ValidationReport` |
 
-All three state `format_version`, and all three move together. A client reads
-the number first and refuses a document it does not know, rather than guessing
-at a shape that may have changed underneath it.
+Every one states `format_version` and a client reads that number first,
+refusing a document it does not know rather than guessing at a shape that may
+have changed underneath it.
 
-**The current version is 2.** Version 1 tagged its enums internally; version 2
-tags them externally, which is the shape described below.
+**The definition, the values and the report move together, and the current
+version is 2.** Version 1 tagged its enums internally; version 2 tags them
+externally, which is the shape described below.
+
+**The layout has a version line of its own, and the current version is 1.**
+The two documents change for different reasons: a definition changes when the
+derivation does, and a layout changes when what a person may author does. One
+number for both would refuse a layout that is in its current format.
+
+A layout decorates a definition and never replaces it. It says the order the
+items come in, the label and help text over the archetype's, the value a field
+starts with, and when an item is shown; it cannot make a field admit a value
+the template refuses. A template nobody laid out answers with a layout that
+decides nothing, so a client always has one to read.
 
 ## Reading a definition
 

@@ -13,7 +13,7 @@ terminology server to expand the value sets behind coded fields.
 ## What a template becomes
 
 The compiler works. It reads both ADL generations, and 121 of the 123
-committed CKM templates derive a form definition, 2658 fields across 1789
+committed CKM templates derive a form definition, 2621 fields across 1775
 groups. The server publishes that definition and a browser draws it, with a
 control for every field kind the derivation produces, each admitting what its
 template admits and refusing the rest.
@@ -23,13 +23,14 @@ template admits and refusing the rest.
 That picture was taken by the end-to-end battery rather than by hand, and
 [the renderer](operate/renderer.md) has the rest of the screens.
 
-What does not work yet is the layout overlay, which is half the product. Its
-engine is built, including the replay across a template revision and the
-report of what matched, moved or disappeared. Nobody can author one, because
-the screen for it is not built, and the browser honours none of it either, so
-the visibility rules the model already carries do not reach a form. Until both
-land, a form is drawn in template order and shows every field the template
-admits.
+The other half of the product is the layout overlay, which carries everything
+no specification governs: the order the questions come in, the names and help
+text a person writes over the archetype's, the values a form starts with, and
+the rules that decide when a question appears. The engine is built, including
+the replay across a template revision and the report of what matched, moved or
+disappeared, and the browser reads one, so a form grows as it is answered
+rather than asking everything at once. What is missing is the screen a person
+authors one on: today a layout is written by hand.
 
 The round trip against a real CDR runs on every pull request
 ([issue #126][live] is closed): the lane starts FerroEHR from the release's

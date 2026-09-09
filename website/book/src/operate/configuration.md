@@ -61,6 +61,34 @@ operator installed, or picked between two by filesystem order, would be
 silently wrong, and a form drawn in template order because the server dropped
 a layout is the failure the overlay exists to prevent.
 
+## The routes
+
+No specification governs any of these. openEHR ITS-REST Release-1.1.0 defines
+a CDR's API and says nothing about the API of a form server in front of one,
+so every path, body and status is FerroCHART's own. What the bodies carry is
+not ours to invent: they are `ferrochart-form`'s published contract, and this
+surface transports them unchanged
+([Write your own renderer](../evaluate/write-your-own-renderer.md)).
+
+| Route | What it answers |
+|---|---|
+| `GET /health` | That this process is up, without authentication. It says nothing about the CDR or the terminology server. |
+| `GET /api/templates` | The template identifiers this server holds. |
+| `GET /api/templates/{template_id}/definition` | The form that template compiles to. |
+| `GET /api/templates/{template_id}/layout` | The layout a person authored over it. A template nobody laid out answers with a layout that decides nothing. |
+| `POST /api/templates/{template_id}/validation` | The failures in a set of entered values, keyed onto the form. It makes no request to the CDR. |
+| `POST /api/ehrs/{ehr_id}/templates/{template_id}/compositions` | Builds, validates and commits. `201` with the version uid. |
+| `GET /api/ehrs/{ehr_id}/compositions/{uid}/values?template={template_id}` | A stored COMPOSITION, read back into the values of that form. |
+
+The `{uid}` takes either form ITS-REST accepts: one carrying `::` names a
+version, and one without it names the versioned object and resolves to its
+latest.
+
+An unknown template is `404`, a body the route cannot read is `400`, and
+values the template refuses are `422` carrying the report. A CDR that refused
+or never answered is `502`, carrying the CDR's own status and body rather than
+a flattened default. A composition the CDR reports as deleted is `410`.
+
 ## The renderer
 
 The published image serves the form renderer at `/ui/`, and `/ui` redirects

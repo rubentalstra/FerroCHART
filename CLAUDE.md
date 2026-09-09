@@ -72,9 +72,11 @@ code.
 - `.claude/`: `rules/` (the path-scoped and standing rules), `hooks/`,
   `skills/`, `agents/`, `memory/`.
 - `scripts/gh/`: the tracker helpers (`rel.sh`, `project.sh`, `labels.sh`).
-- `scripts/checks/`: the committed guards (`comment-style.sh`, and
-  `versions.sh`, which fails when a file disagrees with the `docs/VERSIONS.md`
-  pin matrix or claims a licence other than `BUSL-1.1`).
+- `scripts/checks/`: the committed guards. `comment-style.sh`, `changelog.sh`,
+  `site.sh` (the published site quotes the version this tree releases and the
+  corpus figures its own suite asserts), and `versions.sh`, which fails when a
+  file disagrees with the `docs/VERSIONS.md` pin matrix or claims a licence
+  other than `BUSL-1.1`.
 - `.github/`: issue and pull-request templates, CODEOWNERS, Dependabot, and
   five workflows that work on a repository with no code (CI, CodeQL, Scorecard,
   SonarQube Cloud, Release). `ci.yml` runs its workflow, shell, container and

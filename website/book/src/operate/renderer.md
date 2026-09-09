@@ -177,11 +177,15 @@ settings screen for the endpoints it uses are both still frames.
 the client for them, and what is missing is the control on the form. So every
 screen here is a read.
 
-**The browser honours no layout overlay.** The model carries visibility rules,
-and the renderer reads none of them, so a form is drawn in template order and
-shows every field the template admits. Until that lands, a form asks every
-question the template has rather than the ones that follow from the answers
-given.
+**Nobody can author a layout on a screen.** The browser reads one and the
+store writes one, so the layout this book shows was written by hand. That is
+the authoring surface above, and it is the largest thing missing.
+
+**A section and a column grid reach no screen.** The overlay model carries
+both, and the renderer reads the order, the labels, the help text, the
+defaults and the visibility rules and ignores those two. Nothing stored is
+discarded; a form laid out in sections draws in the Reference Model tree until
+they land.
 
 ## Running the battery yourself
 

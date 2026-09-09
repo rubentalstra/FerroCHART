@@ -99,9 +99,10 @@ flags verbatim: `cargo fmt --all --check`; `cargo clippy --workspace
 `RUSTDOCFLAGS=-D warnings`; `cargo deny check` (advisories, licences, bans,
 sources, which subsumes cargo-audit); MSRV via `cargo hack check
 --rust-version`; `dependency-review-action` on pull requests; and the
-`comment-style.sh`, `crate-closure.sh`, `serde-json-features.sh` and
-`docs-shots.sh` guards (`comment-style.sh` at `--all`). **Always `--locked`**,
-so CI fails on lockfile drift rather than on registry drift. Commit
+`comment-style.sh`, `crate-closure.sh`, `serde-json-features.sh`,
+`docs-shots.sh`, `changelog.sh` and `site.sh` guards (`comment-style.sh` at
+`--all`). **Always `--locked`**, so CI fails on lockfile drift rather than on
+registry drift. Commit
 `Cargo.lock`.
 
 The browser journeys are their own lane, `ui-e2e`, running

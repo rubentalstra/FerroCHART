@@ -11,7 +11,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>FerroCHART: an openEHR form builder in pure Rust</title>
-  <meta name="description" content="FerroCHART compiles an openEHR operational template into a form definition and keeps hand-authored layout in a separate overlay, so a template revision replays that layout and reports what it did to it. Today it is a compiler: 121 of the 123 vendored openEHR CKM templates derive a form, 2658 fields across 1789 groups, both ADL generations read. Nothing renders a form to a clinician yet. Business Source License 1.1.">
+  <meta name="description" content="FerroCHART compiles an openEHR operational template into a form definition, renders it in a browser, and commits the result to any openEHR CDR over ITS-REST. Hand-authored layout lives in a separate overlay, so a template revision replays that layout and reports what it did to it. 121 of the 123 vendored openEHR CKM templates derive a form, 2621 fields across 1775 groups, both ADL generations read. Business Source License 1.1.">
   <link rel="icon" type="image/svg+xml" href="./assets/brand/favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="./assets/brand/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="./assets/brand/favicon-16.png">
@@ -26,7 +26,7 @@
   <meta property="og:url" content="https://ferrochart.eu/">
   <meta property="og:site_name" content="FerroCHART">
   <meta property="og:title" content="FerroCHART: an openEHR form builder in pure Rust">
-  <meta property="og:description" content="An openEHR operational template compiled into a form definition, with hand-authored layout in a separate overlay that a template revision replays and reports on. Today it is a compiler, and nothing renders a form to a clinician yet.">
+  <meta property="og:description" content="An openEHR operational template compiled into a form definition, rendered in a browser and committed to any openEHR CDR. Hand-authored layout lives in a separate overlay that a template revision replays and reports on.">
   <meta property="og:image" content="https://ferrochart.eu/assets/brand/ferrochart-social.png">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -81,8 +81,9 @@
           Reference Model type and the constraint at each node. The layout,
           labels, and visibility rules a person authors on top live in a
           separate overlay, so a template revision replays that work and
-          reports what happened to it. A browser renders the form, and the page
-          below says exactly where the line still is.
+          reports what happened to it. A browser renders the form and reads
+          that overlay, so a form grows as it is answered. The page below says
+          exactly where the line still is.
         </p>
         <div class="cta">
           <a class="btn btn-primary" href="./docs/">Read the documentation</a>
@@ -117,12 +118,12 @@
           </div>
           <div class="figure">
             <span class="figure-name">Fields derived</span>
-            <span class="figure-big">2658</span>
+            <span class="figure-big">2621</span>
             <span class="figure-cap">Each with the units, value set, date precision, or repeatability its node constrains.</span>
           </div>
           <div class="figure">
             <span class="figure-name">Groups they sit in</span>
-            <span class="figure-big">1789</span>
+            <span class="figure-big">1775</span>
             <span class="figure-cap">A <code>CLUSTER</code> whose upper occurrence is above one becomes a repeatable group.</span>
           </div>
           <div class="figure">
@@ -132,9 +133,13 @@
           </div>
         </div>
         <p class="figures-note">
-          Measured over the 123 templates this repository vendors. The
+          Measured over the 123 templates this repository vendors, by the test
+          suite of the commit this page was built from. Every figure is an
+          assertion rather than a note: a change to any of them fails the
+          build, and <code>scripts/checks/site.sh</code> fails when this page
+          and the suite disagree. The
           <a href="./docs/evaluate/build-order.html">build order</a> says what
-          each release adds, and the tracker is the live version.
+          each release added, and the tracker is the live version.
         </p>
       </div>
     </section>
@@ -277,8 +282,9 @@
               and a standalone <code>compose.yaml</code>. Every asset is
               checksummed and carries a Sigstore attestation, so you can check
               where a binary came from before you trust it. The published
-              binary reads its configuration, binds a listener, and answers a
-              health probe; the routes that do the work arrive with the client.
+              binary carries the form surface and the renderer in one process:
+              it compiles the operational templates you point it at, answers
+              the API, and serves the screens at <code>/ui</code>.
             </p>
             <ul>
               <li><a href="./docs/operate/configuration.html">Configuration</a></li>
@@ -331,6 +337,7 @@
               <li>The derivation table and the form definition it produces, over the whole vendored corpus.</li>
               <li>The overlay store, its key, and the replay report of what matched, moved, disappeared or became ambiguous.</li>
               <li>A browser renders the form: a control for each of the eighteen field kinds, repeatable groups that open with what the template requires, a reason instead of a value, and a visible hole where a template determined nothing.</li>
+              <li>The browser reads the layout a person authored: the order they put the questions in, the names and help text they wrote over the archetype's, the values a form starts with, and the rules that decide when a question appears. So a form grows as it is answered rather than asking everything at once.</li>
               <li>Entered values are judged against the operational template before any request, built into a COMPOSITION, posted over ITS-REST and read back into the same form.</li>
               <li>That round trip runs against a real CDR on every pull request, not against a mock.</li>
               <li>Releases for four Linux targets, a container image, and a compose file, signed and attested.</li>
@@ -339,8 +346,7 @@
           <article class="card state state-no">
             <h3>Does not work yet</h3>
             <ul>
-              <li>There is no authoring surface for the overlay, so you cannot lay a form out by hand yet.</li>
-              <li>The browser honours no overlay either, so the visibility rules the model already carries do not reach a form. It renders in template order and shows every field the template admits.</li>
+              <li>There is no authoring surface for the overlay. The browser reads one and the store writes one, so a layout is written by hand today rather than laid out on a screen.</li>
               <li>No form can commit. The server serves the routes and the browser has the client for them; what is missing is the control on the form.</li>
               <li>The WCAG 2.2 AA claim is held per screen and has not been audited end to end.</li>
             </ul>
