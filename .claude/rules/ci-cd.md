@@ -15,7 +15,7 @@ Actions Security Cheat Sheet, SLSA v1.2, OpenSSF Scorecard, and Sigstore.
 
 ## What runs today
 
-Six workflows:
+Seven workflows:
 
 - `.github/workflows/ci.yml`: the two-tier gate. Tier 1 runs now (zizmor,
   actionlint, shellcheck, hadolint, the comment-style guard, the versions
@@ -40,6 +40,12 @@ Six workflows:
   every event, and deploys only on a push to `main` or a dispatch. A pull
   request verifies the book and never publishes it. The custom domain is a
   Pages setting rather than a committed `CNAME` file.
+- `.github/workflows/released.yml`: the browser battery against the artefact a
+  reader downloads. It pulls the published container image, starts it over the
+  committed templates and the committed layout, and drives it. Weekly, because
+  the subject is a release that has already been cut and a pull request cannot
+  change it. An image that answers `/health` and serves no `/ui` fails the run
+  naming it (issue #166).
 - `.github/workflows/release.yml`: the release lane, dormant until a `v*` tag
   is pushed. It validates the tag, checks it against every file that declares
   the product version, takes the release notes from the matching

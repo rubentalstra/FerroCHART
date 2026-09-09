@@ -27,4 +27,5 @@
 mod docs_shots;
 mod harness;
 mod journeys;
+mod released;
 mod screens;

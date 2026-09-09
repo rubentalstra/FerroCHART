@@ -22,6 +22,15 @@ pub(crate) const WEBDRIVER_ENV: &str = "FERROCHART_UI_E2E_WEBDRIVER";
 /// The `WebDriver` endpoint used when [`WEBDRIVER_ENV`] is unset.
 const DEFAULT_WEBDRIVER: &str = "http://127.0.0.1:4444";
 
+/// Says the deployment is a published release rather than a build of this
+/// tree.
+///
+/// The one screen it changes is the style guide, which is behind the `design`
+/// cargo feature and is deliberately not in a release bundle: drawing every
+/// affordance a second time cost 51506 gzipped bytes of a clinician's
+/// download (issue #154). A battery driving a release does not look for it.
+pub(crate) const RELEASED_ENV: &str = "FERROCHART_UI_E2E_RELEASED";
+
 /// Names the directory a failed wait writes its evidence into.
 pub(crate) const FAILURES_ENV: &str = "FERROCHART_UI_E2E_FAILURES";
 
@@ -108,6 +117,14 @@ while ((node = walker.nextNode())) {
   if (hit) { found.push(hit[0] + ' in \"' + text.slice(0, 120) + '\"'); }
 }
 return found.slice(0, 20);";
+/// Whether the deployment under test is a published release.
+pub(crate) fn released() -> bool {
+    // Empty counts as unset. The battery exports the variable on every run
+    // and leaves it empty for a build of this tree, so an emptiness that read
+    // as true would skip the style guide everywhere.
+    std::env::var(RELEASED_ENV).is_ok_and(|said| !said.is_empty() && said != "0")
+}
+
 /// The renderer under test, or `None` when nothing names one.
 pub(crate) fn renderer() -> Option<String> {
     match std::env::var(BASE_URL_ENV) {

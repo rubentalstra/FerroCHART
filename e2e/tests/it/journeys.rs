@@ -8,7 +8,7 @@
 
 use thirtyfour::prelude::*;
 
-use crate::harness::{Page, renderer, session};
+use crate::harness::{Page, released, renderer, session};
 use crate::screens::{Screen, Theme, ground, wear};
 
 /// Opens `screen` in a session of its own and runs its proof.
@@ -52,6 +52,11 @@ async fn every_form_the_server_holds_draws_its_controls() {
 
 #[tokio::test]
 async fn the_design_system_draws_every_affordance() {
+    if released() {
+        // A release bundle carries no style guide, deliberately: it cost
+        // 51506 gzipped bytes of a clinician's download (issue #154).
+        return;
+    }
     drive(&Screen::Design).await;
 }
 
@@ -107,18 +112,20 @@ async fn the_ground_a_reader_chose_survives_the_next_screen() {
         return;
     };
     let library = Screen::Templates;
-    let design = Screen::Design;
+    // Settings rather than the style guide: this journey only needs a second
+    // screen, and a release bundle carries no style guide (issue #154).
+    let next_screen = Screen::Settings;
     let first = library.address(&base);
-    let next = design.address(&base);
+    let next = next_screen.address(&base);
     let outcome = session()
         .await
         .run_and_quit(|driver| async move {
             let mut page = Page::open(driver, &library.name(), &first).await;
             library.prove(&page).await;
             wear(&page, Theme::Dark).await;
-            page.now_on(&design.name());
-            page.go(&design.name(), &next).await;
-            design.prove(&page).await;
+            page.now_on(&next_screen.name());
+            page.go(&next_screen.name(), &next).await;
+            next_screen.prove(&page).await;
             assert_eq!(
                 ground(&page).await,
                 Theme::Dark.class(),
@@ -141,7 +148,10 @@ async fn no_screen_names_the_reference_model_at_the_reader() {
     let Some(base) = renderer() else {
         return;
     };
-    let mut screens = vec![Screen::Templates, Screen::Design];
+    let mut screens = vec![Screen::Templates];
+    if !released() {
+        screens.push(Screen::Design);
+    }
     screens.extend(Screen::forms());
     for screen in &screens {
         let address = screen.address(&base);

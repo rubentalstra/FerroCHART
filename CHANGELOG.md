@@ -23,6 +23,15 @@ the build order.
 
 ### Added
 
+- The browser battery drives the published container image (#166).
+  `scripts/ui-e2e.sh --image REF` pulls it, starts it over the same two
+  committed templates and the same committed layout, and drives it with the
+  same browser, building nothing from the tree. An image that answers
+  `/health` and serves no `/ui` fails the run naming it, which is the one
+  thing the mode exists to catch. It runs only the journeys that hold for
+  every release, because the image is usually the last release and the rest
+  assert what this tree does. The `released` workflow runs it weekly.
+
 - `scripts/checks/site.sh`, which fails when the published site disagrees with
   the tree it describes (#196). It checks that every version the landing page
   states is the version this tree releases, and that every corpus figure the
