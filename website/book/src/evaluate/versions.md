@@ -23,9 +23,9 @@ different numbers and are never conflated.
 
 ## The model crates
 
-`openehr-base`, `openehr-rm`, `openehr-am`, `openehr-adl`, `openehr-its` and
-`openehr-query`, pinned together because the line releases in lockstep and each
-patch is its own compatibility set.
+`openehr-base`, `openehr-rm`, `openehr-am`, `openehr-adl`, `openehr-its`,
+`openehr-query` and `openehr-term`, pinned together because the line releases
+in lockstep and each patch is its own compatibility set.
 
 The FHIR model is `fhir-types`, generated from the published HL7 FHIR packages
 and released on a lockstep line of its own. FerroCHART reads its R4 module, to

@@ -35,6 +35,8 @@ itself when the workspace landed.
 | `comment-style` | `scripts/checks/comment-style.sh --all` |
 | `versions` | `scripts/checks/versions.sh` |
 | `docs-shots` | `scripts/checks/docs-shots.sh`, over the book's committed screenshots |
+| `changelog` | `scripts/checks/changelog.sh`, over the shape Keep a Changelog gives `CHANGELOG.md` |
+| `site` | `scripts/checks/site.sh`, over the version and the corpus figures the published site quotes |
 
 Each of these was in place before the file it guards, which is the point.
 `hadolint` lints `docker/Dockerfile`, `comment-style` reads the workspace's

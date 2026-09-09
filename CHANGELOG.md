@@ -23,6 +23,15 @@ the build order.
 
 ### Added
 
+- `scripts/checks/site.sh`, which fails when the published site disagrees with
+  the tree it describes (#196). It checks that every version the landing page
+  states is the version this tree releases, and that every corpus figure the
+  site quotes is the figure the test suite asserts. The landing page said 2658
+  fields across 1789 groups against a suite asserting 2621 and 1775, and its
+  own meta description, which is what a search result shows, said "Nothing
+  renders a form to a clinician yet". Prose stays review-enforced: a sentence
+  saying a shipped capability is unbuilt reads exactly like a true one.
+
 - A partial date is collected one component at a time (#197). Where the
   template pins a precision the field keeps its native picker; where it admits
   several, no native control collects that, and the fallback used to be one
@@ -92,6 +101,16 @@ the build order.
   coverage found #191.
 
 ### Changed
+
+- The published site says what is built (#196). Every page in `SUMMARY.md`
+  was read against the code: the landing page no longer says the product
+  renders nothing, the operations card no longer says the routes that do the
+  work have not arrived, the status list says the browser reads a layout, the
+  build order carries the current figures and names the milestones after it,
+  and the renderer page no longer says the browser honours no overlay. The
+  book gains the route table the "write your own renderer" page was already
+  pointing at, and names the layout as the fourth published document with a
+  version line of its own.
 
 - **The frame stops spending a fifth of the window on nothing** (#193). A
   320-pixel Inspector panel reading "Select a node to edit its layout" was
