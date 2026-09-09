@@ -14,6 +14,7 @@
 //! behind would commit a document they cannot see.
 
 use ferrochart_form::definition::FormDefinition;
+use ferrochart_form::field::FieldKind;
 use ferrochart_form::group::{FormGroup, FormItem, GroupShape};
 use ferrochart_form::ids::LanguageTag;
 use ferrochart_form::key::NodeKey;
@@ -117,7 +118,7 @@ pub(crate) fn GroupView(
                                     {format!("Entry {}", occurrence.saturating_add(1))}
                                 </p>
                             </Show>
-                            {contents(&group, state, &inside, &language)}
+                            {laid_out(&group, state, &inside, &language)}
                         </div>
                     }
                 })
@@ -238,6 +239,63 @@ fn ranked(laid: &Laid, item: &FormItem, index: usize) -> u32 {
         .unwrap_or_else(|| u32::try_from(index).unwrap_or(u32::MAX))
 }
 
+/// Everything one occurrence of a group holds, laid out on its grid.
+///
+/// The grid is two columns from the medium breakpoint up and one below it. A
+/// question with a short answer takes one column and everything else takes the
+/// row, so a form of dates and counts reads across as well as down instead of
+/// running several screens (issue #190). No specification governs this: our
+/// own design.
+fn laid_out(group: &FormGroup, state: FormState, inside: &Path, language: &LanguageTag) -> AnyView {
+    let cells: Vec<_> = contents(group, state, inside, language)
+        .into_iter()
+        .map(|item| {
+            let width = if item.narrow { "" } else { "md:col-span-2" };
+            view! { <div class=format!("min-w-0 {width}")>{item.view}</div> }
+        })
+        .collect();
+    view! { <div class="grid grid-cols-1 items-start gap-x-4 gap-y-3 md:grid-cols-2">{cells}</div> }
+        .into_any()
+}
+
+/// One item of a group, and how much of the row it takes.
+struct Drawn {
+    /// Whether the item is a short answer that can share a line.
+    narrow: bool,
+    /// The item.
+    view: AnyView,
+}
+
+impl Drawn {
+    /// An item that takes the whole row: a nested card, a hole, or a control
+    /// whose answer needs the width.
+    fn wide(view: AnyView) -> Self {
+        Self {
+            narrow: false,
+            view,
+        }
+    }
+}
+
+/// Whether a field's answer is short enough to share a line.
+///
+/// No specification governs this: our own design, and it is a different
+/// question from [`crate::control::field`]'s cap on how wide one control may
+/// run. Most kinds draw one input and share, so the list is what needs the
+/// row: an attachment and a parsable body, a choice and an interval because
+/// each draws a control inside a control, and an identifier because it draws
+/// four boxes of its own.
+const fn shares_a_line(kind: &FieldKind) -> bool {
+    !matches!(
+        *kind,
+        FieldKind::Multimedia(_)
+            | FieldKind::Parsable(_)
+            | FieldKind::Choice(_)
+            | FieldKind::Interval(_)
+            | FieldKind::Identifier(_)
+    )
+}
+
 /// Everything one occurrence of a group holds: its items, then the holes the
 /// template left in it.
 fn contents(
@@ -245,7 +303,7 @@ fn contents(
     state: FormState,
     inside: &Path,
     language: &LanguageTag,
-) -> Vec<AnyView> {
+) -> Vec<Drawn> {
     let laid = Laid::from_context();
     let mut ordered: Vec<(u32, &FormItem)> = group
         .items
@@ -254,59 +312,76 @@ fn contents(
         .map(|(index, item)| (ranked(&laid, item, index), item))
         .collect();
     ordered.sort_by_key(|&(rank, _)| rank);
-    let mut drawn: Vec<AnyView> = ordered
-        .into_iter()
-        .map(|(_, item)| match *item {
+    let mut drawn = Vec::with_capacity(ordered.len());
+    for (_, item) in ordered {
+        match *item {
             FormItem::Group(ref nested) if is_plumbing(nested) => {
-                // A plumbing node draws nothing of its own, so a rule on it
-                // governs everything it holds.
-                gated(&laid, &nested.key, state, inside, {
+                // A plumbing node draws nothing of its own, so its items join
+                // this group's grid rather than starting one of their own, and
+                // a rule on it governs every one of them.
+                if laid.rules(&nested.key) {
+                    let key = nested.key.clone();
+                    drawn.push(Drawn::wide(gated(&laid, &key, state, inside, {
+                        let nested = (**nested).clone();
+                        let inside = inside.clone();
+                        let language = language.clone();
+                        move || laid_out(&nested, state, &inside, &language)
+                    })));
+                } else {
+                    drawn.extend(contents(nested, state, inside, language));
+                }
+            }
+            FormItem::Group(ref nested) => {
+                drawn.push(Drawn::wide(gated(&laid, &nested.key, state, inside, {
                     let nested = (**nested).clone();
                     let inside = inside.clone();
                     let language = language.clone();
-                    move || contents(&nested, state, &inside, &language).into_any()
-                })
+                    move || {
+                        view! {
+                            <GroupView
+                                group=nested.clone()
+                                state=state
+                                path=inside.clone()
+                                language=language.clone()
+                            />
+                        }
+                        .into_any()
+                    }
+                })));
             }
-            FormItem::Group(ref nested) => gated(&laid, &nested.key, state, inside, {
-                let nested = (**nested).clone();
-                let inside = inside.clone();
-                let language = language.clone();
-                move || {
-                    view! {
-                        <GroupView
-                            group=nested.clone()
-                            state=state
-                            path=inside.clone()
-                            language=language.clone()
-                        />
+            FormItem::Field(ref field) => {
+                let narrow = shares_a_line(&field.kind);
+                let view = gated(&laid, &field.key, state, inside, {
+                    let field = (**field).clone();
+                    let inside = inside.clone();
+                    let language = language.clone();
+                    move || {
+                        view! {
+                            <FieldView
+                                field=field.clone()
+                                state=state
+                                path=inside.clone()
+                                language=language.clone()
+                            />
+                        }
+                        .into_any()
                     }
-                    .into_any()
-                }
-            }),
-            FormItem::Field(ref field) => gated(&laid, &field.key, state, inside, {
-                let field = (**field).clone();
-                let inside = inside.clone();
-                let language = language.clone();
-                move || {
-                    view! {
-                        <FieldView
-                            field=field.clone()
-                            state=state
-                            path=inside.clone()
-                            language=language.clone()
-                        />
-                    }
-                    .into_any()
-                }
-            }),
+                });
+                drawn.push(Drawn { narrow, view });
+            }
             // `FormItem` is `#[non_exhaustive]`, so the compiler asks for
             // this arm.
-            _ => view! { <Notice tone=Tone::Warn title="This renderer does not know this kind of item." /> }
-            .into_any(),
-        })
-        .collect();
+            _ => drawn.push(Drawn::wide(
+                view! { <Notice tone=Tone::Warn title="This renderer does not know this kind of item." /> }
+                .into_any(),
+            )),
+        }
+    }
     drawn.extend(group.undetermined.iter().map(|content| {
-        view! { <UndeterminedView content=content.clone() language=language.clone() /> }.into_any()
+        Drawn::wide(
+            view! { <UndeterminedView content=content.clone() language=language.clone() /> }
+                .into_any(),
+        )
     }));
     drawn
 }

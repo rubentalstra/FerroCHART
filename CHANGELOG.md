@@ -23,6 +23,14 @@ the build order.
 
 ### Added
 
+- A group lays its items on a two-column grid from the medium breakpoint up,
+  so a form of dates and counts reads across as well as down (#190). Most
+  kinds draw one input and share a line; an attachment, a parsable body, a
+  choice, an interval and an identifier keep the row, because each draws a
+  control inside a control or four boxes of its own. Measured from the
+  capture, the two committed corpus forms are 1568 and 2143 pixels tall,
+  against 4190 and 3934 when the issue was filed.
+
 - The renderer reads the layout a person authored, which is half the product
   and until now the browser read none of it (#201). A form is drawn in the
   order they put its items in, under the names and the help text they wrote
@@ -221,6 +229,11 @@ the build order.
   takes." (#178).
 
 ### Fixed
+
+- A date field spent half its width on a timezone it does not collect (#190).
+  The temporal control drew a two-column grid whatever the field admits, so a
+  date got one column of it and its placeholder read "Year, then month and day
+  if kn". The grid is one column where there is no zone to put in the second.
 
 - A field the template fixed drew the sentence "The template fixed this
   value" instead of the value, and one the template also said may be absent
