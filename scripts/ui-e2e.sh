@@ -6,6 +6,7 @@
 # (https://www.w3.org/TR/webdriver2/).
 #
 #   scripts/ui-e2e.sh
+#   scripts/ui-e2e.sh --image REF
 #   scripts/ui-e2e.sh --base-url URL --webdriver URL
 #   scripts/ui-e2e.sh --docs-shots
 #
@@ -35,10 +36,11 @@
 # and FERROCHART_UI_E2E_FORMS has to name them, or the journeys fail on a
 # library that lists something else.
 #
-# The published container image carries the server binary and no bundle, and
-# the server serves no /ui route, so there is no released artefact that answers
-# the addresses below. That is issue #166, and it is why this script serves the
-# renderer with Trunk rather than running compose.yaml.
+# With --image it pulls a published container image, starts it with the same
+# staged templates and the committed layout mounted, and drives that. Nothing
+# is built from the tree, so the run answers a different question from the one
+# above: whether the artefact a reader downloads carries a renderer at all. An
+# image that answers /health and serves no /ui fails the run naming it.
 #
 # No CDR and no terminology server are started. Every screen the battery drives
 # is a pure read of the form surface: the template library, the forms those
@@ -111,10 +113,12 @@ readonly BROWSER_SESSIONS=4
 base_url=""
 webdriver=""
 docs_shots=""
+image=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --base-url) base_url=$2; shift 2 ;;
     --webdriver) webdriver=$2; shift 2 ;;
+    --image) image=$2; shift 2 ;;
     --docs-shots) docs_shots=1; shift ;;
     *) echo "ui-e2e: unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -123,6 +127,11 @@ done
 if { [[ -n "$base_url" ]] && [[ -z "$webdriver" ]]; } ||
    { [[ -z "$base_url" ]] && [[ -n "$webdriver" ]]; }; then
   echo "ui-e2e: --base-url and --webdriver are given together or not at all" >&2
+  exit 2
+fi
+
+if [[ -n "$image" ]] && [[ -n "$base_url" ]]; then
+  echo "ui-e2e: --image starts a deployment and --base-url drives one you have" >&2
   exit 2
 fi
 
@@ -214,8 +223,10 @@ wait_for_http() {
 server_pid=""
 renderer_pid=""
 browser=""
+deployment=""
 cleanup() {
   [[ -z "$browser" ]] || docker rm -f "$browser" >/dev/null 2>&1 || true
+  [[ -z "$deployment" ]] || docker rm -f "$deployment" >/dev/null 2>&1 || true
   [[ -z "$renderer_pid" ]] || kill "$renderer_pid" 2>/dev/null || true
   [[ -z "$server_pid" ]] || kill "$server_pid" 2>/dev/null || true
   rm -f "$TRUNK_RUN"
@@ -239,7 +250,61 @@ for stem in "${TEMPLATES[@]}"; do
   echo "   $stem -> $identifier"
 done
 
-if [[ -z "$base_url" ]]; then
+if [[ -n "$image" ]]; then
+  # The published artefact, driven as a reader would meet it: one container
+  # serving the API and the renderer from the same origin, with the staged
+  # templates and the committed layout mounted where a reader would mount
+  # their own. Nothing here is built from the tree, which is the point
+  # (issue #166).
+  need docker "the released mode runs the image and the browser as containers"
+  docker info >/dev/null 2>&1 ||
+    { echo "ui-e2e: docker is installed but not running" >&2; exit 1; }
+
+  trap cleanup EXIT
+
+  api_port="$(free_port 8140)"
+  deployment="ferrochart-ui-e2e-released-$$"
+  echo "== $image on 127.0.0.1:$api_port"
+  docker pull --quiet "$image" >/dev/null
+  # The two endpoints are required at startup and no screen the battery drives
+  # reaches either, so they name a port nothing listens on: a screen that did
+  # call one fails on a refused connection rather than rendering something
+  # that looks answered.
+  docker run --detach --name "$deployment" \
+    --publish "127.0.0.1:$api_port:8080" \
+    --volume "$STAGED:/srv/templates:ro" \
+    --volume "$OVERLAYS:/srv/overlays:ro" \
+    --env FERROCHART_LISTEN=0.0.0.0:8080 \
+    --env FERROCHART_CDR_URL=http://127.0.0.1:1/openehr \
+    --env FERROCHART_TERM_URL=http://127.0.0.1:1/r4 \
+    --env FERROCHART_TEMPLATES=/srv/templates \
+    --env FERROCHART_OVERLAYS=/srv/overlays \
+    --env "RUST_LOG=${RUST_LOG:-info}" \
+    "$image" >/dev/null
+  wait_for_http "http://127.0.0.1:$api_port/health" "$image" "" "$deployment" "$READY_TIMEOUT"
+
+  # The whole reason this mode exists. An image that serves the API and no
+  # renderer answers every probe above and draws no screen, which is what
+  # shipping the bundle nowhere looked like before #166.
+  curl -sf "http://127.0.0.1:$api_port/ui/" >/dev/null 2>&1 || {
+    echo "ui-e2e: $image answers /health and serves no /ui, so it carries no renderer" >&2
+    docker logs "$deployment" >&2 || true
+    exit 1
+  }
+
+  webdriver_port="$(free_port 4444)"
+  browser="ferrochart-ui-e2e-$$"
+  echo "== the browser on 127.0.0.1:$webdriver_port"
+  docker run --detach --name "$browser" --shm-size 2g \
+    --add-host "$RENDERER_HOST:host-gateway" \
+    --env "SE_NODE_MAX_SESSIONS=$BROWSER_SESSIONS" \
+    --env SE_NODE_OVERRIDE_MAX_SESSIONS=true \
+    --publish "127.0.0.1:$webdriver_port:4444" "$BROWSER_IMAGE" >/dev/null
+  wait_for_http "http://127.0.0.1:$webdriver_port/status" "the browser" "" "$browser" "$READY_TIMEOUT"
+
+  base_url="http://$RENDERER_HOST:$api_port"
+  webdriver="http://127.0.0.1:$webdriver_port"
+elif [[ -z "$base_url" ]]; then
   need docker "the managed mode runs the browser as a container"
   need trunk "the pin is in docs/VERSIONS.md; the bundle is what the journeys drive"
   docker info >/dev/null 2>&1 ||
@@ -325,6 +390,11 @@ fi
 rm -rf "$FAILURES_DIR"
 mkdir -p "$FAILURES_DIR"
 
+# The style guide is behind the `design` cargo feature and a release bundle
+# drops it, so a battery driving one does not look for it.
+released=""
+[[ -z "$image" ]] || released=1
+
 echo "== the journeys, against $base_url through $webdriver"
 # The journeys live outside the workspace, for the reason e2e/Cargo.toml
 # records, so they are run by manifest path rather than by package.
@@ -332,13 +402,25 @@ echo "== the journeys, against $base_url through $webdriver"
 # The capture pass is excluded by a nextest set difference, so it never runs
 # beside the journeys and never writes an image nobody asked for
 # (https://nexte.st/docs/filtersets/).
+#
+# A run against a published image drives only the `released::` journeys. The
+# rest assert what THIS tree does, and the image is usually the last release,
+# so they would go red on the day the lane was most useful. The `released::`
+# set asserts only what every release has to carry, and it runs in every mode
+# so it cannot rot.
+if [[ -n "$image" ]]; then
+  selection='test(/^released::/)'
+else
+  selection='binary(it) - test(/^docs_shots::/)'
+fi
 FERROCHART_UI_E2E_BASE_URL="$base_url" \
   FERROCHART_UI_E2E_WEBDRIVER="$webdriver" \
   FERROCHART_UI_E2E_FAILURES="$FAILURES_DIR" \
   FERROCHART_UI_E2E_FORMS="$forms" \
+  FERROCHART_UI_E2E_RELEASED="$released" \
   cargo nextest run --manifest-path e2e/Cargo.toml --locked \
     --test-threads "$BROWSER_SESSIONS" \
-    -E 'binary(it) - test(/^docs_shots::/)'
+    -E "$selection"
 
 # The documentation capture, which is the one thing here that writes into the
 # checkout. It runs after the journeys, so an image is only ever taken of a

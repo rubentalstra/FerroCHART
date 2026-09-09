@@ -199,6 +199,19 @@ serves the bundle, and runs the browser in a container. A journey that fails
 writes a screenshot and the whole document into `target/ui-e2e-failures`, and
 the CI job uploads that directory when a run fails.
 
+To drive the published container image instead of a build of this tree:
+
+```console
+$ scripts/ui-e2e.sh --image ghcr.io/rubentalstra/ferrochart:0.1.0
+```
+
+It pulls the image, starts it over the same two templates and the same
+committed layout, and drives it with the same browser. An image that answers
+`/health` and serves no `/ui` fails the run naming it, which is the one thing
+this mode exists to catch. It runs only the journeys that hold for every
+release, because the image is usually the last release and the rest assert
+what this tree does. The `released` workflow runs it weekly.
+
 To drive a deployment you already have, name both ends:
 
 ```console

@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: Ruben Talstra
+# SPDX-License-Identifier: BUSL-1.1
+
+# The browser battery against the artefact a reader downloads.
+#
+# Every other lane drives a build of this tree. This one pulls the published
+# container image, starts it over the same two committed templates and the
+# committed layout, and drives it with a real browser. It answers one question
+# the tree can never answer for itself: whether the thing on the registry
+# carries a renderer at all (issue #166).
+#
+# Weekly rather than per pull request, because the subject is a release that
+# has already been cut. A pull request cannot change it, and pulling an image
+# on every push would spend the runner on something the push did not touch.
+name: released
+
+on:
+  schedule:
+    # Monday, early. Nothing here races a release cut, which happens on a tag.
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+    inputs:
+      image:
+        description: The image to drive, defaulting to the version this tree releases.
+        required: false
+        type: string
+
+permissions: {}
+
+jobs:
+  battery:
+    name: the published image draws its screens
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-rust
+        with:
+          cache-key: released
+
+      - uses: taiki-e/install-action@0758d235715de2f3551eacc980d9ae8fce9342c3 # v2.87.3
+        with:
+          tool: cargo-nextest
+
+      # The tag the tree releases, unless the dispatch named one. A scheduled
+      # run therefore drives the release this branch describes, which is what
+      # makes a red lane mean the published artefact is wrong rather than that
+      # somebody typed a tag.
+      - name: The image to drive
+        id: subject
+        env:
+          NAMED: ${{ inputs.image }}
+        run: |
+          set -euo pipefail
+          if [ -n "${NAMED}" ]; then
+            echo "image=${NAMED}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          version="$(sed -nE 's/^version[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' Cargo.toml | head -n1)"
+          [ -n "$version" ] || { echo "root Cargo.toml states no version" >&2; exit 1; }
+          echo "image=ghcr.io/${{ github.repository_owner }}/ferrochart:${version}" >> "$GITHUB_OUTPUT"
+
+      - name: The battery, against the published image
+        env:
+          IMAGE: ${{ steps.subject.outputs.image }}
+        run: bash scripts/ui-e2e.sh --image "${IMAGE}"
+
+      - if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: released-failures
+          path: target/ui-e2e-failures
+          if-no-files-found: ignore
